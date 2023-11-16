@@ -6,13 +6,13 @@ This thing simply watches your private “Liked” playlist and adds any tracks 
 
 #### Usage
 
-You could just use the instance I run for myself ([spotify.zak.bz](https://spotify.zak.bz)), I don't mind. If you'd like to run it yourself:
+You could just use the instance I run for myself ([spotify.zak.fm](https://spotify.zak.fm)), I don't mind. If you'd like to run it yourself:
 
-1. clone it
-2. make Spotify developer app
-3. add creds to `config.toml`
+1. Clone this repo
+2. Make Spotify developer app
+3. Add creds to `config.toml`
 4. `cargo run` or `cargo build`
-5. visit [`localhost:4000`](http://localhost:4000)
+5. Go to [`localhost:4000`](http://localhost:4000)
 
 #### Thanks
 
