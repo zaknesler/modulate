@@ -10,8 +10,8 @@ You could just use the instance I run for myself ([spotify.zak.fm](https://spoti
 
 1. Clone this repo
 2. Make Spotify developer app
-3. Add creds to `config.toml`
-4. `cargo run` or `cargo build`
+3. Add creds to `.config/local.toml`
+4. `cargo run`
 5. Go to [`localhost:4000`](http://localhost:4000)
 
 #### Thanks
