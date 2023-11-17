@@ -6,3 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+config = "0.13.3"
+rspotify = "0.12.0"
+serde = { version = "1.0.192", features = ["derive"] }
+thiserror = "1.0.50"

@@ -1,0 +1,10 @@
+debug = true
+
+[web]
+host = "0.0.0.0"
+port = 4000
+
+[spotify]
+client_id = "change_me"
+client_secret = "change_me"
+redirect_uri = "http://localhost:4000/api/redirect"
