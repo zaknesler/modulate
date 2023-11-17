@@ -4,12 +4,9 @@ use axum::{
     Json,
 };
 use serde_json::{json, Value};
-use thiserror::Error;
 
-pub type SpotifyResult<T> = Result<T, SpotifyError>;
-
-#[derive(Error, Debug)]
-pub enum SpotifyError {
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
 
@@ -26,7 +23,7 @@ pub enum SpotifyError {
     AddrParseError(#[from] std::net::AddrParseError),
 }
 
-impl IntoResponse for SpotifyError {
+impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let (status, error) = match self {
             _ => {

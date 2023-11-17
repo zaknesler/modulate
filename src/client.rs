@@ -1,8 +1,6 @@
 use rspotify::{ClientCredsSpotify, Credentials};
 
-use crate::error::SpotifyResult;
-
-pub async fn create_client(config: &crate::config::Config) -> SpotifyResult<ClientCredsSpotify> {
+pub async fn create_client(config: &crate::config::Config) -> crate::Result<ClientCredsSpotify> {
     let creds = Credentials {
         id: config.spotify.client_id.clone(),
         secret: Some(config.spotify.client_secret.clone()),

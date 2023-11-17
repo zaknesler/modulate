@@ -1,8 +1,5 @@
-use std::path;
-
 use serde::Deserialize;
-
-use crate::error::SpotifyResult;
+use std::path;
 
 const CONFIG_DIR: &str = ".config";
 const CONFIG_ENV_PREFIX: &str = "SPOTIFY";
@@ -40,7 +37,7 @@ pub struct SpotifyConfig {
 }
 
 impl Config {
-    pub fn try_parse() -> SpotifyResult<Config> {
+    pub fn try_parse() -> crate::Result<Config> {
         let dir = path::Path::new(CONFIG_DIR);
 
         Ok(CONFIG_FILE_PRECEDENCE

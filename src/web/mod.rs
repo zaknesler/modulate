@@ -1,12 +1,12 @@
-use crate::error::SpotifyResult;
 use anyhow::anyhow;
 use axum::http::{header, HeaderValue, Method};
 use tower_http::trace::TraceLayer;
 
 mod context;
 mod router;
+mod view;
 
-pub async fn serve(config: &crate::config::Config) -> SpotifyResult<()> {
+pub async fn serve(config: &crate::config::Config) -> crate::Result<()> {
     tracing::info!(
         "Starting web server on {}:{}",
         &config.web.host,

@@ -1,12 +1,12 @@
-use error::SpotifyResult;
-
 mod client;
 mod config;
 mod error;
 mod web;
 
+pub type Result<T> = std::result::Result<T, crate::error::Error>;
+
 #[tokio::main]
-async fn main() -> SpotifyResult<()> {
+async fn main() -> Result<()> {
     let config = crate::config::Config::try_parse()?;
 
     // Initialize tracing
