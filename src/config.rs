@@ -8,20 +8,31 @@ const CONFIG_DIR: &str = ".config";
 const CONFIG_ENV_PREFIX: &str = "SPOTIFY";
 const CONFIG_FILE_PRECEDENCE: [&str; 2] = ["default.toml", "local.toml"];
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Config {
-    pub debug: bool,
+    pub log_level: LogLevel,
     pub web: WebConfig,
     pub spotify: SpotifyConfig,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum LogLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct WebConfig {
     pub host: String,
     pub port: u16,
+    pub allowed_origins: Vec<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SpotifyConfig {
     pub client_id: String,
     pub client_secret: String,
@@ -40,5 +51,17 @@ impl Config {
             .add_source(::config::Environment::with_prefix(CONFIG_ENV_PREFIX))
             .build()?
             .try_deserialize()?)
+    }
+}
+
+impl From<LogLevel> for tracing::metadata::LevelFilter {
+    fn from(log_level: LogLevel) -> Self {
+        match log_level {
+            LogLevel::Trace => tracing::metadata::LevelFilter::TRACE,
+            LogLevel::Debug => tracing::metadata::LevelFilter::DEBUG,
+            LogLevel::Info => tracing::metadata::LevelFilter::INFO,
+            LogLevel::Warn => tracing::metadata::LevelFilter::WARN,
+            LogLevel::Error => tracing::metadata::LevelFilter::ERROR,
+        }
     }
 }
