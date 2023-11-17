@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 use crate::error::SpotifyResult;
 
-const CONFIG_DIR: &str = "config";
+const CONFIG_DIR: &str = ".config";
 const CONFIG_ENV_PREFIX: &str = "SPOTIFY";
 const CONFIG_FILE_PRECEDENCE: [&str; 2] = ["default.toml", "local.toml"];
 
