@@ -1,7 +1,5 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <form action="/auth" method="post">
-    <button>Sign in with Spotify</button>
-  </form>
+  <a href="{{ auth_url }}">Sign in with Spotify</a>
 {% endblock content %}

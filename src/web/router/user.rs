@@ -18,7 +18,7 @@ async fn get_user(
     Path(username): Path<String>,
     State(ctx): State<ApiContext>,
 ) -> crate::Result<impl IntoResponse> {
-    let client = crate::client::create_client(&ctx.config).await?;
+    let client = crate::client::create_anonymous_client(&ctx.config).await?;
     let user = client.user(UserId::from_id(username)?).await?;
 
     Ok(Json(json!({ "data": user })))

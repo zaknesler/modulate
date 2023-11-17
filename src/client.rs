@@ -1,6 +1,8 @@
-use rspotify::{ClientCredsSpotify, Credentials};
+use rspotify::{scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth};
 
-pub async fn create_client(config: &crate::config::Config) -> crate::Result<ClientCredsSpotify> {
+pub async fn create_anonymous_client(
+    config: &crate::config::Config,
+) -> crate::Result<ClientCredsSpotify> {
     let creds = Credentials {
         id: config.spotify.client_id.clone(),
         secret: Some(config.spotify.client_secret.clone()),
@@ -9,4 +11,23 @@ pub async fn create_client(config: &crate::config::Config) -> crate::Result<Clie
     let client = ClientCredsSpotify::new(creds);
     client.request_token().await?;
     Ok(client)
+}
+
+pub fn create_oauth_client(config: &crate::config::Config) -> AuthCodeSpotify {
+    let creds = Credentials {
+        id: config.spotify.client_id.clone(),
+        secret: Some(config.spotify.client_secret.clone()),
+    };
+
+    let oauth = OAuth {
+        scopes: scopes!(
+            "playlist-read-private",
+            "playlist-modify-private",
+            "user-library-read"
+        ),
+        redirect_uri: config.spotify.callback_uri.clone(),
+        ..Default::default()
+    };
+
+    AuthCodeSpotify::with_config(creds, oauth, Config::default())
 }

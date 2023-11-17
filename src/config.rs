@@ -33,7 +33,7 @@ pub struct WebConfig {
 pub struct SpotifyConfig {
     pub client_id: String,
     pub client_secret: String,
-    pub redirect_uri: String,
+    pub callback_uri: String,
 }
 
 impl Config {
