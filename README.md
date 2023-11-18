@@ -1,8 +1,8 @@
 ### spotify sync
 
-I like keeping my "Liked" Spotify tracks in a playlist organized by year, e.g. a playlist called *2023*, but I can't do that if I’m driving or don't want to open the app.
+I like having my favorite Spotify tracks sorted by year, e.g. a playlist called *2023* but it's annoying to add tracks to playlists manually.
 
-This thing simply watches your private “Liked” playlist and adds any tracks to a playlist you select (it syncs them at 11:55pm that night), then removes them from your "Liked" playlist.
+Basically, this app moves tracks from your private "Liked" playlist to any other playlist you choose, basically treating it as a buffer so you can press ❤️ and go on with your obviously busy life. Once you connect your Spotify account and select a playlist, it'll stay running and auto-transfer your tracks every night.
 
 #### Usage
 
@@ -19,7 +19,7 @@ If you'd like to run a local version for yourself:
 
 This project utilizes the following:
 
-- rspotify — for interacting w/ Spotify API
-- axum — to provide a web API/interface
-- askama — for HTML templating so we don't waste precious bytes with pointless JS
+- [rspotify](https://github.com/ramsayleung/rspotify) — for interacting w/ Spotify API
+- [axum](https://github.com/tokio-rs/axum) — to provide a web API/interface
+- [askama](https://github.com/djc/askama) — for HTML templating so we don't waste precious bytes with pointless JS
 - you — I love you, let's get married please
