@@ -1,10 +1,12 @@
-use crate::web::{context::ApiContext, middleware::auth};
-use axum::{middleware, response::IntoResponse, routing::get, Extension, Json, Router};
-use rspotify::{prelude::*, Token};
-use serde_json::json;
+use crate::{
+    context::AppContext,
+    web::{middleware::auth, view::UserTemplate},
+};
+use axum::{middleware, response::IntoResponse, routing::get, Extension, Router};
+use rspotify::{prelude::*, AuthCodeSpotify};
 use std::sync::Arc;
 
-pub fn router(ctx: Arc<ApiContext>) -> Router {
+pub fn router(ctx: Arc<AppContext>) -> Router {
     Router::new()
         .route("/me", get(get_current_user))
         .route_layer(middleware::from_fn_with_state(
@@ -14,9 +16,12 @@ pub fn router(ctx: Arc<ApiContext>) -> Router {
         .with_state(ctx)
 }
 
-async fn get_current_user(Extension(token): Extension<Token>) -> crate::Result<impl IntoResponse> {
-    let client = crate::client::create_from_token(&token);
+async fn get_current_user(
+    Extension(client): Extension<AuthCodeSpotify>,
+) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
 
-    Ok(Json(json!({ "data": user })))
+    Ok(UserTemplate {
+        name: user.id.to_string().split(':').last().unwrap().to_owned(),
+    })
 }

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <style>
+    .user {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+  </style>
+{% endblock head %}
+
+{% block content %}
+  <div class="user">
+    <h2>{{ name }}</h2>
+    <p>Hello there.</p>
+  </div>
+{% endblock content %}

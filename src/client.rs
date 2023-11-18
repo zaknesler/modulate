@@ -34,6 +34,6 @@ pub fn create_oauth_client(config: &crate::config::Config) -> AuthCodeSpotify {
     AuthCodeSpotify::with_config(creds, oauth, Config::default())
 }
 
-pub fn create_from_token(token: &Token) -> AuthCodeSpotify {
-    AuthCodeSpotify::from_token(token.clone())
+pub fn create_from_token(token: Token) -> AuthCodeSpotify {
+    AuthCodeSpotify::from_token(token)
 }
