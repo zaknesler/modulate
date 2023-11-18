@@ -1,12 +1,12 @@
+use crate::config::CONFIG_DIR;
 use anyhow::anyhow;
 use axum::http::{header, HeaderValue, Method};
 use r2d2_sqlite::rusqlite::params;
 use std::{path, sync::Arc};
 use tower_http::trace::TraceLayer;
 
-use crate::config::CONFIG_DIR;
-
 mod context;
+mod middleware;
 mod router;
 mod view;
 

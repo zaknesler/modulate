@@ -13,8 +13,14 @@ pub enum Error {
     #[error("config error: {0}")]
     ConfigError(#[from] config::ConfigError),
 
+    #[error("unauthorized")]
+    UnauthorizedError,
+
     #[error("database error: {0}")]
     DbError(#[from] r2d2::Error),
+
+    #[error("json error: {0}")]
+    SerdeJsonError(#[from] serde_json::Error),
 
     #[error("sqlite error: {0}")]
     SQLiteError(#[from] r2d2_sqlite::rusqlite::Error),
@@ -32,6 +38,10 @@ pub enum Error {
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let (status, error) = match self {
+            Self::UnauthorizedError => (
+                StatusCode::UNAUTHORIZED,
+                Value::String(Self::UnauthorizedError.to_string()),
+            ),
             _ => {
                 tracing::error!("{:?}", self);
                 (

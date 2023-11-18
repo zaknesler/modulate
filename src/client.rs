@@ -1,4 +1,6 @@
-use rspotify::{scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth};
+#![allow(dead_code)]
+
+use rspotify::{scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth, Token};
 
 pub async fn create_anonymous_client(
     config: &crate::config::Config,
@@ -30,4 +32,8 @@ pub fn create_oauth_client(config: &crate::config::Config) -> AuthCodeSpotify {
     };
 
     AuthCodeSpotify::with_config(creds, oauth, Config::default())
+}
+
+pub fn create_from_token(token: &Token) -> AuthCodeSpotify {
+    AuthCodeSpotify::from_token(token.clone())
 }

@@ -5,6 +5,7 @@ use axum::{
     routing::get,
     Json, Router,
 };
+use r2d2_sqlite::rusqlite::params;
 use rspotify::clients::OAuthClient;
 use serde::Deserialize;
 use serde_json::json;
@@ -30,11 +31,15 @@ async fn handle_callback(
     client.request_token(&params.code).await?;
 
     let token = client.token.lock().await.unwrap();
-    match token.as_ref().map(|token| &token.access_token) {
+    match token
+        .as_ref()
+        .map(|token| serde_json::to_string(token).ok())
+        .flatten()
+    {
         Some(token) => ctx
             .db
             .get()?
-            .execute("INSERT INTO tokens (token) VALUES (?)", &[token])?,
+            .execute("INSERT INTO tokens (token) VALUES (?)", params![token])?,
         None => return Ok(Json(json!({ "error": "no token" }))),
     };
 
