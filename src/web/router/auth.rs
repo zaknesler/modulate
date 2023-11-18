@@ -1,16 +1,17 @@
 use crate::{client::create_oauth_client, web::context::ApiContext};
+use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
-    response::IntoResponse,
+    response::{IntoResponse, Redirect},
     routing::get,
-    Json, Router,
+    Router,
 };
-use futures::stream::TryStreamExt;
+use r2d2_sqlite::rusqlite::params;
 use rspotify::clients::OAuthClient;
 use serde::Deserialize;
-use serde_json::json;
+use std::sync::Arc;
 
-pub fn router(ctx: ApiContext) -> Router {
+pub fn router(ctx: Arc<ApiContext>) -> Router {
     Router::new()
         .route("/callback", get(handle_callback))
         .with_state(ctx)
@@ -23,13 +24,24 @@ struct CallbackParams {
 
 async fn handle_callback(
     Query(params): Query<CallbackParams>,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
 ) -> crate::Result<impl IntoResponse> {
     let client = create_oauth_client(&ctx.config);
 
     client.request_token(&params.code).await?;
 
-    let user = client.current_user_saved_tracks(None).try_next().await?;
+    let token = client.token.lock().await.unwrap();
+    match token
+        .as_ref()
+        .map(|token| serde_json::to_string(token).ok())
+        .flatten()
+    {
+        Some(token) => ctx
+            .db
+            .get()?
+            .execute("INSERT INTO tokens (token) VALUES (?)", params![token])?,
+        None => return Err(anyhow!("no token").into()),
+    };
 
-    Ok(Json(json!({ "data": user })))
+    Ok(Redirect::to("/me"))
 }

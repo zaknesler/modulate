@@ -1,13 +1,14 @@
 use serde::Deserialize;
 use std::path;
 
-const CONFIG_DIR: &str = ".config";
+pub const CONFIG_DIR: &str = ".config";
 const CONFIG_ENV_PREFIX: &str = "SPOTIFY";
 const CONFIG_FILE_PRECEDENCE: [&str; 2] = ["default.toml", "local.toml"];
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub log_level: LogLevel,
+    pub db: DbConfig,
     pub web: WebConfig,
     pub spotify: SpotifyConfig,
 }
@@ -20,6 +21,11 @@ pub enum LogLevel {
     Info,
     Warn,
     Error,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct DbConfig {
+    pub file: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
