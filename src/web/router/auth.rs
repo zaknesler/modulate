@@ -1,14 +1,14 @@
 use crate::{client::create_oauth_client, web::context::ApiContext};
+use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
-    response::IntoResponse,
+    response::{IntoResponse, Redirect},
     routing::get,
-    Json, Router,
+    Router,
 };
 use r2d2_sqlite::rusqlite::params;
 use rspotify::clients::OAuthClient;
 use serde::Deserialize;
-use serde_json::json;
 use std::sync::Arc;
 
 pub fn router(ctx: Arc<ApiContext>) -> Router {
@@ -40,8 +40,8 @@ async fn handle_callback(
             .db
             .get()?
             .execute("INSERT INTO tokens (token) VALUES (?)", params![token])?,
-        None => return Ok(Json(json!({ "error": "no token" }))),
+        None => return Err(anyhow!("no token").into()),
     };
 
-    Ok(Json(json!({ "data": "finished" })))
+    Ok(Redirect::to("/me"))
 }

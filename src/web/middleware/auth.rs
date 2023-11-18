@@ -29,5 +29,9 @@ async fn try_authorize(ctx: Arc<ApiContext>) -> crate::Result<Token> {
         .prepare("SELECT token FROM TOKENS LIMIT 1")?
         .query_row(params![], |row| Ok(row.get(0)?))?;
 
-    Ok(serde_json::from_str(&token)?)
+    let token: Token = serde_json::from_str(&token)?;
+
+    // TODO: check that the token has not expired, and refresh if it has
+
+    Ok(token)
 }
