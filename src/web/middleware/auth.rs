@@ -1,4 +1,4 @@
-use crate::{client, context::AppContext, web::router::COOKIE_TOKEN};
+use crate::{context::AppContext, util::client, web::router::COOKIE_TOKEN};
 use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
 use rspotify::{AuthCodeSpotify, Token};
 use std::sync::Arc;

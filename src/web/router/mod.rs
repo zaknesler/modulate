@@ -1,5 +1,5 @@
 use super::view::AuthTemplate;
-use crate::{client::create_oauth_client, context::AppContext};
+use crate::{context::AppContext, util::client::create_oauth_client};
 use axum::{extract::State, response::IntoResponse, routing::get, Router};
 use std::sync::Arc;
 

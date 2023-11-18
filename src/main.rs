@@ -1,10 +1,9 @@
 use std::sync::Arc;
 
-mod client;
 mod config;
 mod context;
-mod db;
 mod error;
+mod util;
 mod web;
 
 pub type Result<T> = std::result::Result<T, crate::error::Error>;
@@ -18,7 +17,7 @@ async fn main() -> Result<()> {
         .with_max_level(config.log_level.clone())
         .init();
 
-    let db = db::init_db(config.db.file.clone())?;
+    let db = util::db::init_db(config.db.file.clone())?;
     let ctx = Arc::new(context::AppContext { config, db });
 
     crate::web::serve(ctx).await?;

@@ -1,5 +1,5 @@
 use super::COOKIE_TOKEN;
-use crate::{client::create_oauth_client, context::AppContext};
+use crate::{context::AppContext, util::client::create_oauth_client};
 use anyhow::anyhow;
 use axum::{
     extract::{Query, State},

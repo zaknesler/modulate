@@ -1,7 +1,6 @@
-#![allow(dead_code)]
-
 use rspotify::{scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth, Token};
 
+#[allow(dead_code)]
 pub async fn create_anonymous_client(
     config: &crate::config::Config,
 ) -> crate::Result<ClientCredsSpotify> {
