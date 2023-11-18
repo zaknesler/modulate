@@ -2,17 +2,23 @@
 
 {% block head %}
   <style>
-    .user {
+    .content {
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      max-width: 250px;
+    }
+
+    .accent {
+      width: 120px;
+      height: 4px;
+      background: #1db954;
     }
 
     .items {
       display: flex;
       flex-direction: column;
       gap: 1rem;
-      max-width: 250px;
     }
 
     .item {
@@ -21,26 +27,41 @@
       gap: 0.5rem;
     }
 
+    label {
+      font-size: 0.875rem;
+      color: #666;
+    }
+
     label, select {
       width: 100%;
+    }
+
+    select, button {
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid #ccc;
     }
   </style>
 {% endblock head %}
 
 {% block content %}
-  <div class="user">
+  <div class="content">
     <h2>{{ name }}</h2>
+
+    <div class="accent"></div>
+
+    <p>Create a new watcher for your account below.</p>
 
     <form action="/watcher" method="post" class="items">
       <div class="item">
-        <label for="playlist">From playlist</label>
+        <label for="playlist">From playlist:</label>
         <select disabled>
           <option>Liked tracks</option>
         </select>
       </div>
 
       <div class="item">
-        <label for="playlist">To playlist</label>
+        <label for="playlist">To playlist:</label>
         <select name="playlist" id="playlist">
           <option value="" disabled selected hidden>Select a playlist</option>
 

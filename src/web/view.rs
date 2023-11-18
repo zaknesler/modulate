@@ -8,8 +8,8 @@ pub struct AuthTemplate {
 }
 
 #[derive(Template)]
-#[template(path = "user.html")]
-pub struct UserTemplate {
+#[template(path = "watcher.html")]
+pub struct WatcherTemplate {
     pub name: String,
     pub playlists: Vec<SimplifiedPlaylist>,
 }

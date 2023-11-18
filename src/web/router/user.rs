@@ -1,6 +1,6 @@
 use crate::{
     context::AppContext,
-    web::{middleware::auth, view::UserTemplate},
+    web::{middleware::auth, view::WatcherTemplate},
 };
 use axum::{middleware, response::IntoResponse, routing::get, Extension, Router};
 use futures::TryStreamExt;
@@ -26,7 +26,7 @@ async fn get_current_user(
         .try_collect::<Vec<_>>()
         .await?;
 
-    Ok(UserTemplate {
+    Ok(WatcherTemplate {
         name: user.id.to_string().split(':').last().unwrap().to_owned(),
         playlists,
     })

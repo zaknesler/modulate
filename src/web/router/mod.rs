@@ -7,7 +7,7 @@ mod auth;
 mod user;
 mod watcher;
 
-pub const COOKIE_TOKEN: &str = "token";
+pub const COOKIE_USER_ID: &str = "user_id";
 
 pub fn router(ctx: Arc<AppContext>) -> Router {
     Router::new()

@@ -1,4 +1,4 @@
-use super::COOKIE_TOKEN;
+use super::COOKIE_USER_ID;
 use crate::{context::AppContext, util::client::create_oauth_client};
 use anyhow::anyhow;
 use axum::{
@@ -7,7 +7,7 @@ use axum::{
     routing::get,
     Router,
 };
-use rspotify::clients::OAuthClient;
+use rspotify::{clients::OAuthClient, model::Id};
 use serde::Deserialize;
 use std::sync::Arc;
 use tower_cookies::{Cookie, Cookies};
@@ -31,6 +31,8 @@ async fn handle_callback(
     let client = create_oauth_client(&ctx.config);
     client.request_token(&params.code).await?;
 
+    let user_id = client.current_user().await?.id;
+
     let token = client
         .token
         .lock()
@@ -40,11 +42,12 @@ async fn handle_callback(
         .and_then(|token| serde_json::to_string(token).ok())
         .ok_or_else(|| anyhow!("no token"))?;
 
-    ctx.db
-        .get()?
-        .execute("INSERT INTO tokens (token) VALUES (?)", &[&token])?;
+    ctx.db.get()?.execute(
+        "INSERT OR REPLACE INTO tokens (user_id, token) VALUES (?, ?)",
+        &[user_id.id(), &token],
+    )?;
 
-    cookies.add(Cookie::new(COOKIE_TOKEN, token));
+    cookies.add(Cookie::new(COOKIE_USER_ID, user_id.id().to_owned()));
 
     Ok(Redirect::to("/me"))
 }

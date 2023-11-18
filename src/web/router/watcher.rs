@@ -33,8 +33,8 @@ async fn create_watcher(
     let user = client.current_user().await?;
 
     ctx.db.get()?.execute(
-        "INSERT INTO watchers (playlist) VALUES (?)",
-        &[&data.playlist],
+        "INSERT INTO watchers (user_id, playlist) VALUES (?, ?)",
+        &[user.id.id(), &data.playlist],
     )?;
 
     Ok(Redirect::to("/me"))

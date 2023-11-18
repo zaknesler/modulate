@@ -1,4 +1,4 @@
-use crate::{context::AppContext, util::client, web::router::COOKIE_TOKEN};
+use crate::{context::AppContext, util::client, web::router::COOKIE_USER_ID};
 use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
 use rspotify::{AuthCodeSpotify, Token};
 use std::sync::Arc;
@@ -11,11 +11,11 @@ pub async fn middleware<B>(
     mut req: Request<B>,
     next: Next<B>,
 ) -> crate::Result<impl IntoResponse> {
-    let token = cookies
-        .get(COOKIE_TOKEN)
+    let user_id = cookies
+        .get(COOKIE_USER_ID)
         .ok_or_else(|| crate::error::Error::UnauthorizedError)?;
 
-    match try_create_auth_client(token.value().to_owned(), ctx).await {
+    match try_create_auth_client(user_id.value(), ctx).await {
         Ok(client) => {
             req.extensions_mut().insert(client);
             Ok(next.run(req).await)
@@ -25,14 +25,14 @@ pub async fn middleware<B>(
 }
 
 async fn try_create_auth_client(
-    token: String,
+    user_id: &str,
     ctx: Arc<AppContext>,
 ) -> crate::Result<AuthCodeSpotify> {
-    // let token: String = ctx
-    //     .db
-    //     .get()?
-    //     .prepare("SELECT token FROM TOKENS LIMIT 1")?
-    //     .query_row([], |row| Ok(row.get(0)?))?;
+    let token: String = ctx
+        .db
+        .get()?
+        .prepare("SELECT token FROM TOKENS WHERE user_id = ? LIMIT 1")?
+        .query_row(&[user_id], |row| Ok(row.get(0)?))?;
 
     let token: Token = serde_json::from_str(&token)?;
     let client = client::create_from_token(token);
