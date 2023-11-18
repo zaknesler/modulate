@@ -7,7 +7,6 @@ use axum::{
     routing::get,
     Router,
 };
-use r2d2_sqlite::rusqlite::params;
 use rspotify::clients::OAuthClient;
 use serde::Deserialize;
 use std::sync::Arc;
@@ -41,11 +40,9 @@ async fn handle_callback(
         .and_then(|token| serde_json::to_string(token).ok())
         .ok_or_else(|| anyhow!("no token"))?;
 
-    dbg!(&token);
-
     ctx.db
         .get()?
-        .execute("INSERT INTO tokens (token) VALUES (?)", params![token])?;
+        .execute("INSERT INTO tokens (token) VALUES (?)", &[&token])?;
 
     cookies.add(Cookie::new(COOKIE_TOKEN, token));
 

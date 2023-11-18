@@ -13,7 +13,7 @@ opt-level = 3
 anyhow = "1.0"
 askama = { version = "0.12", features = ["with-axum"] }
 askama_axum = "0.3.0"
-axum = "0.6"
+axum = { version = "0.6", features = ["form"] }
 config = "0.13"
 futures = "0.3"
 r2d2 = "0.8"

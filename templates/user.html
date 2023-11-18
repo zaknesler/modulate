@@ -7,12 +7,50 @@
       flex-direction: column;
       gap: 1rem;
     }
+
+    .items {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 250px;
+    }
+
+    .item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    label, select {
+      width: 100%;
+    }
   </style>
 {% endblock head %}
 
 {% block content %}
   <div class="user">
     <h2>{{ name }}</h2>
-    <p>Hello there.</p>
+
+    <form action="/watcher" method="post" class="items">
+      <div class="item">
+        <label for="playlist">From playlist</label>
+        <select disabled>
+          <option>Liked tracks</option>
+        </select>
+      </div>
+
+      <div class="item">
+        <label for="playlist">To playlist</label>
+        <select name="playlist" id="playlist">
+          <option value="" disabled selected hidden>Select a playlist</option>
+
+          {% for playlist in playlists %}
+          <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button>Create watcher</button>
+    </form>
   </div>
 {% endblock content %}

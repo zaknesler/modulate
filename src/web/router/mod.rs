@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 mod auth;
 mod user;
+mod watcher;
 
 pub const COOKIE_TOKEN: &str = "token";
 
@@ -13,6 +14,7 @@ pub fn router(ctx: Arc<AppContext>) -> Router {
         .route("/", get(root))
         .with_state(ctx.clone())
         .merge(auth::router(ctx.clone()))
+        .merge(watcher::router(ctx.clone()))
         .merge(user::router(ctx))
 }
 

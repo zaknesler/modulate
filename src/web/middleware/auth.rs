@@ -32,7 +32,7 @@ async fn try_create_auth_client(
     //     .db
     //     .get()?
     //     .prepare("SELECT token FROM TOKENS LIMIT 1")?
-    //     .query_row(params![], |row| Ok(row.get(0)?))?;
+    //     .query_row([], |row| Ok(row.get(0)?))?;
 
     let token: Token = serde_json::from_str(&token)?;
     let client = client::create_from_token(token);
