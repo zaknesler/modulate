@@ -5,12 +5,12 @@ use axum::{
     routing::get,
     Json, Router,
 };
-use futures::stream::TryStreamExt;
 use rspotify::clients::OAuthClient;
 use serde::Deserialize;
 use serde_json::json;
+use std::sync::Arc;
 
-pub fn router(ctx: ApiContext) -> Router {
+pub fn router(ctx: Arc<ApiContext>) -> Router {
     Router::new()
         .route("/callback", get(handle_callback))
         .with_state(ctx)
@@ -23,13 +23,20 @@ struct CallbackParams {
 
 async fn handle_callback(
     Query(params): Query<CallbackParams>,
-    State(ctx): State<ApiContext>,
+    State(ctx): State<Arc<ApiContext>>,
 ) -> crate::Result<impl IntoResponse> {
     let client = create_oauth_client(&ctx.config);
 
     client.request_token(&params.code).await?;
 
-    let user = client.current_user_saved_tracks(None).try_next().await?;
+    let token = client.token.lock().await.unwrap();
+    match token.as_ref().map(|token| &token.access_token) {
+        Some(token) => ctx
+            .db
+            .get()?
+            .execute("INSERT INTO tokens (token) VALUES (?)", &[token])?,
+        None => return Ok(Json(json!({ "error": "no token" }))),
+    };
 
-    Ok(Json(json!({ "data": user })))
+    Ok(Json(json!({ "data": "finished" })))
 }

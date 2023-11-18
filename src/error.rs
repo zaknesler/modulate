@@ -13,6 +13,12 @@ pub enum Error {
     #[error("config error: {0}")]
     ConfigError(#[from] config::ConfigError),
 
+    #[error("database error: {0}")]
+    DbError(#[from] r2d2::Error),
+
+    #[error("sqlite error: {0}")]
+    SQLiteError(#[from] r2d2_sqlite::rusqlite::Error),
+
     #[error("spotify client error: {0}")]
     SpotifyClientError(#[from] rspotify::ClientError),
 
