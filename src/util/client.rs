@@ -7,7 +7,6 @@ use rspotify::{
 
 use crate::context::AppContext;
 
-#[allow(dead_code)]
 pub async fn create_anonymous_client(
     config: &crate::config::Config,
 ) -> crate::Result<ClientCredsSpotify> {

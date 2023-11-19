@@ -8,7 +8,6 @@ use rspotify::AuthCodeSpotify;
 use std::sync::Arc;
 use tower_cookies::Cookies;
 
-#[allow(dead_code)]
 pub async fn middleware<B>(
     cookies: Cookies,
     State(ctx): State<Arc<AppContext>>,
