@@ -22,14 +22,11 @@ async fn get_dashboard(
     State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
-    let playlists = client
-        .current_user_playlists()
-        .try_collect::<Vec<_>>()
-        .await?;
-    let watched_playlist_id =
-        WatcherRepo::new(ctx.clone()).get_watched_playlist_id_by_user_id(&user.id.to_string())?;
 
-    let watched_playlist = match watched_playlist_id {
+    // Fetch the details about the watched playlist if one exists
+    let watched_playlist = match WatcherRepo::new(ctx.clone())
+        .get_watched_playlist_id_by_user_id(&user.id.to_string())?
+    {
         Some(id) => Some(
             client
                 .user_playlist(
@@ -41,6 +38,17 @@ async fn get_dashboard(
                 .name,
         ),
         None => None,
+    };
+
+    // If the user doesn't have a watcher configured, fetch their playlists to let them create one
+    let playlists = match watched_playlist {
+        Some(_) => vec![],
+        None => {
+            client
+                .current_user_playlists()
+                .try_collect::<Vec<_>>()
+                .await?
+        }
     };
 
     Ok(DashboardTemplate {

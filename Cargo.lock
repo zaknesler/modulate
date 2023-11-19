@@ -1634,7 +1634,7 @@ dependencies = [
 
 [[package]]
 name = "spotify-sync"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "askama",
