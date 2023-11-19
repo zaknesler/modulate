@@ -1,5 +1,5 @@
 <p>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/0f95cbc8-750b-4c7b-ab8c-ba7b12c283a9" alt="spotify sync logo" width="175">
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/d2acc2ed-cc61-4b97-b9b8-50c3f4b983be" alt="spotify sync logo" width="175">
 </p>
 
 I prefer having my favorite Spotify tracks in playlists sorted by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
