@@ -1,12 +1,10 @@
-use std::sync::Arc;
-
+use crate::context::AppContext;
 use rspotify::{
     clients::BaseClient, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth,
     Token,
 };
 
-use crate::context::AppContext;
-
+#[allow(dead_code)]
 pub async fn create_anonymous_client(
     config: &crate::config::Config,
 ) -> crate::Result<ClientCredsSpotify> {
@@ -48,7 +46,7 @@ pub fn create_from_token(token: Token) -> AuthCodeSpotify {
 pub async fn get_token_ensure_refreshed(
     user_id: String,
     token: &Token,
-    ctx: Arc<AppContext>,
+    ctx: AppContext,
 ) -> crate::Result<AuthCodeSpotify> {
     let mut client = create_from_token(token.clone());
 

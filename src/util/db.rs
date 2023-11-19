@@ -1,12 +1,12 @@
 use crate::config::CONFIG_DIR;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
-use std::path;
+use std::path::Path;
 
 pub fn init_db(file: String) -> crate::Result<Pool<SqliteConnectionManager>> {
-    let db_path = path::Path::new(CONFIG_DIR).join(file);
-    let db_manager = r2d2_sqlite::SqliteConnectionManager::file(db_path);
-    let db = r2d2::Pool::new(db_manager)?;
+    let db_path = Path::new(CONFIG_DIR).join(file);
+    let db_manager = SqliteConnectionManager::file(db_path);
+    let db = Pool::new(db_manager)?;
 
     // Ensure tables exist
     let conn = db.get()?;

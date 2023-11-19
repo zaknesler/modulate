@@ -1,5 +1,4 @@
 use futures::{future::FutureExt, pin_mut, select};
-use std::sync::Arc;
 
 mod config;
 mod context;
@@ -20,7 +19,7 @@ async fn main() -> Result<()> {
         .init();
 
     let db = util::db::init_db(config.db.file.clone())?;
-    let ctx = Arc::new(context::AppContext { config, db });
+    let ctx = context::AppContext { config, db };
 
     // Run watcher and web server concurrently
     let watcher = crate::watcher::init(ctx.clone()).fuse();

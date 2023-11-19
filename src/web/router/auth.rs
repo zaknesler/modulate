@@ -12,10 +12,9 @@ use axum::{
 };
 use rspotify::clients::{BaseClient, OAuthClient};
 use serde::Deserialize;
-use std::sync::Arc;
 use tower_cookies::{Cookie, Cookies};
 
-pub fn router(ctx: Arc<AppContext>) -> Router {
+pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/callback", get(handle_callback))
         .with_state(ctx)
@@ -29,7 +28,7 @@ struct CallbackParams {
 async fn handle_callback(
     Query(params): Query<CallbackParams>,
     cookies: Cookies,
-    State(ctx): State<Arc<AppContext>>,
+    State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
     let client = create_oauth_client(&ctx.config);
     client.request_token(&params.code).await?;

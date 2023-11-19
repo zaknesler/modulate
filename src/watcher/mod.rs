@@ -5,11 +5,10 @@ use rspotify::{
     model::{PlayableId, PlaylistId},
     Token,
 };
-use std::sync::Arc;
 
 const INTERVAL_MINUTES: u64 = 60;
 
-pub async fn init(ctx: Arc<AppContext>) -> crate::Result<()> {
+pub async fn init(ctx: AppContext) -> crate::Result<()> {
     loop {
         let now = tokio::time::Instant::now();
         let execute_in = std::time::Duration::from_secs(60 * INTERVAL_MINUTES);
@@ -22,7 +21,7 @@ pub async fn init(ctx: Arc<AppContext>) -> crate::Result<()> {
     }
 }
 
-async fn execute(ctx: Arc<AppContext>) -> crate::Result<()> {
+async fn execute(ctx: AppContext) -> crate::Result<()> {
     let watchers = ctx
         .db
         .get()?

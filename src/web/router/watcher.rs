@@ -8,9 +8,8 @@ use axum::{
 };
 use rspotify::{prelude::*, AuthCodeSpotify};
 use serde::Deserialize;
-use std::sync::Arc;
 
-pub fn router(ctx: Arc<AppContext>) -> Router {
+pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/watcher", post(create_watcher))
         .route("/watcher/delete", post(delete_watcher))
@@ -28,7 +27,7 @@ struct CreateWatcherParams {
 
 async fn create_watcher(
     Extension(client): Extension<AuthCodeSpotify>,
-    State(ctx): State<Arc<AppContext>>,
+    State(ctx): State<AppContext>,
     Form(data): Form<CreateWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
@@ -43,7 +42,7 @@ async fn create_watcher(
 
 async fn delete_watcher(
     Extension(client): Extension<AuthCodeSpotify>,
-    State(ctx): State<Arc<AppContext>>,
+    State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
 

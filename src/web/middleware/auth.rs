@@ -5,12 +5,11 @@ use crate::{
 };
 use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
 use rspotify::AuthCodeSpotify;
-use std::sync::Arc;
 use tower_cookies::Cookies;
 
 pub async fn middleware<B>(
     cookies: Cookies,
-    State(ctx): State<Arc<AppContext>>,
+    State(ctx): State<AppContext>,
     mut req: Request<B>,
     next: Next<B>,
 ) -> crate::Result<impl IntoResponse> {
@@ -28,7 +27,7 @@ pub async fn middleware<B>(
     Ok(next.run(req).await)
 }
 
-async fn try_create_auth_client(jwt: &str, ctx: Arc<AppContext>) -> crate::Result<AuthCodeSpotify> {
+async fn try_create_auth_client(jwt: &str, ctx: AppContext) -> crate::Result<AuthCodeSpotify> {
     let user_id = jwt::verify_jwt(&ctx.config.web.jwt_secret, jwt)?;
 
     let token: String = ctx

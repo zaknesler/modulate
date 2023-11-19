@@ -1,7 +1,6 @@
 use crate::context::AppContext;
 use anyhow::anyhow;
 use axum::http::{header, HeaderValue, Method};
-use std::sync::Arc;
 use tower_cookies::CookieManagerLayer;
 use tower_http::trace::TraceLayer;
 
@@ -9,7 +8,7 @@ mod middleware;
 mod router;
 mod view;
 
-pub async fn serve(ctx: Arc<AppContext>) -> crate::Result<()> {
+pub async fn serve(ctx: AppContext) -> crate::Result<()> {
     tracing::info!(
         "Starting web server on {}:{}",
         &ctx.config.web.host,

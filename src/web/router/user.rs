@@ -5,9 +5,8 @@ use crate::{
 use axum::{extract::State, middleware, response::IntoResponse, routing::get, Extension, Router};
 use futures::TryStreamExt;
 use rspotify::{model::PlaylistId, prelude::*, AuthCodeSpotify};
-use std::sync::Arc;
 
-pub fn router(ctx: Arc<AppContext>) -> Router {
+pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/me", get(get_dashboard))
         .route_layer(middleware::from_fn_with_state(
@@ -19,7 +18,7 @@ pub fn router(ctx: Arc<AppContext>) -> Router {
 
 async fn get_dashboard(
     Extension(client): Extension<AuthCodeSpotify>,
-    State(ctx): State<Arc<AppContext>>,
+    State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
     let playlists = client
