@@ -40,16 +40,16 @@ pub fn verify_jwt(secret: &str, jwt: &str) -> crate::Result<String> {
     // Check that the token hasn't expired
     if claims
         .get(JWT_CLAIM_EXPIRES_AT)
-        .ok_or_else(|| Error::InvalidJwt)?
+        .ok_or_else(|| Error::JwtInvalidError)?
         .parse::<DateTime<Utc>>()?
         < Utc::now()
     {
-        return Err(Error::JwtExpired);
+        return Err(Error::JwtExpiredError);
     }
 
     // Attempt to extract the user ID
     Ok(claims
         .get(JWT_CLAIM_USER)
-        .ok_or_else(|| Error::InvalidJwt)?
+        .ok_or_else(|| Error::JwtInvalidError)?
         .to_owned())
 }

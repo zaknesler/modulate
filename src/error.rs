@@ -35,10 +35,10 @@ pub enum Error {
     AddrParseError(#[from] std::net::AddrParseError),
 
     #[error("jwt expired")]
-    JwtExpired,
+    JwtExpiredError,
 
     #[error("invalid jwt")]
-    InvalidJwt,
+    JwtInvalidError,
 
     #[error(transparent)]
     HmacError(#[from] hmac::digest::InvalidLength),
