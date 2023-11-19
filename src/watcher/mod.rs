@@ -1,17 +1,17 @@
-use crate::{context::AppContext, repo::watcher::WatcherRepo, util};
+use std::collections::HashSet;
+
+use crate::{context::AppContext, repo::watcher::WatcherRepo, util, CONFIG};
 use futures::TryStreamExt;
 use rspotify::{
-    clients::OAuthClient,
+    clients::{BaseClient, OAuthClient},
     model::{PlayableId, PlaylistId},
     Token,
 };
 
-pub const INTERVAL_MINUTES: u64 = 60;
-
 pub async fn init(ctx: AppContext) -> crate::Result<()> {
     loop {
         let now = tokio::time::Instant::now();
-        let execute_in = std::time::Duration::from_secs(60 * INTERVAL_MINUTES);
+        let execute_in = std::time::Duration::from_secs(60 * CONFIG.sync.interval_mins as u64);
 
         tokio::time::sleep_until(now + execute_in).await;
 
@@ -28,6 +28,8 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
         let token = serde_json::from_str::<Token>(&token)?;
         let client = util::client::get_token_ensure_refreshed(user_id, &token, ctx.clone()).await?;
 
+        let playlist_id = PlaylistId::from_id_or_uri(&playlist_id)?;
+
         // Get all
         let saved_track_ids = client
             .current_user_saved_tracks(None)
@@ -35,27 +37,42 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
             .await?
             .into_iter()
             .filter_map(|track| track.track.id)
-            .collect::<Vec<_>>();
-
-        // TODO: get all items in playlist and remove those in saved_track_ids that already exist (to prevent duplicates)
+            .collect::<HashSet<_>>();
 
         // Don't do anything if there are no saved tracks
-        if saved_track_ids.len() == 0 {
+        if saved_track_ids.is_empty() {
             continue;
         }
 
-        // Add tracks to playlist
-        client
-            .playlist_add_items(
-                PlaylistId::from_id_or_uri(&playlist_id)?,
-                saved_track_ids
-                    .iter()
-                    .map(|id| PlayableId::Track(id.clone())),
-                None,
-            )
-            .await?;
+        // Get IDs from current playlist and remove any from the saved tracks to prevent duplicates
+        let playlist_track_ids = client
+            .playlist_items(playlist_id.clone(), None, None)
+            .try_collect::<Vec<_>>()
+            .await?
+            .into_iter()
+            .collect::<Vec<_>>()
+            .into_iter()
+            .filter_map(|item| item.track)
+            .filter_map(|track| match track {
+                rspotify::model::PlayableItem::Track(track) => track.id,
+                _ => None,
+            })
+            .collect::<HashSet<_>>();
 
-        // Remove tracks from saved tracks
+        // Get only the saved tracks that are not already in the playlist
+        let ids_to_insert = saved_track_ids
+            .difference(&playlist_track_ids)
+            .map(|id| PlayableId::Track(id.clone()))
+            .collect::<Vec<_>>();
+
+        // Add all new tracks to playlist
+        if !ids_to_insert.is_empty() {
+            client
+                .playlist_add_items(playlist_id, ids_to_insert, None)
+                .await?;
+        }
+
+        // Remove all saved tracks
         client
             .current_user_saved_tracks_delete(saved_track_ids)
             .await?;
