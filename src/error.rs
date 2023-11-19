@@ -7,32 +7,8 @@ use serde_json::{json, Value};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error(transparent)]
-    AnyhowError(#[from] anyhow::Error),
-
-    #[error("config error: {0}")]
-    ConfigError(#[from] config::ConfigError),
-
     #[error("unauthorized")]
     UnauthorizedError,
-
-    #[error("database error: {0}")]
-    DbError(#[from] r2d2::Error),
-
-    #[error("json error: {0}")]
-    SerdeJsonError(#[from] serde_json::Error),
-
-    #[error("sqlite error: {0}")]
-    SQLiteError(#[from] r2d2_sqlite::rusqlite::Error),
-
-    #[error("spotify client error: {0}")]
-    SpotifyClientError(#[from] rspotify::ClientError),
-
-    #[error("spotify ID error: {0}")]
-    SpotifyIdError(#[from] rspotify::model::IdError),
-
-    #[error(transparent)]
-    AddrParseError(#[from] std::net::AddrParseError),
 
     #[error("jwt expired")]
     JwtExpiredError,
@@ -40,23 +16,47 @@ pub enum Error {
     #[error("invalid jwt")]
     JwtInvalidError,
 
-    #[error(transparent)]
+    #[error("config error: {0:?}")]
+    ConfigError(#[from] config::ConfigError),
+
+    #[error("database error: {0:?}")]
+    DbError(#[from] r2d2::Error),
+
+    #[error("json error: {0:?}")]
+    JsonError(#[from] serde_json::Error),
+
+    #[error("sqlite error: {0:?}")]
+    SQLiteError(#[from] r2d2_sqlite::rusqlite::Error),
+
+    #[error("spotify client error: {0:?}")]
+    SpotifyClientError(#[from] rspotify::ClientError),
+
+    #[error("spotify ID error: {0:?}")]
+    SpotifyIdError(#[from] rspotify::model::IdError),
+
+    #[error("addr parse error: {0:?}")]
+    AddrParseError(#[from] std::net::AddrParseError),
+
+    #[error("hmac error: {0:?}")]
     HmacError(#[from] hmac::digest::InvalidLength),
 
-    #[error(transparent)]
+    #[error("jwt error: {0:?}")]
     JwtError(#[from] jwt::Error),
 
-    #[error(transparent)]
+    #[error("chrono parse error: {0:?}")]
     ChronoParseError(#[from] chrono::ParseError),
+
+    #[error(transparent)]
+    AnyhowError(#[from] anyhow::Error),
 }
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let (status, error) = match self {
-            Self::UnauthorizedError => (
-                StatusCode::UNAUTHORIZED,
-                Value::String(Self::UnauthorizedError.to_string()),
-            ),
+            Self::UnauthorizedError | Self::JwtExpiredError | Self::JwtInvalidError => {
+                (StatusCode::UNAUTHORIZED, Value::String(self.to_string()))
+            }
+
             _ => {
                 tracing::error!("{:?}", self);
                 (

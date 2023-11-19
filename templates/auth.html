@@ -1,30 +1,5 @@
 {% extends "base.html" %}
 
-{% block head %}
-<style>
-  .button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: #1db954;
-    padding: 0.75rem 1rem;
-    font-weight: 500;
-    color: white;
-    text-decoration: none;
-    border-radius: 0.5rem;
-    transition: background 150ms ease-in-out;
-  }
-
-  .button:hover {
-    background: #16a247;
-  }
-
-  .button svg {
-    opacity: 0.6;
-  }
-</style>
-{% endblock head %}
-
 {% block content %}
   <a href="{{ url }}" class="button">
     <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" version="1.1" viewBox="0 0 168 168" class="white h-6 w-6">

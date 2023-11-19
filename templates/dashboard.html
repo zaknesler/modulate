@@ -12,7 +12,7 @@
     .accent {
       width: 120px;
       height: 4px;
-      background: #1db954;
+      background: var(--spotify-green);
     }
 
     .items {
@@ -36,10 +36,21 @@
       width: 100%;
     }
 
-    select, button {
-      padding: 0.5rem;
-      border-radius: 0.25rem;
+    select {
+      appearance: none;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
       border: 1px solid #ccc;
+      transition: border 150ms ease-in-out, box-shadow 150ms ease-in-out;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23888"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>') no-repeat;
+      background-position: center right 0.25rem;
+      background-size: 20px;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: var(--spotify-green);
+      box-shadow: 0 0 0 4px var(--spotify-green-muted);
     }
   </style>
 {% endblock head %}
@@ -54,7 +65,7 @@
       <p>You have a watcher configured for your playlist <strong>{{ playlist }}</strong>.</p>
 
       <form action="/watcher/delete" method="post" class="items">
-        <button>Delete watcher</button>
+        <button class="button">Delete watcher</button>
       </form>
 
       {% when None %}
@@ -79,7 +90,7 @@
           </select>
         </div>
 
-        <button>Create watcher</button>
+        <button class="button">Create watcher</button>
       </form>
     {% endmatch %}
   </div>

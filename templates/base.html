@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spotify Sync</title>
   <style>
+    :root {
+      --spotify-green: #1db954;
+      --spotify-green-muted: #1db9544f;
+      --spotify-green-darker: #16a247;
+    }
+
     *, *:before, *:after {
       box-sizing: border-box;
       margin: 0;
@@ -23,6 +29,39 @@
 
     strong {
       font-weight: 500;
+    }
+
+    .button {
+      appearance: none;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--spotify-green);
+      padding: 0.75rem 1rem;
+      font-weight: 500;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 0.5rem;
+      transition: background 150ms ease-in-out, box-shadow 150ms ease-in-out;
+      outline: none;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .button:hover {
+      background: var(--spotify-green-darker);
+    }
+
+    .button:focus {
+      background: var(--spotify-green-darker);
+      box-shadow: 0 0 0 4px var(--spotify-green-muted);
+    }
+
+    .button svg {
+      opacity: 0.6;
     }
   </style>
   {% block head %}{% endblock %}
