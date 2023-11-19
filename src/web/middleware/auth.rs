@@ -19,13 +19,14 @@ pub async fn middleware<B>(
         .get(JWT_COOKIE)
         .ok_or_else(|| crate::error::Error::UnauthorizedError)?;
 
-    match try_create_auth_client(jwt_cookie.value(), ctx).await {
-        Ok(client) => {
-            req.extensions_mut().insert(client);
-            Ok(next.run(req).await)
-        }
-        Err(_) => Err(crate::error::Error::UnauthorizedError),
-    }
+    let client = try_create_auth_client(jwt_cookie.value(), ctx)
+        .await
+        .map_err(|_| crate::error::Error::UnauthorizedError)?;
+
+    // Add Spotify OAuth client as extension to be accessed by any route that wishes to perform action on user's behalf
+    req.extensions_mut().insert(client);
+
+    Ok(next.run(req).await)
 }
 
 async fn try_create_auth_client(jwt: &str, ctx: Arc<AppContext>) -> crate::Result<AuthCodeSpotify> {
