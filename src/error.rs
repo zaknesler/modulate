@@ -46,6 +46,12 @@ pub enum Error {
     #[error("chrono parse error: {0:?}")]
     ChronoParseError(#[from] chrono::ParseError),
 
+    #[error("validation errors: {0:?}")]
+    ValidationErrors(#[from] validator::ValidationErrors),
+
+    #[error("validation error: {0:?}")]
+    ValidationError(#[from] validator::ValidationError),
+
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
 }
@@ -56,7 +62,11 @@ impl IntoResponse for Error {
             Self::UnauthorizedError | Self::JwtExpiredError | Self::JwtInvalidError => {
                 (StatusCode::UNAUTHORIZED, Value::String(self.to_string()))
             }
-
+            Self::ValidationErrors(err) => (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                json!({ "fields": err.field_errors() }),
+            ),
+            Self::ValidationError(err) => (StatusCode::UNPROCESSABLE_ENTITY, json!(err)),
             _ => {
                 tracing::error!("{:?}", self);
                 (

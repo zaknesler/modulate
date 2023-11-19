@@ -51,6 +51,11 @@
       text-align: center;
     }
 
+    .button[disabled] {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
     .button:hover {
       background: var(--spotify-green-darker);
     }
@@ -70,5 +75,7 @@
   <main>
     {% block content %}{% endblock %}
   </main>
+
+  {% block script %}{% endblock %}
 </body>
 </html>

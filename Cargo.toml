@@ -1,6 +1,6 @@
 [package]
 name = "spotify-sync"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 
 [profile.dev]
@@ -32,3 +32,4 @@ tower-cookies = "0.9"
 tower-http = { version = "0.4", features = ["trace", "cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["serde"] }
+validator = { version = "0.16", features = ["derive"] }

@@ -83,7 +83,7 @@
 
         <div class="item">
           <label for="playlist">To playlist</label>
-          <select name="playlist" id="playlist">
+          <select name="playlist" id="playlist" onchange="playlistUpdated()">
             <option value="" disabled selected hidden>Select a playlist...</option>
 
             {% for playlist in playlists %}
@@ -94,8 +94,18 @@
 
         <small>Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</small>
 
-        <button class="button">Create watcher</button>
+        <button id="submit" class="button" disabled>Create watcher</button>
       </form>
     {% endmatch %}
   </div>
 {% endblock content %}
+
+{% block script %}
+  <script>
+    function playlistUpdated(e) {
+      const hasValue = !!document.querySelector('#playlist').value;
+      if (!hasValue) return;
+      document.querySelector('#submit').disabled = false
+    }
+  </script>
+{% endblock script %}

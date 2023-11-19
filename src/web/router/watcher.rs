@@ -8,6 +8,7 @@ use axum::{
 };
 use rspotify::{prelude::*, AuthCodeSpotify};
 use serde::Deserialize;
+use validator::Validate;
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
@@ -20,9 +21,10 @@ pub fn router(ctx: AppContext) -> Router {
         .with_state(ctx)
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 struct CreateWatcherParams {
-    playlist: String,
+    #[validate(required)]
+    playlist: Option<String>,
 }
 
 async fn create_watcher(
@@ -30,9 +32,11 @@ async fn create_watcher(
     State(ctx): State<AppContext>,
     Form(data): Form<CreateWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
+    data.validate()?;
     let user = client.current_user().await?;
 
-    WatcherRepo::new(ctx.clone()).create_watcher(&user.id.to_string(), &data.playlist)?;
+    WatcherRepo::new(ctx.clone())
+        .create_watcher(&user.id.to_string(), &data.playlist.expect("validated"))?;
 
     Ok(Redirect::to("/me"))
 }
