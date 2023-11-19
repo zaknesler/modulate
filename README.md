@@ -1,8 +1,12 @@
-<img src="https://github.com/zaknesler/spotify-sync/assets/7189795/60f2d659-9ff4-402e-ac64-0df820b0fa8d" alt="spotify sync logo" width="200">
+<p>
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/0f95cbc8-750b-4c7b-ab8c-ba7b12c283a9" alt="spotify sync logo" width="175">
+</p>
 
 I prefer having my favorite Spotify tracks in playlists sorted by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
 
-This app transfers tracks from your private "Liked" playlist to any other playlist you choose, basically treating it as a buffer so you can press ❤️ and go on with your obviously busy life. Once you connect your Spotify account and select a playlist, it'll stay running and auto-transfer your tracks every hour (configurable).
+This app transfers tracks from your private "Liked" playlist to any other playlist you choose, basically treating it as a buffer so you can press ❤️ and go on with your obviously busy life.
+
+Once you connect your Spotify account and select a playlist, it'll stay running and auto-transfer your tracks every hour (configurable).
 
 <details>
   <summary>View screenshots</summary>
