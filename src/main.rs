@@ -3,6 +3,7 @@ use std::sync::Arc;
 mod config;
 mod context;
 mod error;
+mod model;
 mod util;
 mod web;
 

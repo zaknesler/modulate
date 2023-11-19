@@ -52,26 +52,31 @@
 
     <p>Create a new watcher for your account below.</p>
 
-    <form action="/watcher" method="post" class="items">
-      <div class="item">
-        <label for="playlist">From playlist:</label>
-        <select disabled>
-          <option>Liked tracks</option>
-        </select>
-      </div>
+    {% match watcher %}
+      {% when Some with (val) %}
+      Found {{ val.playlist_id }}
+      {% when None %}
+      <form action="/watcher" method="post" class="items">
+        <div class="item">
+          <label for="playlist">From playlist:</label>
+          <select disabled>
+            <option>Liked tracks</option>
+          </select>
+        </div>
 
-      <div class="item">
-        <label for="playlist">To playlist:</label>
-        <select name="playlist" id="playlist">
-          <option value="" disabled selected hidden>Select a playlist</option>
+        <div class="item">
+          <label for="playlist">To playlist:</label>
+          <select name="playlist" id="playlist">
+            <option value="" disabled selected hidden>Select a playlist</option>
 
-          {% for playlist in playlists %}
-          <option value="{{ playlist.id }}">{{ playlist.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
+            {% for playlist in playlists %}
+            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
 
-      <button>Create watcher</button>
-    </form>
+        <button>Create watcher</button>
+      </form>
+    {% endmatch %}
   </div>
 {% endblock content %}

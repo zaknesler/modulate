@@ -10,7 +10,7 @@ use axum::{
     routing::get,
     Router,
 };
-use rspotify::{clients::OAuthClient, model::Id};
+use rspotify::clients::OAuthClient;
 use serde::Deserialize;
 use std::sync::Arc;
 use tower_cookies::{Cookie, Cookies};
@@ -45,12 +45,12 @@ async fn handle_callback(
         .and_then(|token| serde_json::to_string(token).ok())
         .ok_or_else(|| anyhow!("no token"))?;
 
-    ctx.db.get()?.execute(
-        "INSERT OR REPLACE INTO tokens (user_id, token) VALUES (?, ?)",
-        &[user_id.id(), &token],
-    )?;
+    ctx.db
+        .get()?
+        .prepare("INSERT OR REPLACE INTO users (user_id, token) VALUES (?, ?)")?
+        .execute(&[&user_id.to_string(), &token])?;
 
-    let jwt = jwt::sign_jwt(&ctx.config.web.jwt_secret, user_id.id().to_owned())?;
+    let jwt = jwt::sign_jwt(&ctx.config.web.jwt_secret, user_id.to_string())?;
     cookies.add(Cookie::new(JWT_COOKIE, jwt));
 
     Ok(Redirect::to("/me"))

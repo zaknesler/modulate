@@ -35,7 +35,7 @@ async fn try_create_auth_client(jwt: &str, ctx: Arc<AppContext>) -> crate::Resul
     let token: String = ctx
         .db
         .get()?
-        .prepare("SELECT token FROM TOKENS WHERE user_id = ? LIMIT 1")?
+        .prepare("SELECT token FROM users WHERE user_id = ? LIMIT 1")?
         .query_row(&[&user_id], |row| Ok(row.get(0)?))?;
 
     let token: Token = serde_json::from_str(&token)?;

@@ -32,10 +32,10 @@ async fn create_watcher(
 ) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
 
-    ctx.db.get()?.execute(
-        "INSERT INTO watchers (user_id, playlist) VALUES (?, ?)",
-        &[user.id.id(), &data.playlist],
-    )?;
+    ctx.db
+        .get()?
+        .prepare("INSERT INTO watchers (user_id, playlist_id) VALUES (?, ?)")?
+        .execute(&[&user.id.to_string(), &data.playlist])?;
 
     Ok(Redirect::to("/me"))
 }
