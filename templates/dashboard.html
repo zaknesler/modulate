@@ -82,7 +82,7 @@
         <div class="item">
           <label for="playlist">To playlist:</label>
           <select name="playlist" id="playlist">
-            <option value="" disabled selected hidden>Select a playlist</option>
+            <option value="" disabled selected hidden>Select a playlist...</option>
 
             {% for playlist in playlists %}
             <option value="{{ playlist.id }}">{{ playlist.name }}</option>
