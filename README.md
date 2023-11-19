@@ -10,9 +10,9 @@ Once you connect your Spotify account and select a playlist, it'll stay running 
 
 <details>
   <summary><strong>View screenshots</strong></summary>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/1d9cc8ee-ebb5-41d3-b401-93ca12831436" alt="screenshot before configuring watcher" width="400">
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/05d2cd75-9ec6-4398-bf32-8afafe2206e3" alt="screenshot before configuring watcher" width="400">
   <br>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/fc7968eb-e5ec-4864-b596-171a72709e11" alt="screenshot after configuring watcher" width="400">
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/fbdf90c2-eb33-48b4-8944-0758fbf1f751" alt="screenshot after configuring watcher" width="400">
 </details>
 
 #### Usage

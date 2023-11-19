@@ -1,7 +1,7 @@
 use self::util::sync_user_playlist;
 use crate::{context::AppContext, repo::watcher::WatcherRepo, CONFIG};
 
-mod util;
+pub mod util;
 
 pub async fn init(ctx: AppContext) -> crate::Result<()> {
     loop {
@@ -23,6 +23,7 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
     tracing::info!("Syncing playlists of {} user(s)...", watchers.len());
 
     for (user_id, playlist_id, token) in watchers {
+        let token = serde_json::from_str::<rspotify::Token>(&token)?;
         sync_user_playlist(&user_id, &playlist_id, &token, ctx.clone()).await?;
     }
 

@@ -2,8 +2,8 @@ use askama::Template;
 use rspotify::model::SimplifiedPlaylist;
 
 #[derive(Template)]
-#[template(path = "auth.html")]
-pub struct AuthTemplate {
+#[template(path = "connect.html")]
+pub struct ConnectTemplate {
     pub url: String,
 }
 

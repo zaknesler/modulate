@@ -11,12 +11,11 @@ use std::collections::HashSet;
 pub async fn sync_user_playlist(
     user_id: &str,
     playlist_id: &str,
-    token: &str,
+    token: &Token,
     ctx: AppContext,
 ) -> crate::Result<bool> {
-    let token = serde_json::from_str::<Token>(token)?;
     let client =
-        util::client::get_token_ensure_refreshed(user_id.to_owned(), &token, ctx.clone()).await?;
+        util::client::get_token_ensure_refreshed(user_id.to_owned(), token, ctx.clone()).await?;
 
     let playlist_id = PlaylistId::from_id_or_uri(playlist_id)?;
 

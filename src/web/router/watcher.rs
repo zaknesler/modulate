@@ -24,7 +24,7 @@ pub fn router(ctx: AppContext) -> Router {
 #[derive(Debug, Deserialize, Validate)]
 struct CreateWatcherParams {
     #[validate(required)]
-    playlist: Option<String>,
+    playlist_id: Option<String>,
 }
 
 async fn create_watcher(
@@ -33,10 +33,11 @@ async fn create_watcher(
     Form(data): Form<CreateWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
-    let user = client.current_user().await?;
 
-    WatcherRepo::new(ctx.clone())
-        .create_watcher(&user.id.to_string(), &data.playlist.expect("validated"))?;
+    let user = client.current_user().await?;
+    let playlist_id = data.playlist_id.expect("validated");
+
+    WatcherRepo::new(ctx.clone()).create_watcher(&user.id.to_string(), &playlist_id)?;
 
     Ok(Redirect::to("/me"))
 }

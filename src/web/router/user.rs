@@ -3,13 +3,21 @@ use crate::{
     repo::watcher::WatcherRepo,
     web::{middleware::auth, view::DashboardTemplate},
 };
-use axum::{extract::State, middleware, response::IntoResponse, routing::get, Extension, Router};
+use anyhow::anyhow;
+use axum::{
+    extract::State,
+    middleware,
+    response::{IntoResponse, Redirect},
+    routing::{get, post},
+    Extension, Router,
+};
 use futures::TryStreamExt;
 use rspotify::{model::PlaylistId, prelude::*, AuthCodeSpotify};
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/me", get(get_dashboard))
+        .route("/sync", post(sync_playlist))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -56,4 +64,25 @@ async fn get_dashboard(
         watched_playlist,
         playlists,
     })
+}
+
+async fn sync_playlist(
+    Extension(client): Extension<AuthCodeSpotify>,
+    State(ctx): State<AppContext>,
+) -> crate::Result<impl IntoResponse> {
+    let user_id = client.current_user().await?.id.to_string();
+    let playlist_id = WatcherRepo::new(ctx.clone())
+        .get_watched_playlist_id_by_user_id(&user_id)?
+        .ok_or_else(|| anyhow!("no watched playlist"))?;
+    let token = client
+        .get_token()
+        .lock()
+        .await
+        .unwrap()
+        .clone()
+        .ok_or_else(|| anyhow!("no token"))?;
+
+    crate::sync::util::sync_user_playlist(&user_id, &playlist_id, &token, ctx).await?;
+
+    Ok(Redirect::to("/me"))
 }
