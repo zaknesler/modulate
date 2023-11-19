@@ -1,11 +1,10 @@
 use crate::{
     context::AppContext,
-    model::watcher::Watcher,
     web::{middleware::auth, view::DashboardTemplate},
 };
 use axum::{extract::State, middleware, response::IntoResponse, routing::get, Extension, Router};
 use futures::TryStreamExt;
-use rspotify::{prelude::*, AuthCodeSpotify};
+use rspotify::{model::PlaylistId, prelude::*, AuthCodeSpotify};
 use std::sync::Arc;
 
 pub fn router(ctx: Arc<AppContext>) -> Router {
@@ -27,21 +26,31 @@ async fn get_dashboard(
         .current_user_playlists()
         .try_collect::<Vec<_>>()
         .await?;
-    let watcher = ctx
+    let watched_playlist_id: Option<String> = ctx
         .db
         .get()?
         .prepare("SELECT playlist_id FROM watchers WHERE user_id = ? LIMIT 1")?
-        .query_row(&[&user.id.to_string()], |row| {
-            Ok(Watcher {
-                user_id: user.id.to_string(),
-                playlist_id: row.get(0)?,
-            })
-        })
+        .query_row(&[&user.id.to_string()], |row| Ok(row.get(0)?))
         .ok();
+
+    let watched_playlist = if let Some(id) = watched_playlist_id {
+        Some(
+            client
+                .user_playlist(
+                    user.id.clone(),
+                    Some(PlaylistId::from_id_or_uri(&id)?),
+                    None,
+                )
+                .await?
+                .name,
+        )
+    } else {
+        None
+    };
 
     Ok(DashboardTemplate {
         name: user.id.to_string().split(':').last().unwrap().to_owned(),
-        watcher,
+        watched_playlist,
         playlists,
     })
 }

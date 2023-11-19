@@ -13,6 +13,7 @@ use std::sync::Arc;
 pub fn router(ctx: Arc<AppContext>) -> Router {
     Router::new()
         .route("/watcher", post(create_watcher))
+        .route("/watcher/delete", post(delete_watcher))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -36,6 +37,20 @@ async fn create_watcher(
         .get()?
         .prepare("INSERT INTO watchers (user_id, playlist_id) VALUES (?, ?)")?
         .execute(&[&user.id.to_string(), &data.playlist])?;
+
+    Ok(Redirect::to("/me"))
+}
+
+async fn delete_watcher(
+    Extension(client): Extension<AuthCodeSpotify>,
+    State(ctx): State<Arc<AppContext>>,
+) -> crate::Result<impl IntoResponse> {
+    let user = client.current_user().await?;
+
+    ctx.db
+        .get()?
+        .prepare("DELETE FROM watchers WHERE user_id = ?")?
+        .execute(&[&user.id.to_string()])?;
 
     Ok(Redirect::to("/me"))
 }
