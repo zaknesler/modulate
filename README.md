@@ -6,9 +6,9 @@ This app moves tracks from your private "Liked" playlist to any other playlist y
 
 <details>
   <summary>View screenshots</summary>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/492fc8fb-89d3-4615-9f51-83f2c803a878" alt="screenshot before configuring watcher" width="400">
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/e6090ac5-c0d1-4a59-b8af-5ced994dd022" alt="screenshot before configuring watcher" width="400">
   <br>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/62b2c4e3-5862-4af2-9823-186452e0bc42" alt="screenshot after configuring watcher" width="400">
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/44f79cf6-d980-4b57-b55f-9a02156b8fee" alt="screenshot after configuring watcher" width="400">
 </details>
 
 #### Usage
