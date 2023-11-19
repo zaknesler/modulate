@@ -1,5 +1,5 @@
 # one of [trace, debug, info, warn, error]
-log_level = "info"
+log_level = "warn"
 
 [db]
 # sqlite database file name, relative to .config

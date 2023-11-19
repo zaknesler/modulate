@@ -10,7 +10,7 @@ use axum::{
     routing::get,
     Router,
 };
-use rspotify::clients::OAuthClient;
+use rspotify::clients::{BaseClient, OAuthClient};
 use serde::Deserialize;
 use std::sync::Arc;
 use tower_cookies::{Cookie, Cookies};
@@ -37,7 +37,7 @@ async fn handle_callback(
     let user_id = client.current_user().await?.id;
 
     let token = client
-        .token
+        .get_token()
         .lock()
         .await
         .unwrap()
