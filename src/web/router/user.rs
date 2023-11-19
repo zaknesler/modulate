@@ -1,5 +1,6 @@
 use crate::{
     context::AppContext,
+    repo::watcher::WatcherRepo,
     web::{middleware::auth, view::DashboardTemplate},
 };
 use axum::{extract::State, middleware, response::IntoResponse, routing::get, Extension, Router};
@@ -25,12 +26,8 @@ async fn get_dashboard(
         .current_user_playlists()
         .try_collect::<Vec<_>>()
         .await?;
-    let watched_playlist_id: Option<String> = ctx
-        .db
-        .get()?
-        .prepare("SELECT playlist_id FROM watchers WHERE user_id = ? LIMIT 1")?
-        .query_row(&[&user.id.to_string()], |row| Ok(row.get(0)?))
-        .ok();
+    let watched_playlist_id =
+        WatcherRepo::new(ctx.clone()).get_watched_playlist_id_by_user_id(&user.id.to_string())?;
 
     let watched_playlist = match watched_playlist_id {
         Some(id) => Some(

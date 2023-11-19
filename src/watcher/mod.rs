@@ -1,4 +1,4 @@
-use crate::{context::AppContext, util};
+use crate::{context::AppContext, repo::watcher::WatcherRepo, util};
 use futures::TryStreamExt;
 use rspotify::{
     clients::OAuthClient,
@@ -22,14 +22,9 @@ pub async fn init(ctx: AppContext) -> crate::Result<()> {
 }
 
 async fn execute(ctx: AppContext) -> crate::Result<()> {
-    let watchers = ctx
-        .db
-        .get()?
-        .prepare("SELECT watchers.user_id, watchers.playlist_id, users.token FROM watchers LEFT JOIN users ON watchers.user_id = users.user_id")?
-        .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
-        .collect::<rusqlite::Result<Vec<(String, String, String)>>>()?;
+    let watcher_repo = WatcherRepo::new(ctx.clone());
 
-    for (user_id, playlist_id, token) in watchers {
+    for (user_id, playlist_id, token) in watcher_repo.get_all_watchers()? {
         let token = serde_json::from_str::<Token>(&token)?;
         let client = util::client::get_token_ensure_refreshed(user_id, &token, ctx.clone()).await?;
 

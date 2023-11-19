@@ -1,5 +1,6 @@
 use crate::{
     context::AppContext,
+    repo::user::UserRepo,
     util::{client, jwt},
     web::router::JWT_COOKIE,
 };
@@ -29,12 +30,7 @@ pub async fn middleware<B>(
 
 async fn try_create_auth_client(jwt: &str, ctx: AppContext) -> crate::Result<AuthCodeSpotify> {
     let user_id = jwt::verify_jwt(&ctx.config.web.jwt_secret, jwt)?;
-
-    let token: String = ctx
-        .db
-        .get()?
-        .prepare("SELECT token FROM users WHERE user_id = ? LIMIT 1")?
-        .query_row(&[&user_id], |row| Ok(row.get(0)?))?;
+    let token = UserRepo::new(ctx.clone()).get_token_by_user_id(&user_id)?;
 
     client::get_token_ensure_refreshed(user_id, &serde_json::from_str(&token)?, ctx).await
 }

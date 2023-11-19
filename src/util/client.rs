@@ -1,4 +1,4 @@
-use crate::context::AppContext;
+use crate::{context::AppContext, repo::user::UserRepo};
 use rspotify::{
     clients::BaseClient, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth,
     Token,
@@ -75,10 +75,7 @@ pub async fn get_token_ensure_refreshed(
         client.write_token_cache().await?;
 
         // Update the token in the database
-        ctx.db
-            .get()?
-            .prepare("UPDATE users SET token = ? WHERE user_id = ?")?
-            .execute(&[&serde_json::to_string(&token)?, &user_id])?;
+        UserRepo::new(ctx.clone()).upsert_user_token(&user_id, &serde_json::to_string(&token)?)?;
     }
 
     // If we requested a new token, the client now has it

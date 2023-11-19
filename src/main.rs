@@ -3,6 +3,7 @@ use futures::{future::FutureExt, pin_mut, select};
 mod config;
 mod context;
 mod error;
+mod repo;
 mod util;
 mod watcher;
 mod web;

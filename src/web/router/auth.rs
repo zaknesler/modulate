@@ -1,6 +1,7 @@
 use super::JWT_COOKIE;
 use crate::{
     context::AppContext,
+    repo::user::UserRepo,
     util::{client::create_oauth_client, jwt},
 };
 use anyhow::anyhow;
@@ -44,10 +45,7 @@ async fn handle_callback(
         .and_then(|token| serde_json::to_string(token).ok())
         .ok_or_else(|| anyhow!("no token"))?;
 
-    ctx.db
-        .get()?
-        .prepare("INSERT OR REPLACE INTO users (user_id, token) VALUES (?, ?)")?
-        .execute(&[&user_id.to_string(), &token])?;
+    UserRepo::new(ctx.clone()).upsert_user_token(&user_id.to_string(), &token)?;
 
     let jwt = jwt::sign_jwt(&ctx.config.web.jwt_secret, user_id.to_string())?;
     cookies.add(Cookie::new(JWT_COOKIE, jwt));

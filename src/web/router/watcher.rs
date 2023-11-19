@@ -1,4 +1,4 @@
-use crate::{context::AppContext, web::middleware::auth};
+use crate::{context::AppContext, repo::watcher::WatcherRepo, web::middleware::auth};
 use axum::{
     extract::{Form, State},
     middleware,
@@ -32,10 +32,7 @@ async fn create_watcher(
 ) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
 
-    ctx.db
-        .get()?
-        .prepare("INSERT INTO watchers (user_id, playlist_id) VALUES (?, ?)")?
-        .execute(&[&user.id.to_string(), &data.playlist])?;
+    WatcherRepo::new(ctx.clone()).create_watcher(&user.id.to_string(), &data.playlist)?;
 
     Ok(Redirect::to("/me"))
 }
@@ -46,10 +43,7 @@ async fn delete_watcher(
 ) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
 
-    ctx.db
-        .get()?
-        .prepare("DELETE FROM watchers WHERE user_id = ?")?
-        .execute(&[&user.id.to_string()])?;
+    WatcherRepo::new(ctx.clone()).delete_watcher(&user.id.to_string())?;
 
     Ok(Redirect::to("/me"))
 }
