@@ -2,14 +2,14 @@
   <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/d2acc2ed-cc61-4b97-b9b8-50c3f4b983be" alt="spotify sync logo" width="175">
 </p>
 
-I prefer having my favorite Spotify tracks in playlists sorted by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
+I like keeping my favorite Spotify tracks in playlists labeled by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
 
 This app transfers tracks from your private "Liked" playlist to any other playlist you choose, basically treating it as a buffer so you can press ❤️ and go on with your obviously busy life.
 
-Once you connect your Spotify account and select a playlist, it'll stay running and auto-transfer your tracks every hour (configurable).
+Once you connect your Spotify account and select a playlist, it'll stay running and auto-transfer your tracks every 60 minutes (this is configurable). It uses OAuth2 tokens and refreshes them when necessary, as well as a signed JWT stored as a cookie for browser authentication. It can handle any number of accounts, so you can host it for your friends or just keep it private.
 
 <details>
-  <summary>View screenshots</summary>
+  <summary><strong>View screenshots</strong></summary>
   <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/1d9cc8ee-ebb5-41d3-b401-93ca12831436" alt="screenshot before configuring watcher" width="400">
   <br>
   <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/fc7968eb-e5ec-4864-b596-171a72709e11" alt="screenshot after configuring watcher" width="400">
@@ -25,7 +25,7 @@ If you'd like to run it for yourself:
 1. Add Spotify creds to `.config/local.toml`
 1. `touch .config/sync.db`
 1. `cargo run`
-1. Go to [`localhost:4000`](http://localhost:4000) and follow setup
+1. Go to [`localhost:4000`](http://localhost:4000), sign in, and configure
 
 #### Thanks
 
