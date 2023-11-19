@@ -1,6 +1,5 @@
+use futures::{future::FutureExt, pin_mut, select};
 use std::sync::Arc;
-
-use futures::future;
 
 mod config;
 mod context;
@@ -24,6 +23,14 @@ async fn main() -> Result<()> {
     let ctx = Arc::new(context::AppContext { config, db });
 
     // Run watcher and web server concurrently
-    let (_, res) = future::join(crate::watcher::init(ctx.clone()), crate::web::serve(ctx)).await;
-    res
+    let watcher = crate::watcher::init(ctx.clone()).fuse();
+    let web = crate::web::serve(ctx).fuse();
+
+    pin_mut!(watcher, web);
+
+    // Wait for either process to finish (i.e. return an error) and exit
+    select! {
+        result = watcher => result,
+        result = web => result,
+    }
 }

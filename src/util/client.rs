@@ -29,9 +29,11 @@ pub fn create_oauth_client(config: &crate::config::Config) -> AuthCodeSpotify {
 
     let oauth = OAuth {
         scopes: scopes!(
+            "user-library-read",
+            "user-library-modify",
             "playlist-read-private",
-            "playlist-modify-private",
-            "user-library-read"
+            "playlist-modify-public",
+            "playlist-modify-private"
         ),
         redirect_uri: config.spotify.callback_uri.clone(),
         ..Default::default()
