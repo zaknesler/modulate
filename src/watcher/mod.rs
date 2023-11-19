@@ -7,10 +7,12 @@ use rspotify::{
 };
 use std::sync::Arc;
 
+const INTERVAL_MINUTES: u64 = 60;
+
 pub async fn init(ctx: Arc<AppContext>) -> crate::Result<()> {
     loop {
         let now = tokio::time::Instant::now();
-        let execute_in = std::time::Duration::from_secs(60 * 30);
+        let execute_in = std::time::Duration::from_secs(60 * INTERVAL_MINUTES);
 
         tokio::time::sleep_until(now + execute_in).await;
 
