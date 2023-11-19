@@ -8,8 +8,8 @@ use std::collections::BTreeMap;
 const JWT_EXPIRATION_DAYS: i64 = 90;
 
 pub const JWT_CLAIM_USER: &str = "sub";
-pub const JWT_CLAIM_ISSUED: &str = "iat";
-pub const JWT_CLAIM_EXPIRATION: &str = "exp";
+pub const JWT_CLAIM_ISSUED_AT: &str = "iat";
+pub const JWT_CLAIM_EXPIRES_AT: &str = "exp";
 
 /// Create a JWT for the given UUID
 pub fn sign_jwt(secret: &str, user_id: String) -> crate::Result<String> {
@@ -18,9 +18,9 @@ pub fn sign_jwt(secret: &str, user_id: String) -> crate::Result<String> {
 
     let mut claims = BTreeMap::new();
     claims.insert(JWT_CLAIM_USER, user_id);
-    claims.insert(JWT_CLAIM_ISSUED, now.to_rfc3339());
+    claims.insert(JWT_CLAIM_ISSUED_AT, now.to_rfc3339());
     claims.insert(
-        JWT_CLAIM_EXPIRATION,
+        JWT_CLAIM_EXPIRES_AT,
         (now + Duration::days(JWT_EXPIRATION_DAYS)).to_rfc3339(),
     );
 
@@ -39,7 +39,7 @@ pub fn verify_jwt(secret: &str, jwt: &str) -> crate::Result<String> {
 
     // Check that the token hasn't expired
     if claims
-        .get(JWT_CLAIM_EXPIRATION)
+        .get(JWT_CLAIM_EXPIRES_AT)
         .ok_or_else(|| Error::InvalidJwt)?
         .parse::<DateTime<Utc>>()?
         < Utc::now()
