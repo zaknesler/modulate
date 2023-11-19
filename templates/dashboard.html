@@ -27,7 +27,8 @@
       gap: 0.5rem;
     }
 
-    label {
+    label, small {
+      display: block;
       font-size: 0.875rem;
       color: #666;
     }
@@ -57,19 +58,19 @@
 
 {% block content %}
   <div class="content">
-    <h2>{{ name }}</h2>
+    <h2>Hello, {{ name }}.</h2>
     <div class="accent"></div>
 
     {% match watched_playlist %}
       {% when Some with (playlist) %}
-      <p>You have a watcher configured for your playlist <strong>{{ playlist }}</strong>.</p>
+      <p>You have a watcher configured for your playlist <strong>{{ playlist }}</strong>. Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</p>
 
       <form action="/watcher/delete" method="post" class="items">
         <button class="button">Delete watcher</button>
       </form>
 
       {% when None %}
-      <p>Create a new watcher for your account below.</p>
+      <p>You don't have a watcher configured for your account. Create one below.</p>
 
       <form action="/watcher" method="post" class="items">
         <div class="item">
@@ -89,6 +90,8 @@
             {% endfor %}
           </select>
         </div>
+
+        <small>Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</small>
 
         <button class="button">Create watcher</button>
       </form>

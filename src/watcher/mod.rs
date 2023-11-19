@@ -6,7 +6,7 @@ use rspotify::{
     Token,
 };
 
-const INTERVAL_MINUTES: u64 = 60;
+pub const INTERVAL_MINUTES: u64 = 60;
 
 pub async fn init(ctx: AppContext) -> crate::Result<()> {
     loop {
