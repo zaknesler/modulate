@@ -1,4 +1,8 @@
-use crate::{context::AppContext, util::client, web::router::COOKIE_USER_ID};
+use crate::{
+    context::AppContext,
+    util::{client, jwt},
+    web::router::JWT_COOKIE,
+};
 use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
 use rspotify::{AuthCodeSpotify, Token};
 use std::sync::Arc;
@@ -11,11 +15,11 @@ pub async fn middleware<B>(
     mut req: Request<B>,
     next: Next<B>,
 ) -> crate::Result<impl IntoResponse> {
-    let user_id = cookies
-        .get(COOKIE_USER_ID)
+    let jwt_cookie = cookies
+        .get(JWT_COOKIE)
         .ok_or_else(|| crate::error::Error::UnauthorizedError)?;
 
-    match try_create_auth_client(user_id.value(), ctx).await {
+    match try_create_auth_client(jwt_cookie.value(), ctx).await {
         Ok(client) => {
             req.extensions_mut().insert(client);
             Ok(next.run(req).await)
@@ -24,15 +28,14 @@ pub async fn middleware<B>(
     }
 }
 
-async fn try_create_auth_client(
-    user_id: &str,
-    ctx: Arc<AppContext>,
-) -> crate::Result<AuthCodeSpotify> {
+async fn try_create_auth_client(jwt: &str, ctx: Arc<AppContext>) -> crate::Result<AuthCodeSpotify> {
+    let user_id = jwt::verify_jwt(&ctx.config.web.jwt_secret, jwt)?;
+
     let token: String = ctx
         .db
         .get()?
         .prepare("SELECT token FROM TOKENS WHERE user_id = ? LIMIT 1")?
-        .query_row(&[user_id], |row| Ok(row.get(0)?))?;
+        .query_row(&[&user_id], |row| Ok(row.get(0)?))?;
 
     let token: Token = serde_json::from_str(&token)?;
     let client = client::create_from_token(token);

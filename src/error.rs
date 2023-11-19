@@ -31,8 +31,23 @@ pub enum Error {
     #[error("spotify ID error: {0}")]
     SpotifyIdError(#[from] rspotify::model::IdError),
 
-    #[error("address parse error: {0}")]
+    #[error(transparent)]
     AddrParseError(#[from] std::net::AddrParseError),
+
+    #[error("jwt expired")]
+    JwtExpired,
+
+    #[error("invalid jwt")]
+    InvalidJwt,
+
+    #[error(transparent)]
+    HmacError(#[from] hmac::digest::InvalidLength),
+
+    #[error(transparent)]
+    JwtError(#[from] jwt::Error),
+
+    #[error(transparent)]
+    ChronoParseError(#[from] chrono::ParseError),
 }
 
 impl IntoResponse for Error {

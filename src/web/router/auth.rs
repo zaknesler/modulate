@@ -1,5 +1,8 @@
-use super::COOKIE_USER_ID;
-use crate::{context::AppContext, util::client::create_oauth_client};
+use super::JWT_COOKIE;
+use crate::{
+    context::AppContext,
+    util::{client::create_oauth_client, jwt},
+};
 use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
@@ -47,7 +50,8 @@ async fn handle_callback(
         &[user_id.id(), &token],
     )?;
 
-    cookies.add(Cookie::new(COOKIE_USER_ID, user_id.id().to_owned()));
+    let jwt = jwt::sign_jwt(&ctx.config.web.jwt_secret, user_id.id().to_owned())?;
+    cookies.add(Cookie::new(JWT_COOKIE, jwt));
 
     Ok(Redirect::to("/me"))
 }

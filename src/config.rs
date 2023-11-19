@@ -33,6 +33,7 @@ pub struct WebConfig {
     pub host: String,
     pub port: u16,
     pub allowed_origins: Vec<String>,
+    pub jwt_secret: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
