@@ -2,13 +2,6 @@
 
 {% block head %}
   <style>
-    .content {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      max-width: 275px;
-    }
-
     .accent {
       width: 120px;
       height: 4px;
@@ -58,46 +51,44 @@
 {% endblock head %}
 
 {% block content %}
-  <div class="content">
-    <h2>Hello, {{ name }}.</h2>
-    <div class="accent"></div>
+  <h2>Hello, {{ name }}.</h2>
+  <div class="accent"></div>
 
-    {% match watched_playlist %}
-      {% when Some with (playlist) %}
-      <p>You have a watcher configured for your playlist <strong>{{ playlist }}</strong>. Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</p>
+  {% match watched_playlist %}
+    {% when Some with (playlist) %}
+    <p>You have a watcher configured for your playlist <strong>{{ playlist }}</strong>. Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</p>
 
-      <form action="/watcher/delete" method="post" class="items">
-        <button class="button">Delete watcher</button>
-      </form>
+    <form action="/watcher/delete" method="post" class="items">
+      <button class="button">Delete watcher</button>
+    </form>
 
-      {% when None %}
-      <p>You don't have a watcher configured for your account. Create one below.</p>
+    {% when None %}
+    <p>You don't have a watcher configured for your account. Create one below.</p>
 
-      <form action="/watcher" method="post" class="items">
-        <div class="item">
-          <label for="playlist">From playlist</label>
-          <select disabled>
-            <option>Liked tracks</option>
-          </select>
-        </div>
+    <form action="/watcher" method="post" class="items">
+      <div class="item">
+        <label for="playlist">From playlist</label>
+        <select disabled>
+          <option>Liked tracks</option>
+        </select>
+      </div>
 
-        <div class="item">
-          <label for="playlist">To playlist</label>
-          <select name="playlist" id="playlist" onchange="playlistUpdated()">
-            <option value="" disabled selected hidden>Select a playlist...</option>
+      <div class="item">
+        <label for="playlist">To playlist</label>
+        <select name="playlist" id="playlist" onchange="playlistUpdated()">
+          <option value="" disabled selected hidden>Select a playlist...</option>
 
-            {% for playlist in playlists %}
-            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
+          {% for playlist in playlists %}
+          <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-        <small>Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</small>
+      <small>Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</small>
 
-        <button id="submit" class="button" disabled>Create watcher</button>
-      </form>
-    {% endmatch %}
-  </div>
+      <button id="submit" class="button" disabled>Create watcher</button>
+    </form>
+  {% endmatch %}
 {% endblock content %}
 
 {% block script %}
