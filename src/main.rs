@@ -6,8 +6,8 @@ mod config;
 mod context;
 mod error;
 mod repo;
+mod sync;
 mod util;
-mod watcher;
 mod web;
 
 lazy_static! {
@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
     let ctx = context::AppContext { db };
 
     // Run watcher and web server concurrently
-    let watcher = crate::watcher::init(ctx.clone()).fuse();
+    let watcher = crate::sync::init(ctx.clone()).fuse();
     let web = crate::web::serve(ctx).fuse();
 
     pin_mut!(watcher, web);
