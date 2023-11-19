@@ -3,6 +3,7 @@ use crate::{
     repo::user::UserRepo,
     util::{client, jwt},
     web::router::JWT_COOKIE,
+    CONFIG,
 };
 use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
 use rspotify::AuthCodeSpotify;
@@ -29,7 +30,7 @@ pub async fn middleware<B>(
 }
 
 async fn try_create_auth_client(jwt: &str, ctx: AppContext) -> crate::Result<AuthCodeSpotify> {
-    let user_id = jwt::verify_jwt(&ctx.config.web.jwt_secret, jwt)?;
+    let user_id = jwt::verify_jwt(CONFIG.web.jwt_secret.as_ref(), jwt)?;
     let token = UserRepo::new(ctx.clone()).get_token_by_user_id(&user_id)?;
 
     client::get_token_ensure_refreshed(user_id, &serde_json::from_str(&token)?, ctx).await

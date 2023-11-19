@@ -3,6 +3,7 @@ use crate::{
     context::AppContext,
     repo::user::UserRepo,
     util::{client::create_oauth_client, jwt},
+    CONFIG,
 };
 use anyhow::anyhow;
 use axum::{
@@ -31,7 +32,7 @@ async fn handle_callback(
     cookies: Cookies,
     State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
-    let client = create_oauth_client(&ctx.config);
+    let client = create_oauth_client();
     client.request_token(&params.code).await?;
 
     let user_id = client.current_user().await?.id;
@@ -47,7 +48,7 @@ async fn handle_callback(
 
     UserRepo::new(ctx.clone()).upsert_user_token(&user_id.to_string(), &token)?;
 
-    let jwt = jwt::sign_jwt(&ctx.config.web.jwt_secret, user_id.to_string())?;
+    let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), user_id.to_string())?;
     cookies.add(Cookie::new(JWT_COOKIE, jwt));
 
     Ok(Redirect::to("/me"))

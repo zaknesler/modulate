@@ -1,4 +1,4 @@
-use crate::{context::AppContext, repo::user::UserRepo};
+use crate::{context::AppContext, repo::user::UserRepo, CONFIG};
 use rspotify::{
     clients::BaseClient, scopes, AuthCodeSpotify, ClientCredsSpotify, Config, Credentials, OAuth,
     Token,
@@ -18,10 +18,10 @@ pub async fn create_anonymous_client(
     Ok(client)
 }
 
-pub fn create_oauth_client(config: &crate::config::Config) -> AuthCodeSpotify {
+pub fn create_oauth_client() -> AuthCodeSpotify {
     let creds = Credentials {
-        id: config.spotify.client_id.clone(),
-        secret: Some(config.spotify.client_secret.clone()),
+        id: CONFIG.spotify.client_id.clone(),
+        secret: Some(CONFIG.spotify.client_secret.clone()),
     };
 
     let oauth = OAuth {
@@ -32,7 +32,7 @@ pub fn create_oauth_client(config: &crate::config::Config) -> AuthCodeSpotify {
             "playlist-modify-public",
             "playlist-modify-private"
         ),
-        redirect_uri: config.spotify.callback_uri.clone(),
+        redirect_uri: CONFIG.spotify.callback_uri.clone(),
         ..Default::default()
     };
 
@@ -61,7 +61,7 @@ pub async fn get_token_ensure_refreshed(
 
     if is_expired {
         // Create new client with our credentials and add our current token
-        client = create_oauth_client(&ctx.config);
+        client = create_oauth_client();
         *client.token.lock().await.unwrap() = Some(token.clone());
 
         // Request a new token

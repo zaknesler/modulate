@@ -1,4 +1,6 @@
+use crate::config::Config;
 use futures::{future::FutureExt, pin_mut, select};
+use lazy_static::lazy_static;
 
 mod config;
 mod context;
@@ -8,19 +10,21 @@ mod util;
 mod watcher;
 mod web;
 
+lazy_static! {
+    pub static ref CONFIG: Config = Config::try_parse().expect("Failed to parse config");
+}
+
 pub type Result<T> = std::result::Result<T, crate::error::Error>;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = crate::config::Config::try_parse()?;
-
     // Initialize tracing
     tracing_subscriber::fmt()
-        .with_max_level(config.log_level.clone())
+        .with_max_level(CONFIG.log_level.clone())
         .init();
 
-    let db = util::db::init_db(config.db.file.clone())?;
-    let ctx = context::AppContext { config, db };
+    let db = util::db::init_db(CONFIG.db.file.as_ref())?;
+    let ctx = context::AppContext { db };
 
     // Run watcher and web server concurrently
     let watcher = crate::watcher::init(ctx.clone()).fuse();

@@ -1,4 +1,4 @@
-use crate::context::AppContext;
+use crate::{context::AppContext, CONFIG};
 use anyhow::anyhow;
 use axum::http::{header, HeaderValue, Method};
 use tower_cookies::CookieManagerLayer;
@@ -11,12 +11,11 @@ mod view;
 pub async fn serve(ctx: AppContext) -> crate::Result<()> {
     tracing::info!(
         "Starting web server on {}:{}",
-        &ctx.config.web.host,
-        &ctx.config.web.port
+        CONFIG.web.host,
+        CONFIG.web.port
     );
 
-    let cors = ctx
-        .config
+    let cors = CONFIG
         .web
         .allowed_origins
         .iter()
@@ -32,7 +31,7 @@ pub async fn serve(ctx: AppContext) -> crate::Result<()> {
         .layer(cors)
         .layer(CookieManagerLayer::new());
 
-    axum::Server::bind(&format!("{}:{}", &ctx.config.web.host, &ctx.config.web.port).parse()?)
+    axum::Server::bind(&format!("{}:{}", CONFIG.web.host, CONFIG.web.port).parse()?)
         .serve(app.into_make_service())
         .await
         .map_err(|e| anyhow!(e))?;

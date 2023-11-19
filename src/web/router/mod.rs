@@ -1,6 +1,6 @@
 use super::{middleware::guest, view::AuthTemplate};
 use crate::{context::AppContext, util::client::create_oauth_client};
-use axum::{extract::State, middleware, response::IntoResponse, routing::get, Router};
+use axum::{middleware, response::IntoResponse, routing::get, Router};
 
 mod auth;
 mod user;
@@ -18,8 +18,8 @@ pub fn router(ctx: AppContext) -> Router {
         .merge(user::router(ctx))
 }
 
-async fn root(State(ctx): State<AppContext>) -> crate::Result<impl IntoResponse> {
-    let client = create_oauth_client(&ctx.config);
+async fn root() -> crate::Result<impl IntoResponse> {
+    let client = create_oauth_client();
     let url = client.get_authorize_url(true)?;
 
     Ok(AuthTemplate { url })
