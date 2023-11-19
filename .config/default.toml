@@ -1,6 +1,9 @@
 # one of [trace, debug, info, warn, error]
 log_level = "warn"
 
+[sync]
+interval_mins = 60
+
 [db]
 # sqlite database file name, relative to .config
 file = "sync.db"

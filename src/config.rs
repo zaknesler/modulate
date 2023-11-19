@@ -8,6 +8,7 @@ const CONFIG_FILE_PRECEDENCE: [&str; 2] = ["default.toml", "local.toml"];
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub log_level: LogLevel,
+    pub sync: SyncConfig,
     pub db: DbConfig,
     pub web: WebConfig,
     pub spotify: SpotifyConfig,
@@ -21,6 +22,11 @@ pub enum LogLevel {
     Info,
     Warn,
     Error,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct SyncConfig {
+    pub interval_mins: u32,
 }
 
 #[derive(Debug, Deserialize, Clone)]

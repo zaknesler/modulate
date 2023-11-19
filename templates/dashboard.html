@@ -56,7 +56,7 @@
 
   {% match watched_playlist %}
     {% when Some with (playlist) %}
-    <p>You have a watcher configured for your playlist <strong>{{ playlist }}</strong>. Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</p>
+    <p>You have a watcher configured for your playlist <strong>{{ playlist }}</strong>. Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</p>
 
     <form action="/watcher/delete" method="post" class="items">
       <button class="button">Delete watcher</button>
@@ -84,7 +84,7 @@
         </select>
       </div>
 
-      <small>Tracks will be transferred every {{ crate::watcher::INTERVAL_MINUTES }} minutes.</small>
+      <small>Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</small>
 
       <button id="submit" class="button" disabled>Create watcher</button>
     </form>
