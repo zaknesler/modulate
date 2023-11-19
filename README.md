@@ -7,7 +7,9 @@ This app moves tracks from your private "Liked" playlist to any other playlist y
 <details>
   <summary>View screenshots</summary>
 
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/aa849b2f-d970-45e3-80b2-3221b23b8a63" alt="app screenshot" width="450">
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/aa849b2f-d970-45e3-80b2-3221b23b8a63" alt="app screenshot" width="350">
+  <br>
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/641f4251-1fed-463b-8c34-3d2b4fb1d001" alt="app screenshot" width="350">
 </details>
 
 #### Usage
