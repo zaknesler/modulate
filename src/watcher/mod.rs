@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use crate::{context::AppContext, repo::watcher::WatcherRepo, util, CONFIG};
 use futures::TryStreamExt;
 use rspotify::{
@@ -7,6 +5,7 @@ use rspotify::{
     model::{PlayableId, PlaylistId},
     Token,
 };
+use std::collections::HashSet;
 
 pub async fn init(ctx: AppContext) -> crate::Result<()> {
     loop {
