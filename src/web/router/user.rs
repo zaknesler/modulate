@@ -33,8 +33,8 @@ async fn get_dashboard(
         .query_row(&[&user.id.to_string()], |row| Ok(row.get(0)?))
         .ok();
 
-    let watched_playlist = if let Some(id) = watched_playlist_id {
-        Some(
+    let watched_playlist = match watched_playlist_id {
+        Some(id) => Some(
             client
                 .user_playlist(
                     user.id.clone(),
@@ -43,9 +43,8 @@ async fn get_dashboard(
                 )
                 .await?
                 .name,
-        )
-    } else {
-        None
+        ),
+        None => None,
     };
 
     Ok(DashboardTemplate {
