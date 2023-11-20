@@ -27,7 +27,11 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
                 .await?;
 
         transfer::PlaylistTransfer::new(ctx.clone(), client)
-            .transfer(watcher.from_playlist, watcher.to_playlist)
+            .transfer(
+                watcher.from_playlist,
+                watcher.to_playlist,
+                watcher.should_remove,
+            )
             .await?;
     }
 

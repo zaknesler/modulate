@@ -20,7 +20,12 @@ impl PlaylistTransfer {
     }
 
     /// Transfer tracks from one playlist to another, regardless of playlist type
-    pub async fn transfer(&self, from: PlaylistType, to: PlaylistType) -> crate::Result<bool> {
+    pub async fn transfer(
+        &self,
+        from: PlaylistType,
+        to: PlaylistType,
+        should_remove: bool,
+    ) -> crate::Result<bool> {
         Ok(match (from, to) {
             (PlaylistType::Saved, PlaylistType::WithId(playlist_id)) => {
                 let playlist_id = PlaylistId::from_id_or_uri(&playlist_id)?;
@@ -50,9 +55,11 @@ impl PlaylistTransfer {
                 }
 
                 // Remove all saved tracks
-                self.client
-                    .current_user_saved_tracks_delete(saved_track_ids)
-                    .await?;
+                if should_remove {
+                    self.client
+                        .current_user_saved_tracks_delete(saved_track_ids)
+                        .await?;
+                }
 
                 true
             }
@@ -89,15 +96,17 @@ impl PlaylistTransfer {
                 }
 
                 // Remove all tracks from original playlist
-                self.client
-                    .playlist_remove_all_occurrences_of_items(
-                        from_id,
-                        from_track_ids
-                            .iter()
-                            .map(|id| PlayableId::Track(id.clone())),
-                        None,
-                    )
-                    .await?;
+                if should_remove {
+                    self.client
+                        .playlist_remove_all_occurrences_of_items(
+                            from_id,
+                            from_track_ids
+                                .iter()
+                                .map(|id| PlayableId::Track(id.clone())),
+                            None,
+                        )
+                        .await?;
+                }
 
                 true
             }

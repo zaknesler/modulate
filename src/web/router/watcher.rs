@@ -101,7 +101,11 @@ async fn sync_watcher(
     let watcher = repo.get_watcher_by_id_and_user(params.id, &user.id.to_string())?;
 
     transfer::PlaylistTransfer::new(ctx, client)
-        .transfer(watcher.from_playlist, watcher.to_playlist)
+        .transfer(
+            watcher.from_playlist,
+            watcher.to_playlist,
+            watcher.should_remove,
+        )
         .await?;
 
     Ok(Redirect::to("/me"))
