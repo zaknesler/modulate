@@ -10,6 +10,9 @@ pub enum Error {
     #[error("invalid transfer: {0}")]
     InvalidTransfer(String),
 
+    #[error("invalid form data: {0}")]
+    InvalidFormData(String),
+
     #[error("unauthorized")]
     UnauthorizedError,
 
@@ -49,11 +52,11 @@ pub enum Error {
     #[error("chrono parse error: {0}")]
     ChronoParseError(#[from] chrono::ParseError),
 
-    #[error("validation errors: {0}")]
-    ValidationErrors(#[from] validator::ValidationErrors),
-
     #[error("validation error: {0}")]
     ValidationError(#[from] validator::ValidationError),
+
+    #[error("validation errors: {0}")]
+    ValidationErrors(#[from] validator::ValidationErrors),
 
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
@@ -65,6 +68,7 @@ impl IntoResponse for Error {
             Self::UnauthorizedError | Self::JwtExpiredError | Self::JwtInvalidError => {
                 (StatusCode::UNAUTHORIZED, Value::String(self.to_string()))
             }
+            Self::InvalidFormData(err) => (StatusCode::UNPROCESSABLE_ENTITY, Value::String(err)),
             Self::ValidationErrors(err) => (
                 StatusCode::UNPROCESSABLE_ENTITY,
                 json!({ "fields": err.field_errors() }),

@@ -120,11 +120,9 @@
 {% block script %}
   <script>
     function playlistUpdated(e) {
-      const fromPlaylistValid = !!document.querySelector('#from_playlist').value;
-      const toPlaylistValid = !!document.querySelector('#to_playlist').value;
-      if (!fromPlaylistValid || !toPlaylistValid) return;
-
-      document.querySelector('#submit').disabled = false
+      const from = document.querySelector('#from_playlist').value;
+      const to = document.querySelector('#to_playlist').value;
+      document.querySelector('#submit').disabled = !from || !to || from === to;
     }
   </script>
 {% endblock script %}

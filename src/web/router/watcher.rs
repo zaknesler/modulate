@@ -41,9 +41,18 @@ async fn create_watcher(
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
 
+    let from = data.from_playlist.expect("validated");
+    let to = data.to_playlist.expect("validated");
+
+    if to == from {
+        return Err(crate::error::Error::InvalidFormData(
+            "cannot create watcher that transfers between the same playlist".into(),
+        ));
+    }
+
     let user = client.current_user().await?;
-    let from_playlist = PlaylistType::from_value(&data.from_playlist.expect("validated"));
-    let to_playlist = PlaylistType::from_value(&data.to_playlist.expect("validated"));
+    let from_playlist = PlaylistType::from_value(&from);
+    let to_playlist = PlaylistType::from_value(&to);
 
     WatcherRepo::new(ctx.clone()).create_watcher(
         &user.id.to_string(),
