@@ -65,14 +65,16 @@ impl WatcherRepo {
         user_id: &str,
         from: PlaylistType,
         to: PlaylistType,
+        should_remove: bool,
     ) -> crate::Result<()> {
         self.ctx
             .db
             .get()?
             .prepare(
-                "INSERT INTO watchers (user_id, playlist_from, playlist_to, should_remove, created_at) VALUES (?, ?, ?, 1, datetime())",
+                "INSERT INTO watchers (user_id, playlist_from, playlist_to, should_remove, created_at)
+                VALUES (?, ?, ?, ?, datetime())",
             )?
-            .execute(params![user_id, from.to_value(), to.to_value()])?;
+            .execute(params![user_id, from.to_value(), to.to_value(), should_remove])?;
 
         Ok(())
     }

@@ -25,13 +25,15 @@ pub fn router(ctx: AppContext) -> Router {
         .with_state(ctx)
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate)]
 struct CreateWatcherParams {
     #[validate(required)]
     from_playlist: Option<String>,
 
     #[validate(required)]
     to_playlist: Option<String>,
+
+    should_remove: Option<String>,
 }
 
 async fn create_watcher(
@@ -58,6 +60,7 @@ async fn create_watcher(
         &user.id.to_string(),
         from_playlist,
         to_playlist,
+        data.should_remove.is_some(),
     )?;
 
     Ok(Redirect::to("/me"))
