@@ -19,7 +19,7 @@ impl WatcherRepo {
             .prepare("
                 SELECT watchers.id, users.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
                 FROM watchers
-                LEFT JOIN users
+                INNER JOIN users
                 ON users.user_id = watchers.user_id
             ")?
             .query_map([], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))?
@@ -33,10 +33,11 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare("
-                SELECT watchers.id, users.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                SELECT watchers.id, watchers.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
                 FROM watchers
-                LEFT JOIN users
-                ON users.user_id = watchers.user_id AND watchers.user_id = ?
+                INNER JOIN users
+                ON users.user_id = watchers.user_id
+                WHERE watchers.user_id = ?
             ")?
             .query_map(params![user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))?
             .collect::<rusqlite::Result<Vec<_>>>()
@@ -49,10 +50,11 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare("
-                SELECT watchers.id, users.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                SELECT watchers.id, watchers.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
                 FROM watchers
-                LEFT JOIN users
-                ON users.user_id = watchers.user_id AND watchers.id = ? AND watchers.user_id = ?
+                INNER JOIN users
+                ON users.user_id = watchers.user_id
+                WHERE watchers.id = ? AND watchers.user_id = ?
             ")?
             .query_row(params![id, user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))
             .map_err(|err|err.into())
