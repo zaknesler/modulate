@@ -11,11 +11,21 @@ pub fn init_db(file: &str) -> crate::Result<Pool<SqliteConnectionManager>> {
     // Ensure tables exist
     let conn = db.get()?;
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS users (user_id VARCHAR(255) PRIMARY KEY, token VARCHAR(255) NOT NULL)",
+        "CREATE TABLE IF NOT EXISTS users (
+            id          TEXT PRIMARY KEY,
+            token       TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        )",
         [],
     )?;
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS watchers (user_id VARCHAR(255) PRIMARY KEY, playlist_id VARCHAR(255))",
+        "CREATE TABLE IF NOT EXISTS watchers (
+            user_id         TEXT    PRIMARY KEY,
+            from_playlist   TEXT    NOT NULL,
+            to_playlist     TEXT    NOT NULL,
+            should_remove   BOOLEAN CHECK (should_remove IN (0, 1)),
+            created_at      TEXT    NOT NULL
+        )",
         [],
     )?;
 

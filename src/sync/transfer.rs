@@ -1,4 +1,4 @@
-use crate::context::AppContext;
+use crate::{context::AppContext, model::playlist::PlaylistType};
 use anyhow::anyhow;
 use futures::TryStreamExt;
 use rspotify::{
@@ -7,11 +7,6 @@ use rspotify::{
     AuthCodeSpotify,
 };
 use std::collections::HashSet;
-
-pub enum PlaylistType<'a> {
-    Saved,
-    WithId(PlaylistId<'a>),
-}
 
 #[allow(dead_code)]
 pub struct PlaylistTransfer {
@@ -25,13 +20,11 @@ impl PlaylistTransfer {
     }
 
     /// Transfer tracks from one playlist to another, regardless of playlist type
-    pub async fn transfer(
-        &self,
-        from: PlaylistType<'_>,
-        to: PlaylistType<'_>,
-    ) -> crate::Result<bool> {
+    pub async fn transfer(&self, from: PlaylistType, to: PlaylistType) -> crate::Result<bool> {
         Ok(match (from, to) {
             (PlaylistType::Saved, PlaylistType::WithId(playlist_id)) => {
+                let playlist_id = PlaylistId::from_id_or_uri(&playlist_id)?;
+
                 // Get all saved tracks
                 let saved_track_ids = self.get_saved_track_ids().await?;
 
@@ -64,6 +57,9 @@ impl PlaylistTransfer {
                 true
             }
             (PlaylistType::WithId(from_id), PlaylistType::WithId(to_id)) => {
+                let from_id = PlaylistId::from_id_or_uri(&from_id)?;
+                let to_id = PlaylistId::from_id_or_uri(&to_id)?;
+
                 let from_track_ids = self.get_playlist_track_ids(from_id.clone()).await?;
 
                 // Don't do anything if there are no tracks in the playlist

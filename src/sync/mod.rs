@@ -1,5 +1,4 @@
 use crate::{context::AppContext, repo::watcher::WatcherRepo, util::client, CONFIG};
-use rspotify::model::PlaylistId;
 
 pub mod transfer;
 
@@ -22,17 +21,13 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
 
     tracing::info!("Syncing playlists of {} user(s)...", watchers.len());
 
-    for (user_id, playlist_id, token) in watchers {
-        let token = serde_json::from_str::<rspotify::Token>(&token)?;
+    for watcher in watchers {
         let client =
-            client::get_token_ensure_refreshed(user_id.to_owned(), &token, ctx.clone()).await?;
+            client::get_token_ensure_refreshed(watcher.user_id, &watcher.user_token, ctx.clone())
+                .await?;
 
-        // Transfer tracks from saved playlist to playlist with the given ID
         transfer::PlaylistTransfer::new(ctx.clone(), client)
-            .transfer(
-                transfer::PlaylistType::Saved,
-                transfer::PlaylistType::WithId(PlaylistId::from_id_or_uri(&playlist_id)?),
-            )
+            .transfer(watcher.from_playlist, watcher.to_playlist)
             .await?;
     }
 

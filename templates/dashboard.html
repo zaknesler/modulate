@@ -20,6 +20,15 @@
       gap: 0.5rem;
     }
 
+    .watcher {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .watcher > * {
+      flex: 1;
+    }
+
     label, small {
       display: block;
       font-size: 0.875rem;
@@ -54,52 +63,61 @@
   <h2>Hello, {{ name }}.</h2>
   <div class="accent"></div>
 
-  {% match watched_playlist %}
-    {% when Some with (playlist_name) %}
-    <p>You have a watcher configured for your playlist <strong>{{ playlist_name }}</strong>. Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</p>
-
-    <form action="/sync" method="post">
-      <button class="button">Sync now</button>
-    </form>
-
-    <form action="/watcher/delete" method="post">
-      <button class="button">Remove watcher</button>
-    </form>
-
-    {% when None %}
+  {% if watchers.is_empty() %}
     <p>You don't have a watcher configured for your account. Create one below.</p>
-
-    <form action="/watcher" method="post" class="items">
+    <form action="/watchers" method="post" class="items">
       <div class="item">
-        <label for="playlist">From playlist</label>
-        <select disabled>
-          <option>Liked tracks</option>
+        <label for="from_playlist">From playlist</label>
+        <select name="from_playlist" id="from_playlist" onchange="playlistUpdated()">
+          <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>Liked Tracks</option>
+
+          {% for playlist in playlists %}
+            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% endfor %}
         </select>
       </div>
 
       <div class="item">
-        <label for="playlist_id">To playlist</label>
-        <select name="playlist_id" id="playlist_id" onchange="playlistUpdated()">
+        <label for="to_playlist">To playlist</label>
+        <select name="to_playlist" id="to_playlist" onchange="playlistUpdated()">
           <option value="" disabled selected hidden>Select a playlist...</option>
 
           {% for playlist in playlists %}
-          <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
           {% endfor %}
         </select>
       </div>
 
       <small>Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</small>
-
       <button id="submit" class="button" disabled>Create watcher</button>
     </form>
-  {% endmatch %}
+  {% else %}
+    <p>You have a watcher configured for <strong>{{ watchers.len() }}</strong> of your playlists. Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</p>
+
+    <div class="items">
+      {% for watcher in watchers %}
+        {{ watcher.from_playlist }} -&gt; {{ watcher.to_playlist }}
+        <div class="watcher">
+          <form action="/watchers/delete" method="post">
+            <button class="button">Sync now</button>
+          </form>
+
+          <form action="/watchers/delete" method="post">
+            <button class="button">Remove</button>
+          </form>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
 {% endblock content %}
 
 {% block script %}
   <script>
     function playlistUpdated(e) {
-      const hasValue = !!document.querySelector('#playlist_id').value;
-      if (!hasValue) return;
+      const fromPlaylistValid = !!document.querySelector('#from_playlist').value;
+      const toPlaylistValid = !!document.querySelector('#to_playlist').value;
+      if (!fromPlaylistValid || !toPlaylistValid) return;
+
       document.querySelector('#submit').disabled = false
     }
   </script>

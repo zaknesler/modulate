@@ -5,6 +5,7 @@ use lazy_static::lazy_static;
 mod config;
 mod context;
 mod error;
+mod model;
 mod repo;
 mod sync;
 mod util;

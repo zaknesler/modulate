@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Multiple watchers can now be created
+- Playlist-playlist watchers can now be created
+
 ### Changed
 
 - Added better abstraction for transferring tracks between playlists

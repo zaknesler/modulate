@@ -12,7 +12,11 @@ impl UserRepo {
         self.ctx
             .db
             .get()?
-            .prepare("INSERT OR REPLACE INTO users (user_id, token) VALUES (?, ?)")?
+            .prepare(
+                "INSERT OR REPLACE INTO users
+                (id, token, created_at)
+                VALUES (?, ?, datetime())",
+            )?
             .execute(&[user_id, token])?;
 
         Ok(())
@@ -23,7 +27,7 @@ impl UserRepo {
         self.ctx
             .db
             .get()?
-            .prepare("SELECT token FROM users WHERE user_id = ? LIMIT 1")?
+            .prepare("SELECT token FROM users WHERE id = ? LIMIT 1")?
             .query_row(&[user_id], |row| Ok(row.get(0)?))
             .map_err(|err| err.into())
     }

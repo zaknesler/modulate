@@ -1,3 +1,4 @@
+use crate::model::watcher::Watcher;
 use askama::Template;
 use rspotify::model::SimplifiedPlaylist;
 
@@ -11,6 +12,6 @@ pub struct ConnectTemplate {
 #[template(path = "dashboard.html")]
 pub struct DashboardTemplate {
     pub name: String,
-    pub watched_playlist: Option<String>,
+    pub watchers: Vec<Watcher>,
     pub playlists: Vec<SimplifiedPlaylist>,
 }
