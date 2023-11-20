@@ -1,5 +1,6 @@
 use super::playlist::PlaylistType;
 
+#[derive(Debug)]
 pub struct Watcher {
     pub id: i64,
     pub user_id: String,

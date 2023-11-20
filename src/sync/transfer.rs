@@ -57,6 +57,12 @@ impl PlaylistTransfer {
                 true
             }
             (PlaylistType::WithId(from_id), PlaylistType::WithId(to_id)) => {
+                if from_id == to_id {
+                    return Err(crate::error::Error::InvalidTransfer(
+                        "cannot transfer to the same playlist".to_owned(),
+                    ));
+                }
+
                 let from_id = PlaylistId::from_id_or_uri(&from_id)?;
                 let to_id = PlaylistId::from_id_or_uri(&to_id)?;
 
