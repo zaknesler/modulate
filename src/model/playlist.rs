@@ -4,7 +4,7 @@ use std::fmt::Display;
 /// Value that represents the built-in "Liked Tracks" playlist, as it has to be handled differently than regular playlists.
 pub const LIKED_PLAYLIST_VALUE: &str = "_liked";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum PlaylistType {
     Saved,
     WithId(String),
@@ -19,23 +19,22 @@ impl Display for PlaylistType {
     }
 }
 
-impl From<PlaylistType> for String {
+impl PlaylistType {
     /// Convert to data string for storage.
     /// Use `.to_string()` for displaying.
-    fn from(value: PlaylistType) -> Self {
-        match value {
-            PlaylistType::Saved => LIKED_PLAYLIST_VALUE.to_owned(),
+    pub fn to_value(&self) -> &str {
+        match self {
+            PlaylistType::Saved => LIKED_PLAYLIST_VALUE,
             PlaylistType::WithId(value) => value,
         }
     }
-}
 
-impl From<String> for PlaylistType {
-    /// Convert from data string.
-    fn from(value: String) -> Self {
-        match value.as_ref() {
+    /// Convert to data string for storage.
+    /// Use `.to_string()` for displaying.
+    pub fn from_value(value: &str) -> Self {
+        match value {
             LIKED_PLAYLIST_VALUE => Self::Saved,
-            _ => Self::WithId(value),
+            _ => Self::WithId(value.to_owned()),
         }
     }
 }

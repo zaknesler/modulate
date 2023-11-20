@@ -61,9 +61,6 @@ impl WatcherRepo {
         from: PlaylistType,
         to: PlaylistType,
     ) -> crate::Result<()> {
-        let from: String = from.into();
-        let to: String = to.into();
-
         self.ctx
             .db
             .get()?
@@ -72,7 +69,7 @@ impl WatcherRepo {
                 (user_id, from_playlist, to_playlist, should_remove, created_at)
                 VALUES (?, ?, ?, 1, datetime())",
             )?
-            .execute(&[user_id, &from, &to])?;
+            .execute(&[user_id, &from.to_value(), &to.to_value()])?;
 
         Ok(())
     }
@@ -84,16 +81,13 @@ impl WatcherRepo {
         from: PlaylistType,
         to: PlaylistType,
     ) -> crate::Result<()> {
-        let from: String = from.into();
-        let to: String = to.into();
-
         self.ctx
             .db
             .get()?
             .prepare(
-                "DELETE FROM watchers WHERE user_id = ? AND from_playlist = ? to_playlist = ?",
+                "DELETE FROM watchers WHERE user_id = ? AND from_playlist = ? AND to_playlist = ?",
             )?
-            .execute(&[user_id, &from, &to])?;
+            .execute(&[user_id, &from.to_value(), &to.to_value()])?;
 
         Ok(())
     }
