@@ -1,6 +1,7 @@
 use crate::{
     context::AppContext,
     repo::watcher::WatcherRepo,
+    sync::transfer,
     web::{middleware::auth, view::DashboardTemplate},
 };
 use anyhow::anyhow;
@@ -74,15 +75,13 @@ async fn sync_playlist(
     let playlist_id = WatcherRepo::new(ctx.clone())
         .get_watched_playlist_id_by_user_id(&user_id)?
         .ok_or_else(|| anyhow!("no watched playlist"))?;
-    let token = client
-        .get_token()
-        .lock()
-        .await
-        .unwrap()
-        .clone()
-        .ok_or_else(|| anyhow!("no token"))?;
 
-    crate::sync::util::sync_user_playlist(&user_id, &playlist_id, &token, ctx).await?;
+    transfer::PlaylistTransfer::new(ctx, client)
+        .transfer(
+            transfer::PlaylistType::Saved,
+            transfer::PlaylistType::WithId(PlaylistId::from_id_or_uri(&playlist_id)?),
+        )
+        .await?;
 
     Ok(Redirect::to("/me"))
 }
