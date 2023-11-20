@@ -66,7 +66,7 @@
   {% if watchers.is_empty() %}
     <p>You don't have a watcher configured for your account. Create one below.</p>
   {% else %}
-    <p>You have a watcher configured for <strong>{{ watchers.len() }}</strong> of your playlists. Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</p>
+    <p>You have <strong>{{ watchers.len() }}</strong> watcher(s) configured. Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</p>
   {% endif %}
 
   <form action="/watchers" method="post" class="items">
