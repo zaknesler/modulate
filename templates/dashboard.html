@@ -65,38 +65,44 @@
 
   {% if watchers.is_empty() %}
     <p>You don't have a watcher configured for your account. Create one below.</p>
-    <form action="/watchers" method="post" class="items">
-      <div class="item">
-        <label for="from_playlist">From playlist</label>
-        <select name="from_playlist" id="from_playlist" onchange="playlistUpdated()">
-          <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>Liked Tracks</option>
-
-          {% for playlist in playlists %}
-            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="item">
-        <label for="to_playlist">To playlist</label>
-        <select name="to_playlist" id="to_playlist" onchange="playlistUpdated()">
-          <option value="" disabled selected hidden>Select a playlist...</option>
-
-          {% for playlist in playlists %}
-            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      <small>Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</small>
-      <button id="submit" class="button" disabled>Create watcher</button>
-    </form>
   {% else %}
     <p>You have a watcher configured for <strong>{{ watchers.len() }}</strong> of your playlists. Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</p>
+  {% endif %}
 
+  <form action="/watchers" method="post" class="items">
+    <div class="item">
+      <label for="from_playlist">From playlist</label>
+      <select name="from_playlist" id="from_playlist" onchange="playlistUpdated()">
+        <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>Liked Tracks</option>
+
+        {% for playlist in playlists %}
+          <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="item">
+      <label for="to_playlist">To playlist</label>
+      <select name="to_playlist" id="to_playlist" onchange="playlistUpdated()">
+        <option value="" disabled selected hidden>Select a playlist...</option>
+
+        {% for playlist in playlists %}
+          <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <small>Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</small>
+    <button id="submit" class="button" disabled>Create watcher</button>
+  </form>
+
+
+  {%if !watchers.is_empty() %}
     <div class="items">
       {% for watcher in watchers %}
-        <small>{{ watcher.from_playlist }} -&gt; {{ watcher.to_playlist }}</small>
+        {% let (from_name, to_name) = Self::get_playlist_names(self, watcher) %}
+        <hr>
+        <small>{{ from_name }} &rarr; {{ to_name }}</small>
         <div class="watcher">
           <form action="/watchers/{{ watcher.id }}/sync" method="post">
             <button class="button">Sync now</button>
@@ -106,9 +112,9 @@
             <button class="button">Remove</button>
           </form>
         </div>
-        {% endfor %}
-      {% endif %}
+      {% endfor %}
     </div>
+  {% endif %}
 {% endblock content %}
 
 {% block script %}
