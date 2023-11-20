@@ -1,5 +1,5 @@
 <p>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/729fbc30-d1f7-4e5b-a9ac-610ca680634e" alt="modulate logo" width="150">
+  <img src="https://github.com/zaknesler/modulate/assets/7189795/729fbc30-d1f7-4e5b-a9ac-610ca680634e" alt="modulate logo" width="150">
 </p>
 
 I like keeping my favorite Spotify tracks in playlists labeled by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
@@ -10,9 +10,9 @@ Once you connect your Spotify account and select a playlist, it'll stay running 
 
 <details>
   <summary><strong>View screenshots</strong></summary>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/05d2cd75-9ec6-4398-bf32-8afafe2206e3" alt="screenshot before configuring watcher" width="400">
+  <img src="https://github.com/zaknesler/modulate/assets/7189795/05d2cd75-9ec6-4398-bf32-8afafe2206e3" alt="screenshot before configuring watcher" width="400">
   <br>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/fbdf90c2-eb33-48b4-8944-0758fbf1f751" alt="screenshot after configuring watcher" width="400">
+  <img src="https://github.com/zaknesler/modulate/assets/7189795/fbdf90c2-eb33-48b4-8944-0758fbf1f751" alt="screenshot after configuring watcher" width="400">
 </details>
 
 #### Usage
