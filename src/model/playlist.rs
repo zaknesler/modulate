@@ -20,7 +20,7 @@ impl Display for PlaylistType {
 }
 
 impl PlaylistType {
-    /// Convert to data string for storage.
+    /// Convert to value string for storage.
     /// Use `.to_string()` for displaying.
     pub fn to_value(&self) -> &str {
         match self {
@@ -29,8 +29,7 @@ impl PlaylistType {
         }
     }
 
-    /// Convert to data string for storage.
-    /// Use `.to_string()` for displaying.
+    /// Convert from value string.
     pub fn from_value(value: &str) -> Self {
         match value {
             LIKED_PLAYLIST_VALUE => Self::Saved,
