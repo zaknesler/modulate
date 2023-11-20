@@ -19,8 +19,8 @@ impl Watcher {
         Ok(Self {
             user_id,
             user_token: serde_json::from_str(&user_token)?,
-            from_playlist: from_playlist.try_into()?,
-            to_playlist: to_playlist.try_into()?,
+            from_playlist: from_playlist.into(),
+            to_playlist: to_playlist.into(),
             should_remove,
         })
     }

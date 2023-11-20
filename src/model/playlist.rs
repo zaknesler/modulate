@@ -1,6 +1,5 @@
-use std::fmt::Display;
-
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 /// Value that represents the built-in "Liked Tracks" playlist, as it has to be handled differently than regular playlists.
 pub const LIKED_PLAYLIST_VALUE: &str = "_liked";
@@ -14,19 +13,29 @@ pub enum PlaylistType {
 impl Display for PlaylistType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PlaylistType::Saved => write!(f, "{}", LIKED_PLAYLIST_VALUE),
+            PlaylistType::Saved => write!(f, "Liked Tracks"),
             PlaylistType::WithId(value) => write!(f, "{}", value),
         }
     }
 }
 
-impl TryFrom<String> for PlaylistType {
-    type Error = crate::error::Error;
+impl From<PlaylistType> for String {
+    /// Convert to data string for storage.
+    /// Use `.to_string()` for displaying.
+    fn from(value: PlaylistType) -> Self {
+        match value {
+            PlaylistType::Saved => LIKED_PLAYLIST_VALUE.to_owned(),
+            PlaylistType::WithId(value) => value,
+        }
+    }
+}
 
-    fn try_from(value: String) -> crate::Result<Self> {
-        Ok(match value.as_ref() {
+impl From<String> for PlaylistType {
+    /// Convert from data string.
+    fn from(value: String) -> Self {
+        match value.as_ref() {
             LIKED_PLAYLIST_VALUE => Self::Saved,
             _ => Self::WithId(value),
-        })
+        }
     }
 }

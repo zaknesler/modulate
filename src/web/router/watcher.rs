@@ -42,8 +42,8 @@ async fn create_watcher(
     data.validate()?;
 
     let user = client.current_user().await?;
-    let from_playlist: PlaylistType = data.from_playlist.expect("validated").try_into()?;
-    let to_playlist: PlaylistType = data.to_playlist.expect("validated").try_into()?;
+    let from_playlist: PlaylistType = data.from_playlist.expect("validated").into();
+    let to_playlist: PlaylistType = data.to_playlist.expect("validated").into();
 
     WatcherRepo::new(ctx.clone()).create_watcher(
         &user.id.to_string(),
@@ -62,8 +62,8 @@ async fn delete_watcher(
     data.validate()?;
 
     let user = client.current_user().await?;
-    let from_playlist: PlaylistType = data.from_playlist.expect("validated").try_into()?;
-    let to_playlist: PlaylistType = data.to_playlist.expect("validated").try_into()?;
+    let from_playlist: PlaylistType = data.from_playlist.expect("validated").into();
+    let to_playlist: PlaylistType = data.to_playlist.expect("validated").into();
 
     WatcherRepo::new(ctx.clone()).delete_watcher(
         &user.id.to_string(),
@@ -82,8 +82,8 @@ async fn sync_watcher(
     data.validate()?;
 
     let user = client.current_user().await?;
-    let from_playlist: PlaylistType = data.from_playlist.expect("validated").try_into()?;
-    let to_playlist: PlaylistType = data.to_playlist.expect("validated").try_into()?;
+    let from_playlist: PlaylistType = data.from_playlist.expect("validated").into();
+    let to_playlist: PlaylistType = data.to_playlist.expect("validated").into();
 
     let watchers = WatcherRepo::new(ctx.clone()).get_all_watchers_by_user(&user.id.to_string())?;
     if !watchers.is_empty() {
