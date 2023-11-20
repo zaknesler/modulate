@@ -64,7 +64,7 @@
   <div class="accent"></div>
 
   {% if watchers.is_empty() %}
-    <p>You don't have a watcher configured for your account. Create one below.</p>
+    <p>You don't have any watchers configured for your account. Create one below.</p>
   {% else %}
     <p>You have <strong>{{ watchers.len() }}</strong> watcher(s) configured. Tracks will be transferred every {{ crate::CONFIG.sync.interval_mins }} minutes.</p>
   {% endif %}
