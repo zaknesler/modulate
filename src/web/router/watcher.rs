@@ -3,7 +3,7 @@ use crate::{
     web::middleware::auth,
 };
 use axum::{
-    extract::{Form, State},
+    extract::{Form, Path, State},
     middleware,
     response::{IntoResponse, Redirect},
     routing::post,
@@ -16,8 +16,8 @@ use validator::Validate;
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/watchers", post(create_watcher))
-        .route("/watchers/sync", post(sync_watcher))
-        .route("/watchers/delete", post(delete_watcher))
+        .route("/watchers/:id/sync", post(sync_watcher))
+        .route("/watchers/:id/delete", post(delete_watcher))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -26,7 +26,7 @@ pub fn router(ctx: AppContext) -> Router {
 }
 
 #[derive(Deserialize, Validate)]
-struct ManageWatcherParams {
+struct CreateWatcherParams {
     #[validate(required)]
     from_playlist: Option<String>,
 
@@ -37,7 +37,7 @@ struct ManageWatcherParams {
 async fn create_watcher(
     Extension(client): Extension<AuthCodeSpotify>,
     State(ctx): State<AppContext>,
-    Form(data): Form<ManageWatcherParams>,
+    Form(data): Form<CreateWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
 
@@ -54,21 +54,25 @@ async fn create_watcher(
     Ok(Redirect::to("/me"))
 }
 
+#[derive(Deserialize)]
+struct ManageWatcherParams {
+    id: i64,
+}
+
 async fn delete_watcher(
     Extension(client): Extension<AuthCodeSpotify>,
     State(ctx): State<AppContext>,
-    Form(data): Form<ManageWatcherParams>,
+    Path(params): Path<ManageWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
-    data.validate()?;
-
     let user = client.current_user().await?;
-    let from_playlist = PlaylistType::from_value(&data.from_playlist.expect("validated"));
-    let to_playlist = PlaylistType::from_value(&data.to_playlist.expect("validated"));
 
-    WatcherRepo::new(ctx.clone()).delete_watcher(
+    let repo = WatcherRepo::new(ctx);
+    let watcher = repo.get_watcher_by_id_and_user(params.id, &user.id.to_string())?;
+
+    repo.delete_watcher(
         &user.id.to_string(),
-        from_playlist,
-        to_playlist,
+        watcher.from_playlist,
+        watcher.to_playlist,
     )?;
 
     Ok(Redirect::to("/me"))
@@ -77,20 +81,16 @@ async fn delete_watcher(
 async fn sync_watcher(
     Extension(client): Extension<AuthCodeSpotify>,
     State(ctx): State<AppContext>,
-    Form(data): Form<ManageWatcherParams>,
+    Path(params): Path<ManageWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
-    data.validate()?;
-
     let user = client.current_user().await?;
-    let from_playlist = PlaylistType::from_value(&data.from_playlist.expect("validated"));
-    let to_playlist = PlaylistType::from_value(&data.to_playlist.expect("validated"));
 
-    let watchers = WatcherRepo::new(ctx.clone()).get_all_watchers_by_user(&user.id.to_string())?;
-    if !watchers.is_empty() {
-        transfer::PlaylistTransfer::new(ctx, client)
-            .transfer(from_playlist, to_playlist)
-            .await?;
-    }
+    let repo = WatcherRepo::new(ctx.clone());
+    let watcher = repo.get_watcher_by_id_and_user(params.id, &user.id.to_string())?;
+
+    transfer::PlaylistTransfer::new(ctx, client)
+        .transfer(watcher.from_playlist, watcher.to_playlist)
+        .await?;
 
     Ok(Redirect::to("/me"))
 }

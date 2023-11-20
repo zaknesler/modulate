@@ -1,3 +1,5 @@
+use rusqlite::params;
+
 use crate::model::{playlist::PlaylistType, watcher::Watcher};
 
 pub struct WatcherRepo {
@@ -14,19 +16,13 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare(
-                "SELECT users.id, users.token, watchers.from_playlist, watchers.to_playlist, watchers.should_remove FROM watchers
-                LEFT JOIN users ON users.id = watchers.user_id",
-            )?
-            .query_map([], |row| {
-                Ok(Watcher::try_from_row_data(
-                    row.get(0)?,
-                    row.get(1)?,
-                    row.get(2)?,
-                    row.get(3)?,
-                    row.get::<usize, u8>(4)? != 0,
-                ).unwrap())
-            })?
+            .prepare("
+                SELECT watchers.id, users.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                FROM watchers
+                LEFT JOIN users
+                ON users.user_id = watchers.user_id
+            ")?
+            .query_map([], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))?
             .collect::<rusqlite::Result<Vec<_>>>()
             .map_err(|err| err.into())
     }
@@ -36,22 +32,30 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare(
-                "SELECT users.token, watchers.from_playlist, watchers.to_playlist, watchers.should_remove FROM watchers
-                LEFT JOIN users ON users.id = watchers.user_id
-                AND watchers.user_id = ?",
-            )?
-            .query_map(&[user_id], |row| {
-                Ok(Watcher::try_from_row_data(
-                    user_id.to_owned(),
-                    row.get(0)?,
-                    row.get(1)?,
-                    row.get(2)?,
-                    row.get::<usize, u8>(3)? != 0,
-                ).unwrap())
-            })?
+            .prepare("
+                SELECT watchers.id, users.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                FROM watchers
+                LEFT JOIN users
+                ON users.user_id = watchers.user_id AND watchers.user_id = ?
+            ")?
+            .query_map(params![user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))?
             .collect::<rusqlite::Result<Vec<_>>>()
             .map_err(|err| err.into())
+    }
+
+    /// Get specific watcher for a given ID and user ID.
+    pub fn get_watcher_by_id_and_user(&self, id: i64, user_id: &str) -> crate::Result<Watcher> {
+        self.ctx
+            .db
+            .get()?
+            .prepare("
+                SELECT watchers.id, users.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                FROM watchers
+                LEFT JOIN users
+                ON users.user_id = watchers.user_id AND watchers.id = ? AND watchers.user_id = ?
+            ")?
+            .query_row(params![id, user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))
+            .map_err(|err|err.into())
     }
 
     /// Create a watcher for a user and playlist.
@@ -65,11 +69,9 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(
-                "INSERT INTO watchers
-                (user_id, from_playlist, to_playlist, should_remove, created_at)
-                VALUES (?, ?, ?, 1, datetime())",
+                "INSERT INTO watchers (user_id, playlist_from, playlist_to, should_remove, created_at) VALUES (?, ?, ?, 1, datetime())",
             )?
-            .execute(&[user_id, &from.to_value(), &to.to_value()])?;
+            .execute(params![user_id, from.to_value(), to.to_value()])?;
 
         Ok(())
     }
@@ -85,9 +87,9 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(
-                "DELETE FROM watchers WHERE user_id = ? AND from_playlist = ? AND to_playlist = ?",
+                "DELETE FROM watchers WHERE user_id = ? AND playlist_from = ? AND playlist_to = ?",
             )?
-            .execute(&[user_id, &from.to_value(), &to.to_value()])?;
+            .execute(params![user_id, from.to_value(), to.to_value()])?;
 
         Ok(())
     }

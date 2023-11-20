@@ -96,17 +96,13 @@
 
     <div class="items">
       {% for watcher in watchers %}
-        {{ watcher.from_playlist }} -&gt; {{ watcher.to_playlist }}
+        <small>{{ watcher.from_playlist }} -&gt; {{ watcher.to_playlist }}</small>
         <div class="watcher">
-          <form action="/watchers/sync" method="post">
-            <input type="hidden" name="from_playlist" value="{{ watcher.from_playlist.to_value() }}">
-            <input type="hidden" name="to_playlist" value="{{ watcher.to_playlist.to_value() }}">
+          <form action="/watchers/{{ watcher.id }}/sync" method="post">
             <button class="button">Sync now</button>
           </form>
 
-          <form action="/watchers/delete" method="post">
-            <input type="hidden" name="from_playlist" value="{{ watcher.from_playlist.to_value() }}">
-            <input type="hidden" name="to_playlist" value="{{ watcher.to_playlist.to_value() }}">
+          <form action="/watchers/{{ watcher.id }}/delete" method="post">
             <button class="button">Remove</button>
           </form>
         </div>
