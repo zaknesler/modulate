@@ -73,7 +73,7 @@
     <div class="item">
       <label for="from_playlist">From playlist</label>
       <select name="from_playlist" id="from_playlist" onchange="playlistUpdated()">
-        <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>Liked Tracks</option>
+        <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>{{ crate::model::playlist::PlaylistType::Saved.to_string() }}</option>
 
         {% for playlist in playlists %}
           <option value="{{ playlist.id }}">{{ playlist.name }}</option>
