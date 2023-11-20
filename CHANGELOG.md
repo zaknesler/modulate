@@ -9,13 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Multiple watchers can now be created
+- Multiple watchers can now be created (and synced or removed)
 - Playlist-playlist watchers can now be created
 
 ### Changed
 
 - Added better abstraction for transferring tracks between playlists
-- Renamed project from `spotify-sync` to `modulate` (a cooler name, but Spotify terms also require it)
+- Renamed project from `spotify-sync` to `modulate` (a cooler name, but also required by Spotify developer terms)
 
 ## [0.3.0] - 2023-11-19
 
