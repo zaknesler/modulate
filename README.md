@@ -1,5 +1,5 @@
 <p>
-  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/d2acc2ed-cc61-4b97-b9b8-50c3f4b983be" alt="spotify sync logo" width="175">
+  <img src="https://github.com/zaknesler/spotify-sync/assets/7189795/729fbc30-d1f7-4e5b-a9ac-610ca680634e" alt="modulate logo" width="150">
 </p>
 
 I like keeping my favorite Spotify tracks in playlists labeled by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
@@ -23,7 +23,7 @@ If you'd like to run it for yourself:
 1. Clone this repo
 1. `cp .config/default.toml .config/local.toml`
 1. Add Spotify creds to `.config/local.toml`
-1. `touch .config/sync.db`
+1. `touch .config/modulate.db`
 1. `cargo run`
 1. Go to [`localhost:4000`](http://localhost:4000), sign in, and configure
 

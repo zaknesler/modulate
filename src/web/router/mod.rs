@@ -6,7 +6,7 @@ mod connect;
 mod user;
 mod watcher;
 
-pub const JWT_COOKIE: &str = "spotify_sync_jwt";
+pub const JWT_COOKIE: &str = "modulate_jwt";
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()

@@ -989,6 +989,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "modulate"
+version = "0.4.0"
+dependencies = [
+ "anyhow",
+ "askama",
+ "askama_axum",
+ "axum",
+ "chrono",
+ "config",
+ "futures",
+ "hmac",
+ "jwt",
+ "lazy_static",
+ "r2d2",
+ "r2d2_sqlite",
+ "rspotify",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror",
+ "tokio",
+ "tower-cookies",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "validator",
+]
+
+[[package]]
 name = "native-tls"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1698,36 +1728,6 @@ checksum = "7b5fac59a5cb5dd637972e5fca70daf0523c9067fcdc4842f053dae04a18f8e9"
 dependencies = [
  "libc",
  "windows-sys",
-]
-
-[[package]]
-name = "spotify-sync"
-version = "0.4.0"
-dependencies = [
- "anyhow",
- "askama",
- "askama_axum",
- "axum",
- "chrono",
- "config",
- "futures",
- "hmac",
- "jwt",
- "lazy_static",
- "r2d2",
- "r2d2_sqlite",
- "rspotify",
- "rusqlite",
- "serde",
- "serde_json",
- "sha2",
- "thiserror",
- "tokio",
- "tower-cookies",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "validator",
 ]
 
 [[package]]
