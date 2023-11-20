@@ -6,7 +6,7 @@ interval_mins = 60
 
 [db]
 # sqlite database file name, relative to .config
-file = "sync.db"
+file = "modulate.db"
 
 [web]
 host = "0.0.0.0"

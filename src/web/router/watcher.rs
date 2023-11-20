@@ -1,6 +1,9 @@
-use crate::{context::AppContext, repo::watcher::WatcherRepo, web::middleware::auth};
+use crate::{
+    context::AppContext, model::playlist::PlaylistType, repo::watcher::WatcherRepo, sync::transfer,
+    web::middleware::auth,
+};
 use axum::{
-    extract::{Form, State},
+    extract::{Form, Path, State},
     middleware,
     response::{IntoResponse, Redirect},
     routing::post,
@@ -12,8 +15,9 @@ use validator::Validate;
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
-        .route("/watcher", post(create_watcher))
-        .route("/watcher/delete", post(delete_watcher))
+        .route("/watchers", post(create_watcher))
+        .route("/watchers/:id/sync", post(sync_watcher))
+        .route("/watchers/:id/delete", post(delete_watcher))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -21,10 +25,13 @@ pub fn router(ctx: AppContext) -> Router {
         .with_state(ctx)
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Deserialize, Validate)]
 struct CreateWatcherParams {
     #[validate(required)]
-    playlist_id: Option<String>,
+    from_playlist: Option<String>,
+
+    #[validate(required)]
+    to_playlist: Option<String>,
 }
 
 async fn create_watcher(
@@ -34,21 +41,65 @@ async fn create_watcher(
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
 
-    let user = client.current_user().await?;
-    let playlist_id = data.playlist_id.expect("validated");
+    let from = data.from_playlist.expect("validated");
+    let to = data.to_playlist.expect("validated");
 
-    WatcherRepo::new(ctx.clone()).create_watcher(&user.id.to_string(), &playlist_id)?;
+    if to == from {
+        return Err(crate::error::Error::InvalidFormData(
+            "cannot create watcher that transfers between the same playlist".into(),
+        ));
+    }
+
+    let user = client.current_user().await?;
+    let from_playlist = PlaylistType::from_value(&from);
+    let to_playlist = PlaylistType::from_value(&to);
+
+    WatcherRepo::new(ctx.clone()).create_watcher(
+        &user.id.to_string(),
+        from_playlist,
+        to_playlist,
+    )?;
 
     Ok(Redirect::to("/me"))
+}
+
+#[derive(Deserialize)]
+struct ManageWatcherParams {
+    id: i64,
 }
 
 async fn delete_watcher(
     Extension(client): Extension<AuthCodeSpotify>,
     State(ctx): State<AppContext>,
+    Path(params): Path<ManageWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
     let user = client.current_user().await?;
 
-    WatcherRepo::new(ctx.clone()).delete_watcher(&user.id.to_string())?;
+    let repo = WatcherRepo::new(ctx);
+    let watcher = repo.get_watcher_by_id_and_user(params.id, &user.id.to_string())?;
+
+    repo.delete_watcher(
+        &user.id.to_string(),
+        watcher.from_playlist,
+        watcher.to_playlist,
+    )?;
+
+    Ok(Redirect::to("/me"))
+}
+
+async fn sync_watcher(
+    Extension(client): Extension<AuthCodeSpotify>,
+    State(ctx): State<AppContext>,
+    Path(params): Path<ManageWatcherParams>,
+) -> crate::Result<impl IntoResponse> {
+    let user = client.current_user().await?;
+
+    let repo = WatcherRepo::new(ctx.clone());
+    let watcher = repo.get_watcher_by_id_and_user(params.id, &user.id.to_string())?;
+
+    transfer::PlaylistTransfer::new(ctx, client)
+        .transfer(watcher.from_playlist, watcher.to_playlist)
+        .await?;
 
     Ok(Redirect::to("/me"))
 }

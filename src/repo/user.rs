@@ -12,7 +12,9 @@ impl UserRepo {
         self.ctx
             .db
             .get()?
-            .prepare("INSERT OR REPLACE INTO users (user_id, token) VALUES (?, ?)")?
+            .prepare(
+                "INSERT OR REPLACE INTO users (user_id, token, created_at) VALUES (?, ?, datetime())",
+            )?
             .execute(&[user_id, token])?;
 
         Ok(())

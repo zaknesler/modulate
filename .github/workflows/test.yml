@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: cp .config/default.toml .config/local.toml
-      - run: touch .config/sync.db
+      - run: touch .config/modulate.db
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
