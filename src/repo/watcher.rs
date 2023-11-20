@@ -1,6 +1,5 @@
-use rusqlite::params;
-
 use crate::model::{playlist::PlaylistType, watcher::Watcher};
+use rusqlite::params;
 
 pub struct WatcherRepo {
     ctx: crate::context::AppContext,
