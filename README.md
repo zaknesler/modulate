@@ -9,10 +9,8 @@ This app allows you to transfer the tracks from your private "Liked" playlist to
 Once you connect your Spotify account and select a playlist, it'll stay running and auto-transfer your tracks every 60 minutes (this is configurable). It uses OAuth2 tokens and refreshes them when necessary, as well as a signed JWT stored as a cookie for browser authentication. It can handle any number of accounts, so you can host it for your friends or just keep it private.
 
 <details>
-  <summary><strong>View screenshots</strong></summary>
-  <img src="https://github.com/zaknesler/modulate/assets/7189795/0b7efeb2-d066-4808-bf4a-c6bb5dcebbc5" alt="screenshot before configuring watcher" width="400">
-  <br>
-  <img src="https://github.com/zaknesler/modulate/assets/7189795/e385ad65-2360-4c55-9c7b-1a05e842994d" alt="screenshot after configuring watcher" width="400">
+  <summary><strong>View screenshot</strong></summary>
+  <img src="https://github.com/zaknesler/modulate/assets/7189795/6f489f06-b9c0-4b9a-a966-ce132dc46dfe" alt="screenshot of app after configuring 2 watchers" width="400">
 </details>
 
 #### Usage
