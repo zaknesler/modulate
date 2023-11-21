@@ -14,7 +14,7 @@
 
   <div class="sections">
     <section>
-      <h4>Create watcher</h4>
+      <h3>Create watcher</h3>
       <form action="/watchers" method="post" class="items">
         <div class="item">
           <label for="from_playlist">From playlist</label>
@@ -47,20 +47,21 @@
       </form>
     </section>
 
-    {%if !watchers.is_empty() %}
+    {% if !watchers.is_empty() %}
       <section>
-        <h4>Your watchers</h4>
+        <h3>Your watchers</h3>
         <div class="items">
           {% for watcher in watchers %}
             {% let (from_name, to_name) = Self::get_playlist_names(self, watcher) %}
             <div class="item">
-              <small>{{ from_name }} &rarr; {{ to_name }}</small>
+              <h4>{{ from_name }} &rarr; {{ to_name }}</h4>
+              <small>Tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed after syncing.</small>
               <div class="split">
                 <form action="/watchers/{{ watcher.id }}/sync" method="post">
-                  <button class="button">Sync now</button>
+                  <button class="button sm">Sync now</button>
                 </form>
                 <form action="/watchers/{{ watcher.id }}/delete" method="post">
-                  <button class="button">Remove</button>
+                  <button class="button sm">Remove</button>
                 </form>
               </div>
             </div>
@@ -70,8 +71,9 @@
     {% endif %}
 
     <section>
-      <h4>Account</h4>
-      <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? Your watchers and account will be deleted. You can always re-connect later.');">
+      <h3>Account</h3>
+      <small>Click the link below to delete your account and your watchers. You can always re-connect later if you change your mind.</small>
+      <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? All your data, including Your account and watchers will be deleted. You can always re-connect later.');">
         <button class="link sm">Delete your account</button>
       </form>
     </section>

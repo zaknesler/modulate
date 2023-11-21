@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Ability for a user to delete their account
+- Text to denote which watchers will remove tracks from original playlist
 
 ## [0.5.0] - 2023-11-20
 
