@@ -3,6 +3,7 @@ use futures::{future::FutureExt, pin_mut, select};
 use lazy_static::lazy_static;
 
 mod config;
+mod constant;
 mod context;
 mod error;
 mod model;

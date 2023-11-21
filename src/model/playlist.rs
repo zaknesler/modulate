@@ -4,7 +4,7 @@ use std::fmt::Display;
 /// Value that represents the built-in "Liked Tracks" playlist, as it has to be handled differently than regular playlists.
 pub const LIKED_PLAYLIST_VALUE: &str = "_liked";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum PlaylistType {
     Saved,
     WithId(String),

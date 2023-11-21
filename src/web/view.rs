@@ -1,4 +1,7 @@
-use crate::model::{playlist::PlaylistType, watcher::Watcher};
+use crate::{
+    constant::{SPOTIFY_EXTERNAL_URL_KEY, SPOTIFY_LIKED_TRACKS_URL},
+    model::{playlist::PlaylistType, watcher::Watcher},
+};
 use askama::Template;
 use rspotify::model::SimplifiedPlaylist;
 
@@ -8,7 +11,7 @@ pub struct ConnectTemplate {
     pub url: String,
 }
 
-#[derive(Template)]
+#[derive(Debug, Template)]
 #[template(path = "dashboard.html")]
 pub struct DashboardTemplate {
     pub name: String,
@@ -16,23 +19,51 @@ pub struct DashboardTemplate {
     pub playlists: Vec<SimplifiedPlaylist>,
 }
 
+struct PlaylistDisplayData {
+    pub kind: PlaylistType,
+    pub display_name: String,
+    pub image_url: Option<String>,
+    pub spotify_url: String,
+}
+
 impl DashboardTemplate {
-    fn get_playlist_names(&self, watcher: &Watcher) -> (String, String) {
+    fn get_mapped_display_data(
+        &self,
+        watcher: &Watcher,
+    ) -> (Option<PlaylistDisplayData>, Option<PlaylistDisplayData>) {
         (
-            self.get_playlist_name(&watcher.from_playlist),
-            self.get_playlist_name(&watcher.to_playlist),
+            self.map_display_data(&watcher.from_playlist),
+            self.map_display_data(&watcher.to_playlist),
         )
     }
 
-    fn get_playlist_name(&self, playlist: &PlaylistType) -> String {
+    fn map_display_data(&self, playlist: &PlaylistType) -> Option<PlaylistDisplayData> {
         match playlist {
-            PlaylistType::Saved => playlist.to_string(),
+            PlaylistType::Saved => Some(PlaylistDisplayData {
+                kind: playlist.clone(),
+                display_name: playlist.to_string(),
+                image_url: None,
+                spotify_url: SPOTIFY_LIKED_TRACKS_URL.into(),
+            }),
             PlaylistType::WithId(id) => self
                 .playlists
                 .iter()
-                .find(|playlist| &playlist.id.to_string() == id)
-                .map(|playlist| playlist.name.clone())
-                .unwrap_or_else(|| "(Unknown)".into()),
+                .find(|data| data.id.to_string() == *id)
+                .map(|data| PlaylistDisplayData {
+                    kind: playlist.clone(),
+                    display_name: data.name.clone(),
+                    image_url: data
+                        .images
+                        .iter()
+                        .filter(|image| image.width.is_some())
+                        .min_by(|a, b| a.width.cmp(&b.width))
+                        .map(|image| image.url.clone()),
+                    spotify_url: data
+                        .external_urls
+                        .get(SPOTIFY_EXTERNAL_URL_KEY)
+                        .expect("should include spotify url")
+                        .clone(),
+                }),
         }
     }
 }

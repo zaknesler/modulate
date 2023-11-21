@@ -1,9 +1,108 @@
 {% extends "includes/base.html" %}
 
+{% macro create_section() %}
+  <section>
+    <h3>Create watcher</h3>
+    <form action="/watchers" method="post" class="items">
+      <div class="item">
+        <label for="from_playlist">From playlist</label>
+        <select name="from_playlist" id="from_playlist" onchange="playlistUpdated()">
+          <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>{{ crate::model::playlist::PlaylistType::Saved.to_string() }}</option>
+
+          {% for playlist in playlists %}
+          <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="item">
+        <label for="to_playlist">To playlist</label>
+        <select name="to_playlist" id="to_playlist" onchange="playlistUpdated()">
+          <option value="" disabled selected hidden>Select a playlist...</option>
+
+          {% for playlist in playlists %}
+          <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="item checkbox">
+        <input type="checkbox" name="should_remove" id="should_remove" checked>
+        <label for="should_remove">After syncing, remove transferred tracks from original playlist</label>
+      </div>
+
+      <button id="submit" class="button" disabled>Create watcher</button>
+    </form>
+  </section>
+{% endmacro %}
+
+{% macro watchers_section() %}
+  <section>
+    <h3>Your watchers</h3>
+    <div class="watchers">
+      {% for watcher in watchers %}
+      {% let (from_data, to_data) = Self::get_mapped_display_data(self, watcher) %}
+      <div class="watcher">
+        <h4>
+          {% call playlist_item(from_data) %}
+          <small>&rarr;</small>
+          {% call playlist_item(to_data) %}
+        </h4>
+
+        <small>Tracks <strong>will {% if !watcher.should_remove %}not{% endif %}</strong> be removed after syncing.</small>
+
+        <div class="split">
+          <form action="/watchers/{{ watcher.id }}/sync" method="post">
+            <button class="button sm">Sync now</button>
+          </form>
+          <form action="/watchers/{{ watcher.id }}/delete" method="post">
+            <button class="button sm">Remove watcher</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endmacro %}
+
+{% macro data_section() %}
+  <section>
+    <h3>Your data</h3>
+    <small>Playlist and user data supplied by Spotify. Not affiliated.</small>
+    <small>Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always re-connect later.</small>
+    <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? This will delete your connected data and watchers. Your Spotify account will be untouched, and you can always re-connect later');">
+      <button class="link sm">Delete your data</button>
+    </form>
+  </section>
+{% endmacro %}
+
+{% macro playlist_item(playlist) %}
+  {% match playlist %}
+    {% when Some with (data) %}
+    <a href="{{ data.spotify_url }}" target="_blank" rel="noreferrer">
+      {% match data.image_url %}
+        {% when Some with (image_url) %}
+        <img src="{{ image_url }}" alt="{{ data.display_name }}">
+        {% when None %}
+        {% match data.kind %}
+          {% when Saved %}
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z" />
+          </svg>
+          {% else %}
+        {% endmatch %}
+      {% endmatch %}
+      {{ data.display_name }}
+    </a>
+    {% when None %}
+    (Unknown playlist)
+  {% endmatch %}
+{% endmacro %}
+
 {% block content %}
   <header>
     <h2>Hello, {{ name }}.</h2>
-    <div class="accent"></div>
+    <div class="separator accented"></div>
 
     {% if watchers.is_empty() %}
       <p>You don't have any watchers configured for your account.</p>
@@ -13,70 +112,16 @@
   </header>
 
   <div class="sections">
-    <section>
-      <h3>Create watcher</h3>
-      <form action="/watchers" method="post" class="items">
-        <div class="item">
-          <label for="from_playlist">From playlist</label>
-          <select name="from_playlist" id="from_playlist" onchange="playlistUpdated()">
-            <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>{{ crate::model::playlist::PlaylistType::Saved.to_string() }}</option>
-
-            {% for playlist in playlists %}
-              <option value="{{ playlist.id }}">{{ playlist.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="item">
-          <label for="to_playlist">To playlist</label>
-          <select name="to_playlist" id="to_playlist" onchange="playlistUpdated()">
-            <option value="" disabled selected hidden>Select a playlist...</option>
-
-            {% for playlist in playlists %}
-              <option value="{{ playlist.id }}">{{ playlist.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div class="item checkbox">
-          <input type="checkbox" name="should_remove" id="should_remove" checked>
-          <label for="should_remove">After syncing, remove transferred tracks from original playlist</label>
-        </div>
-
-        <button id="submit" class="button" disabled>Create watcher</button>
-      </form>
-    </section>
+    {% call create_section() %}
 
     {% if !watchers.is_empty() %}
-      <section>
-        <h3>Your watchers</h3>
-        <div class="items">
-          {% for watcher in watchers %}
-            {% let (from_name, to_name) = Self::get_playlist_names(self, watcher) %}
-            <div class="item">
-              <h4>{{ from_name }} &rarr; {{ to_name }}</h4>
-              <small>Tracks <strong>will {% if !watcher.should_remove %}not{% endif %}</strong> be removed after syncing.</small>
-              <div class="split">
-                <form action="/watchers/{{ watcher.id }}/sync" method="post">
-                  <button class="button sm">Sync now</button>
-                </form>
-                <form action="/watchers/{{ watcher.id }}/delete" method="post">
-                  <button class="button sm">Remove watcher</button>
-                </form>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      </section>
+      <div class="separator"></div>
+      {% call watchers_section() %}
     {% endif %}
 
-    <section>
-      <h3>Account</h3>
-      <p>Click the link below to delete your account and your watchers. You can always re-connect later.</p>
-      <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? All your data, including Your account and watchers will be deleted. You can always re-connect later.');">
-        <button class="link sm">Delete your account</button>
-      </form>
-    </section>
+    <div class="separator"></div>
+
+    {% call data_section() %}
   </div>
 {% endblock content %}
 
