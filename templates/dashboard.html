@@ -48,26 +48,33 @@
     </section>
 
     {%if !watchers.is_empty() %}
-    <section>
-      <h4>Your watchers</h4>
-      <div class="items">
-        {% for watcher in watchers %}
-          {% let (from_name, to_name) = Self::get_playlist_names(self, watcher) %}
-          <div class="item">
-            <small>{{ from_name }} &rarr; {{ to_name }}</small>
-            <div class="split">
-              <form action="/watchers/{{ watcher.id }}/sync" method="post">
-                <button class="button">Sync now</button>
-              </form>
-              <form action="/watchers/{{ watcher.id }}/delete" method="post">
-                <button class="button">Remove</button>
-              </form>
+      <section>
+        <h4>Your watchers</h4>
+        <div class="items">
+          {% for watcher in watchers %}
+            {% let (from_name, to_name) = Self::get_playlist_names(self, watcher) %}
+            <div class="item">
+              <small>{{ from_name }} &rarr; {{ to_name }}</small>
+              <div class="split">
+                <form action="/watchers/{{ watcher.id }}/sync" method="post">
+                  <button class="button">Sync now</button>
+                </form>
+                <form action="/watchers/{{ watcher.id }}/delete" method="post">
+                  <button class="button">Remove</button>
+                </form>
+              </div>
             </div>
-          </div>
-        {% endfor %}
-      </div>
-    </section>
+          {% endfor %}
+        </div>
+      </section>
     {% endif %}
+
+    <section>
+      <h4>Account</h4>
+      <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? Your watchers and account will be deleted. You can always re-connect later.');">
+        <button class="link sm">Delete your account</button>
+      </form>
+    </section>
   </div>
 {% endblock content %}
 

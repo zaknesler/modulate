@@ -2,7 +2,10 @@ use super::JWT_COOKIE;
 use crate::{
     context::AppContext,
     repo::user::UserRepo,
-    util::{client::create_oauth_client, jwt},
+    util::{
+        client::create_oauth_client,
+        jwt::{self, JWT_EXPIRATION_DAYS},
+    },
     CONFIG,
 };
 use anyhow::anyhow;
@@ -14,7 +17,13 @@ use axum::{
 };
 use rspotify::clients::{BaseClient, OAuthClient};
 use serde::Deserialize;
-use tower_cookies::{Cookie, Cookies};
+use tower_cookies::{
+    cookie::{
+        time::{ext::NumericalDuration, OffsetDateTime},
+        CookieBuilder,
+    },
+    Cookies,
+};
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
@@ -49,7 +58,13 @@ async fn handle_callback(
     UserRepo::new(ctx.clone()).upsert_user_token(&user_id.to_string(), &token)?;
 
     let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), user_id.to_string())?;
-    cookies.add(Cookie::new(JWT_COOKIE, jwt));
+
+    cookies.add(
+        CookieBuilder::new(JWT_COOKIE, jwt)
+            .path("/")
+            .expires(OffsetDateTime::now_utc().checked_add(JWT_EXPIRATION_DAYS.days()))
+            .finish(),
+    );
 
     Ok(Redirect::to("/me"))
 }

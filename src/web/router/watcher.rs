@@ -81,7 +81,7 @@ async fn delete_watcher(
     let repo = WatcherRepo::new(ctx);
     let watcher = repo.get_watcher_by_id_and_user(params.id, &user.id.to_string())?;
 
-    repo.delete_watcher(
+    repo.delete_watcher_by_user_and_playlists(
         &user.id.to_string(),
         watcher.from_playlist,
         watcher.to_playlist,

@@ -29,4 +29,15 @@ impl UserRepo {
             .query_row(&[user_id], |row| Ok(row.get(0)?))
             .map_err(|err| err.into())
     }
+
+    /// Delete a user by ID.
+    pub fn delete_user_by_id(&self, user_id: &str) -> crate::Result<bool> {
+        self.ctx
+            .db
+            .get()?
+            .prepare("DELETE FROM users WHERE user_id = ?")?
+            .execute(&[user_id])
+            .map(|_| true)
+            .map_err(|err| err.into())
+    }
 }

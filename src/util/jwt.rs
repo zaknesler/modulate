@@ -5,7 +5,7 @@ use jwt::{SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use std::collections::BTreeMap;
 
-const JWT_EXPIRATION_DAYS: i64 = 90;
+pub const JWT_EXPIRATION_DAYS: i64 = 90;
 const JWT_CLAIM_USER: &str = "sub";
 const JWT_CLAIM_ISSUED_AT: &str = "iat";
 const JWT_CLAIM_EXPIRES_AT: &str = "exp";

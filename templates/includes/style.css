@@ -1,7 +1,7 @@
 :root {
   --spotify-green: #1db954;
   --spotify-green-muted: #1db9544f;
-  --spotify-green-darker: #16a247;
+  --spotify-green-darker: #0b8937;
 }
 
 *,
@@ -204,4 +204,22 @@ select {
 
 .button svg {
   opacity: 0.6;
+}
+
+.link {
+  appearance: none;
+  font-size: inherit;
+  background: none;
+  border: none;
+  color: var(--spotify-green-darker);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link.sm {
+  font-size: 0.875rem;
+}
+
+.link:hover {
+  color: #222;
 }

@@ -80,7 +80,7 @@ impl WatcherRepo {
     }
 
     /// Delete a watcher given user and playlist IDs.
-    pub fn delete_watcher(
+    pub fn delete_watcher_by_user_and_playlists(
         &self,
         user_id: &str,
         from: PlaylistType,
@@ -93,6 +93,17 @@ impl WatcherRepo {
                 "DELETE FROM watchers WHERE user_id = ? AND playlist_from = ? AND playlist_to = ?",
             )?
             .execute(params![user_id, from.to_value(), to.to_value()])?;
+
+        Ok(())
+    }
+
+    /// Delete all watchers given a user_id.
+    pub fn delete_all_watchers_by_user(&self, user_id: &str) -> crate::Result<()> {
+        self.ctx
+            .db
+            .get()?
+            .prepare("DELETE FROM watchers WHERE user_id = ?")?
+            .execute(params![user_id])?;
 
         Ok(())
     }
