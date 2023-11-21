@@ -55,13 +55,13 @@
             {% let (from_name, to_name) = Self::get_playlist_names(self, watcher) %}
             <div class="item">
               <h4>{{ from_name }} &rarr; {{ to_name }}</h4>
-              <small>Tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed after syncing.</small>
+              <small>Tracks <strong>will {% if !watcher.should_remove %}not{% endif %}</strong> be removed after syncing.</small>
               <div class="split">
                 <form action="/watchers/{{ watcher.id }}/sync" method="post">
                   <button class="button sm">Sync now</button>
                 </form>
                 <form action="/watchers/{{ watcher.id }}/delete" method="post">
-                  <button class="button sm">Remove</button>
+                  <button class="button sm">Remove watcher</button>
                 </form>
               </div>
             </div>
@@ -72,7 +72,7 @@
 
     <section>
       <h3>Account</h3>
-      <small>Click the link below to delete your account and your watchers. You can always re-connect later if you change your mind.</small>
+      <p>Click the link below to delete your account and your watchers. You can always re-connect later.</p>
       <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? All your data, including Your account and watchers will be deleted. You can always re-connect later.');">
         <button class="link sm">Delete your account</button>
       </form>
