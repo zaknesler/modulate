@@ -1,6 +1,5 @@
 <p>
-  <img src="https://github.com/zaknesler/modulate/assets/7189795/94cd12a7-ba9f-4687-99d5-bddf1a8b9a83" alt="modulate logo" width="200">
-
+  <img src="https://github.com/zaknesler/modulate/assets/7189795/527954fc-c0fc-4385-bb08-ab9d3a2b9191" alt="modulate logo" width="200">
 </p>
 
 I like keeping my favorite Spotify tracks in playlists labeled by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
