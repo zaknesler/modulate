@@ -10,7 +10,7 @@ Once you connect your Spotify account and select a playlist, it'll stay running 
 
 <details>
   <summary><strong>View screenshot</strong></summary>
-  <img src="https://github.com/zaknesler/modulate/assets/7189795/6f489f06-b9c0-4b9a-a966-ce132dc46dfe" alt="screenshot of app after configuring 2 watchers" width="400">
+  <img src="https://github.com/zaknesler/modulate/assets/7189795/cedabcc3-8adb-41f7-92d7-c2fd81d07da1" alt="screenshot of app after configuring 2 watchers" width="400">
 </details>
 
 #### Usage
