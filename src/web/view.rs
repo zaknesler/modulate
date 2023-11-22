@@ -33,8 +33,8 @@ impl DashboardTemplate {
         watcher: &Watcher,
     ) -> (Option<PlaylistDisplayData>, Option<PlaylistDisplayData>) {
         (
-            self.map_display_data(&watcher.from_playlist),
-            self.map_display_data(&watcher.to_playlist),
+            self.map_display_data(&watcher.playlist_from),
+            self.map_display_data(&watcher.playlist_to),
         )
     }
 

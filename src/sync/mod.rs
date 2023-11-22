@@ -1,4 +1,9 @@
-use crate::{context::AppContext, repo::watcher::WatcherRepo, util::client, CONFIG};
+use crate::{
+    context::AppContext,
+    repo::{user::UserRepo, watcher::WatcherRepo},
+    util::client,
+    CONFIG,
+};
 
 pub mod transfer;
 
@@ -16,18 +21,18 @@ pub async fn init(ctx: AppContext) -> crate::Result<()> {
 }
 
 async fn execute(ctx: AppContext) -> crate::Result<()> {
+    let user_repo = UserRepo::new(ctx.clone());
     let watcher_repo = WatcherRepo::new(ctx.clone());
     let watchers = watcher_repo.get_all_watchers()?;
 
     tracing::info!("Syncing playlists of {} user(s)...", watchers.len());
 
     for watcher in watchers {
-        let (client, _) = client::get_token_ensure_refreshed(
-            watcher.user_id.clone(),
-            &watcher.user_token,
-            ctx.clone(),
-        )
-        .await?;
+        let user_token: rspotify::Token =
+            serde_json::from_str(&user_repo.get_token_by_user_id(&watcher.user_id)?)?;
+        let (client, _) =
+            client::get_token_ensure_refreshed(watcher.user_id.clone(), &user_token, ctx.clone())
+                .await?;
 
         transfer::PlaylistTransfer::new(ctx.clone(), client)
             .transfer(&watcher)
