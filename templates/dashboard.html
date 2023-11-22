@@ -92,9 +92,9 @@
 {% macro data_section() %}
   <section>
     <h3>Your data</h3>
-    <small>Playlist and user data supplied by Spotify. Not affiliated.</small>
-    <small>Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always re-connect later.</small>
-    <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? This will delete your connected data and watchers. Your Spotify account will be untouched, and you can always re-connect later');">
+    <small>Playlist and user data supplied by Spotify. This app is not affiliated with nor endorsed by Spotify in any way.</small>
+    <small>Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later.</small>
+    <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? This will delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later');">
       <button class="link sm">Delete your data</button>
     </form>
   </section>
