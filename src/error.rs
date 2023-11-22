@@ -58,6 +58,9 @@ pub enum Error {
     #[error("validation errors: {0}")]
     ValidationErrors(#[from] validator::ValidationErrors),
 
+    #[error("invalid header value: {0}")]
+    InvalidHeaderValueError(#[from] axum::http::header::InvalidHeaderValue),
+
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
 }

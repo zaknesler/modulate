@@ -22,16 +22,15 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
     tracing::info!("Syncing playlists of {} user(s)...", watchers.len());
 
     for watcher in watchers {
-        let client =
-            client::get_token_ensure_refreshed(watcher.user_id, &watcher.user_token, ctx.clone())
-                .await?;
+        let (client, _) = client::get_token_ensure_refreshed(
+            watcher.user_id.clone(),
+            &watcher.user_token,
+            ctx.clone(),
+        )
+        .await?;
 
         transfer::PlaylistTransfer::new(ctx.clone(), client)
-            .transfer(
-                watcher.from_playlist,
-                watcher.to_playlist,
-                watcher.should_remove,
-            )
+            .transfer(&watcher)
             .await?;
     }
 

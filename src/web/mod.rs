@@ -2,10 +2,11 @@ use crate::{context::AppContext, CONFIG};
 use anyhow::anyhow;
 use axum::http::{header, HeaderValue, Method};
 use tower_cookies::CookieManagerLayer;
-use tower_http::trace::TraceLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 mod middleware;
 mod router;
+mod session;
 mod view;
 
 pub async fn serve(ctx: AppContext) -> crate::Result<()> {
@@ -15,16 +16,18 @@ pub async fn serve(ctx: AppContext) -> crate::Result<()> {
         CONFIG.web.port
     );
 
-    let cors = CONFIG
-        .web
-        .allowed_origins
-        .iter()
-        .fold(tower_http::cors::CorsLayer::new(), |cors, origin| {
-            cors.allow_origin(HeaderValue::from_str(origin).expect("Invalid origin"))
-        })
+    let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
-        .allow_credentials(true)
-        .allow_headers([header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE]);
+        .allow_headers([header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE])
+        .allow_origin(
+            CONFIG
+                .web
+                .allowed_origins
+                .iter()
+                .map(|origin| origin.parse::<HeaderValue>())
+                .collect::<Result<Vec<_>, _>>()?,
+        )
+        .allow_credentials(true);
 
     let app = crate::web::router::router(ctx.clone())
         .layer(TraceLayer::new_for_http())

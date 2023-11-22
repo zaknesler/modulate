@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Minor copy tweaks
+- Created `Session` struct to store `user_id`, `token`, and `client`
+- Pass entire `Watcher` to `PlaylistTransfer::transfer` instead of individual fields
 
 ## [0.5.4] - 2023-11-21
 

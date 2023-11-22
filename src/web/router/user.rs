@@ -2,7 +2,7 @@ use super::JWT_COOKIE;
 use crate::{
     context::AppContext,
     repo::{user::UserRepo, watcher::WatcherRepo},
-    web::{middleware::auth, view::DashboardTemplate},
+    web::{middleware::auth, session, view::DashboardTemplate},
 };
 use axum::{
     extract::State,
@@ -12,7 +12,7 @@ use axum::{
     Extension, Router,
 };
 use futures::TryStreamExt;
-use rspotify::{prelude::*, AuthCodeSpotify};
+use rspotify::prelude::*;
 use tower_cookies::{
     cookie::{
         time::{ext::NumericalDuration, OffsetDateTime},
@@ -20,6 +20,7 @@ use tower_cookies::{
     },
     Cookies,
 };
+
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/me", get(get_current_user_dashboard))
@@ -32,13 +33,14 @@ pub fn router(ctx: AppContext) -> Router {
 }
 
 async fn get_current_user_dashboard(
-    Extension(client): Extension<AuthCodeSpotify>,
+    Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
-    let user = client.current_user().await?;
+    let user = session.client.current_user().await?;
 
     let watchers = WatcherRepo::new(ctx.clone()).get_all_watchers_by_user(&user.id.to_string())?;
-    let playlists = client
+    let playlists = session
+        .client
         .current_user_playlists()
         .try_collect::<Vec<_>>()
         .await?;
@@ -51,15 +53,13 @@ async fn get_current_user_dashboard(
 }
 
 async fn delete_current_user(
-    Extension(client): Extension<AuthCodeSpotify>,
+    Extension(session): Extension<session::Session>,
     cookies: Cookies,
     State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
-    let user = client.current_user().await?;
-
     // Delete all user's watchers and then the user
-    WatcherRepo::new(ctx.clone()).delete_all_watchers_by_user(&user.id.to_string())?;
-    UserRepo::new(ctx).delete_user_by_id(&user.id.to_string())?;
+    WatcherRepo::new(ctx.clone()).delete_all_watchers_by_user(&session.user_id)?;
+    UserRepo::new(ctx).delete_user_by_id(&session.user_id)?;
 
     // Unset the JWT cookie
     cookies.add(

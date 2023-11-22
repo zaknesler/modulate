@@ -1,4 +1,7 @@
-use crate::{context::AppContext, model::playlist::PlaylistType};
+use crate::{
+    context::AppContext,
+    model::{playlist::PlaylistType, watcher::Watcher},
+};
 use anyhow::anyhow;
 use futures::TryStreamExt;
 use rspotify::{
@@ -19,14 +22,9 @@ impl PlaylistTransfer {
         Self { ctx, client }
     }
 
-    /// Transfer tracks from one playlist to another, regardless of playlist type
-    pub async fn transfer(
-        &self,
-        from: PlaylistType,
-        to: PlaylistType,
-        should_remove: bool,
-    ) -> crate::Result<bool> {
-        Ok(match (from, to) {
+    /// Using data from a watcher, transfer tracks from one playlist to another, regardless of playlist type.
+    pub async fn transfer(&self, watcher: &Watcher) -> crate::Result<bool> {
+        Ok(match (&watcher.from_playlist, &watcher.to_playlist) {
             (PlaylistType::Saved, PlaylistType::WithId(playlist_id)) => {
                 let playlist_id = PlaylistId::from_id_or_uri(&playlist_id)?;
 
@@ -55,7 +53,7 @@ impl PlaylistTransfer {
                 }
 
                 // Remove all saved tracks
-                if should_remove {
+                if watcher.should_remove {
                     self.client
                         .current_user_saved_tracks_delete(saved_track_ids)
                         .await?;
@@ -96,7 +94,7 @@ impl PlaylistTransfer {
                 }
 
                 // Remove all tracks from original playlist
-                if should_remove {
+                if watcher.should_remove {
                     self.client
                         .playlist_remove_all_occurrences_of_items(
                             from_id,
