@@ -16,12 +16,10 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare("
-                SELECT watchers.id, users.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                SELECT watchers.id, watchers.user_id, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
                 FROM watchers
-                INNER JOIN users
-                ON users.user_id = watchers.user_id
             ")?
-            .query_map([], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))?
+            .query_map([], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?).unwrap()))?
             .collect::<rusqlite::Result<Vec<_>>>()
             .map_err(|err| err.into())
     }
@@ -32,13 +30,11 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare("
-                SELECT watchers.id, watchers.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                SELECT watchers.id, watchers.user_id, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
                 FROM watchers
-                INNER JOIN users
-                ON users.user_id = watchers.user_id
-                WHERE watchers.user_id = ?
+                WHERE watchers.user_id = ?1
             ")?
-            .query_map(params![user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))?
+            .query_map(params![user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, ).unwrap()))?
             .collect::<rusqlite::Result<Vec<_>>>()
             .map_err(|err| err.into())
     }
@@ -49,13 +45,11 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare("
-                SELECT watchers.id, watchers.user_id, users.token, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                SELECT watchers.id, watchers.user_id, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
                 FROM watchers
-                INNER JOIN users
-                ON users.user_id = watchers.user_id
-                WHERE watchers.id = ? AND watchers.user_id = ?
+                WHERE watchers.id = ?1 AND watchers.user_id = ?2
             ")?
-            .query_row(params![id, user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?).unwrap()))
+            .query_row(params![id, user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?).unwrap()))
             .map_err(|err|err.into())
     }
 
@@ -72,7 +66,7 @@ impl WatcherRepo {
             .get()?
             .prepare(
                 "INSERT INTO watchers (user_id, playlist_from, playlist_to, should_remove, created_at)
-                VALUES (?, ?, ?, ?, datetime())",
+                VALUES (?1, ?2, ?3, ?4, datetime())",
             )?
             .execute(params![user_id, from.to_value(), to.to_value(), should_remove])?;
 
@@ -90,7 +84,7 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(
-                "DELETE FROM watchers WHERE user_id = ? AND playlist_from = ? AND playlist_to = ?",
+                "DELETE FROM watchers WHERE user_id = ?1 AND playlist_from = ?2 AND playlist_to = ?3",
             )?
             .execute(params![user_id, from.to_value(), to.to_value()])?;
 
@@ -102,7 +96,7 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare("DELETE FROM watchers WHERE user_id = ?")?
+            .prepare("DELETE FROM watchers WHERE user_id = ?1")?
             .execute(params![user_id])?;
 
         Ok(())

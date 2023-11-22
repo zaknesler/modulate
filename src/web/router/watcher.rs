@@ -30,10 +30,10 @@ pub fn router(ctx: AppContext) -> Router {
 #[derive(Debug, Deserialize, Validate)]
 struct CreateWatcherParams {
     #[validate(required)]
-    from_playlist: Option<String>,
+    playlist_from: Option<String>,
 
     #[validate(required)]
-    to_playlist: Option<String>,
+    playlist_to: Option<String>,
 
     should_remove: Option<String>,
 }
@@ -45,8 +45,8 @@ async fn create_watcher(
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
 
-    let from = data.from_playlist.expect("validated");
-    let to = data.to_playlist.expect("validated");
+    let from = data.playlist_from.expect("validated");
+    let to = data.playlist_to.expect("validated");
 
     if to == from {
         return Err(crate::error::Error::InvalidFormData(
@@ -54,13 +54,13 @@ async fn create_watcher(
         ));
     }
 
-    let from_playlist = PlaylistType::from_value(&from);
-    let to_playlist = PlaylistType::from_value(&to);
+    let playlist_from = PlaylistType::from_value(&from);
+    let playlist_to = PlaylistType::from_value(&to);
 
     WatcherRepo::new(ctx.clone()).create_watcher(
         &session.user_id,
-        from_playlist,
-        to_playlist,
+        playlist_from,
+        playlist_to,
         data.should_remove.is_some(),
     )?;
 
@@ -82,8 +82,8 @@ async fn delete_watcher(
 
     repo.delete_watcher_by_user_and_playlists(
         &session.user_id,
-        watcher.from_playlist,
-        watcher.to_playlist,
+        watcher.playlist_from,
+        watcher.playlist_to,
     )?;
 
     Ok(Redirect::to("/me"))
