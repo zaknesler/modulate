@@ -19,6 +19,7 @@ pub struct DashboardTemplate {
     pub playlists: Vec<SimplifiedPlaylist>,
 }
 
+#[derive(Debug)]
 struct PlaylistDisplayData {
     pub kind: PlaylistType,
     pub display_name: String,
