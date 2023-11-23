@@ -50,7 +50,7 @@ impl WatcherRepo {
                 WHERE watchers.id = ?1 AND watchers.user_id = ?2
             ")?
             .query_row(params![id, user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?).unwrap()))
-            .map_err(|err|err.into())
+            .map_err(|err| err.into())
     }
 
     /// Create a watcher for a user and playlist.

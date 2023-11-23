@@ -13,6 +13,9 @@ pub enum Error {
     #[error("invalid form data: {0}")]
     InvalidFormData(String),
 
+    #[error("resource not found")]
+    NotFoundError,
+
     #[error("unauthorized")]
     UnauthorizedError,
 
@@ -68,6 +71,11 @@ pub enum Error {
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let (status, error) = match self {
+            Self::NotFoundError => (StatusCode::NOT_FOUND, Value::String(self.to_string())),
+            Self::SQLiteError(_err @ rusqlite::Error::QueryReturnedNoRows) => (
+                StatusCode::NOT_FOUND,
+                Value::String(Self::NotFoundError.to_string()),
+            ),
             Self::UnauthorizedError | Self::JwtExpiredError | Self::JwtInvalidError => {
                 (StatusCode::UNAUTHORIZED, Value::String(self.to_string()))
             }

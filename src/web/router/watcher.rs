@@ -54,13 +54,10 @@ async fn create_watcher(
         ));
     }
 
-    let playlist_from = PlaylistType::from_value(&from);
-    let playlist_to = PlaylistType::from_value(&to);
-
     WatcherRepo::new(ctx.clone()).create_watcher(
         &session.user_id,
-        playlist_from,
-        playlist_to,
+        PlaylistType::from_value(&from),
+        PlaylistType::from_value(&to),
         data.should_remove.is_some(),
     )?;
 
@@ -98,7 +95,7 @@ async fn sync_watcher(
     let watcher = repo.get_watcher_by_id_and_user(params.id, &session.user_id)?;
 
     transfer::PlaylistTransfer::new(ctx, session.client)
-        .transfer(&watcher)
+        .try_transfer(&watcher)
         .await?;
 
     Ok(Redirect::to("/me"))
