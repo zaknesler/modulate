@@ -38,7 +38,7 @@ async fn get_current_user_dashboard(
 ) -> crate::Result<impl IntoResponse> {
     let user = session.client.current_user().await?;
 
-    let watchers = WatcherRepo::new(ctx.clone()).get_all_watchers_by_user(&user.id.to_string())?;
+    let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id.to_string())?;
     let playlists = session
         .client
         .current_user_playlists()

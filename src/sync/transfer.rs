@@ -1,6 +1,7 @@
 use crate::{
     context::AppContext,
     model::{playlist::PlaylistType, watcher::Watcher},
+    CONFIG,
 };
 use anyhow::anyhow;
 use futures::TryStreamExt;
@@ -24,6 +25,10 @@ impl PlaylistTransfer {
 
     /// Using data from a watcher, attempt to transfer tracks from one playlist to another.
     pub async fn try_transfer(&self, watcher: &Watcher) -> crate::Result<bool> {
+        if !CONFIG.sync.enabled {
+            return Ok(false);
+        }
+
         Ok(match (&watcher.playlist_from, &watcher.playlist_to) {
             (PlaylistType::Saved, PlaylistType::WithId(to_id)) => {
                 let to_id = PlaylistId::from_id_or_uri(&to_id)?;

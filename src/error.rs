@@ -94,7 +94,7 @@ impl IntoResponse for Error {
             }
         };
 
-        let data = Json(json!({ "status": status.as_u16(), "error": error, }));
+        let data = Json(json!({ "status": status.as_u16(), "error": error }));
         (status, data).into_response()
     }
 }

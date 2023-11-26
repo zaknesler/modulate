@@ -45,8 +45,9 @@ async fn create_watcher(
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
 
-    let from = data.playlist_from.expect("validated");
-    let to = data.playlist_to.expect("validated");
+    let from = PlaylistType::from_value(&data.playlist_from.expect("validated"));
+    let to = PlaylistType::from_value(&data.playlist_to.expect("validated"));
+    let should_remove = data.should_remove.is_some();
 
     if to == from {
         return Err(crate::error::Error::InvalidFormData(
@@ -54,12 +55,25 @@ async fn create_watcher(
         ));
     }
 
-    WatcherRepo::new(ctx.clone()).create_watcher(
-        &session.user_id,
-        PlaylistType::from_value(&from),
-        PlaylistType::from_value(&to),
-        data.should_remove.is_some(),
-    )?;
+    let repo = WatcherRepo::new(ctx.clone());
+
+    let existing_watchers = repo.get_watchers_for_playlist(&from)?;
+    let existing_mutable_watchers = existing_watchers
+        .iter()
+        .filter(|watcher| watcher.should_remove)
+        .collect::<Vec<_>>();
+
+    if !existing_mutable_watchers.is_empty() {
+        return Err(crate::error::Error::InvalidFormData(
+            "cannot create watcher as one already exists for this playlist with `should_remove` enabled".into(),
+        ));
+    } else if should_remove && !existing_watchers.is_empty() {
+        return Err(crate::error::Error::InvalidFormData(
+            "cannot create watcher with `should_remove` enabled as one already exists for this playlist".into(),
+        ));
+    }
+
+    repo.create_watcher(&session.user_id, &from, &to, should_remove)?;
 
     Ok(Redirect::to("/me"))
 }
@@ -75,12 +89,16 @@ async fn delete_watcher(
     Path(params): Path<ManageWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
     let repo = WatcherRepo::new(ctx);
-    let watcher = repo.get_watcher_by_id_and_user(params.id, &session.user_id)?;
+
+    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user_id)? {
+        Some(val) => val,
+        None => return Err(crate::error::Error::NotFoundError),
+    };
 
     repo.delete_watcher_by_user_and_playlists(
         &session.user_id,
-        watcher.playlist_from,
-        watcher.playlist_to,
+        &watcher.playlist_from,
+        &watcher.playlist_to,
     )?;
 
     Ok(Redirect::to("/me"))
@@ -92,7 +110,11 @@ async fn sync_watcher(
     Path(params): Path<ManageWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
     let repo = WatcherRepo::new(ctx.clone());
-    let watcher = repo.get_watcher_by_id_and_user(params.id, &session.user_id)?;
+
+    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user_id)? {
+        Some(val) => val,
+        None => return Err(crate::error::Error::NotFoundError),
+    };
 
     transfer::PlaylistTransfer::new(ctx, session.client)
         .try_transfer(&watcher)
