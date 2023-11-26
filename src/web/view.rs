@@ -53,12 +53,16 @@ impl DashboardTemplate {
                 .map(|data| PlaylistDisplayData {
                     kind: playlist.clone(),
                     display_name: data.name.clone(),
-                    image_url: data
-                        .images
-                        .iter()
-                        .filter(|image| image.width.is_some())
-                        .min_by(|a, b| a.width.cmp(&b.width))
-                        .map(|image| image.url.clone()),
+                    image_url: match data.images.len() {
+                        1 => data.images.first().map(|image| image.url.clone()),
+                        2.. => data
+                            .images
+                            .iter()
+                            .filter(|image| image.width.is_some())
+                            .min_by(|a, b| a.width.cmp(&b.width))
+                            .map(|image| image.url.clone()),
+                        _ => None,
+                    },
                     spotify_url: data
                         .external_urls
                         .get(SPOTIFY_EXTERNAL_URL_KEY)

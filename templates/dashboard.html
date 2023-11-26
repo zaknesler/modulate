@@ -35,10 +35,10 @@
 {% macro create_section() %}
   <section>
     <h3>Create watcher</h3>
-    <form action="/watchers" method="post" class="items">
+    <form class="items" id="create">
       <div class="item">
-        <label for="playlist_from">From playlist</label>
-        <select name="playlist_from" id="playlist_from" onchange="playlistUpdated()">
+        <label for="input-playlist-from">From playlist</label>
+        <select id="input-playlist-from" onchange="playlistUpdated()">
           <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>
             {{ crate::model::playlist::PlaylistType::Saved.to_string() }}
           </option>
@@ -50,8 +50,8 @@
       </div>
 
       <div class="item">
-        <label for="playlist_to">To playlist</label>
-        <select name="playlist_to" id="playlist_to" onchange="playlistUpdated()">
+        <label for="input-playlist-to">To playlist</label>
+        <select id="input-playlist-to" onchange="playlistUpdated()">
           <option value="" disabled selected hidden>Select a playlist...</option>
 
           {% for playlist in playlists %}
@@ -61,8 +61,8 @@
       </div>
 
       <div class="item checkbox">
-        <input type="checkbox" name="should_remove" id="should_remove" checked />
-        <label for="should_remove">After syncing, remove transferred tracks from original playlist</label>
+        <input type="checkbox" id="checkbox-should-remove" checked />
+        <label for="checkbox-should-remove">After syncing, remove transferred tracks from original playlist</label>
       </div>
 
       <button id="submit" class="button" disabled>Create watcher</button>
@@ -86,12 +86,8 @@
           <small>Tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed after syncing.</small>
 
           <div class="split">
-            <form action="/watchers/{{ watcher.id }}/sync" method="post">
-              <button class="button sm" {% if !crate::CONFIG.sync.enabled %}disabled{% endif %}>Sync now</button>
-            </form>
-            <form action="/watchers/{{ watcher.id }}/delete" method="post">
-              <button class="button sm">Remove watcher</button>
-            </form>
+            <button class="button sm" {% if !crate::CONFIG.sync.enabled %}disabled{% endif %} onclick="syncWatcher('{{ watcher.id }}')">Sync now</button>
+            <button class="button sm" onclick="deleteWatcher('{{ watcher.id }}')">Remove watcher</button>
           </div>
         </div>
       {% endfor %}
@@ -104,9 +100,7 @@
     <h3>Your data</h3>
     <small>Playlist and user data supplied by Spotify. This app is not affiliated with nor endorsed by Spotify in any way.</small>
     <small>Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later.</small>
-    <form action="/me/delete" method="post" onsubmit="return confirm('Are you sure? This will delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later');">
-      <button class="link sm">Delete your data</button>
-    </form>
+    <button class="link sm" onclick="deleteUser()">Delete your data</button>
   </section>
 {% endmacro %}
 
@@ -144,7 +138,12 @@
   <div class="sections">
     {% call header_section() %}
 
+    <section class="errors hidden" id="errors">
+      <p><strong>Error:</strong> <span id="errors-text"></span></p>
+    </section>
+
     <div class="separator"></div>
+
     {% call create_section() %}
 
     {% if !watchers.is_empty() %}
@@ -159,10 +158,84 @@
 
 {% block script %}
   <script>
+    const headers = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
+
+    /** @param {string} message */
+    function setError(message) {
+      document.querySelector('#errors-text').innerHTML = message;
+      document.querySelector('#errors').classList.remove('hidden');
+    }
+
+    function clearErrors(message) {
+      document.querySelector('#errors-text').innerHTML = null;
+      document.querySelector('#errors').classList.add('hidden');
+    }
+
+    function refresh() {
+      // Refresh window to avoid having to do state management. It's just not worth using a JS library for this lol
+      window.location.reload();
+    }
+
     function playlistUpdated(e) {
-      const from = document.querySelector("#playlist_from").value;
-      const to = document.querySelector("#playlist_to").value;
+      const from = document.querySelector("#input-playlist-from").value;
+      const to = document.querySelector("#input-playlist-to").value;
       document.querySelector("#submit").disabled = !from || !to || from === to;
     }
+
+    async function deleteUser() {
+      if (!confirm('Are you sure? This will delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later')) {
+        return;
+      }
+
+      clearErrors()
+      const res = await fetch("/me", { method: 'DELETE', headers });
+      const data = await res.json();
+      if (!data.success) return setError(data.error);
+
+      window.location.href = "/";
+    }
+
+    /** @param {string} id */
+    async function deleteWatcher(id) {
+      clearErrors()
+      const res = await fetch(`/watchers/${id}`, { method: 'DELETE', headers });
+      const data = await res.json();
+      if (!data.success) return setError(data.error);
+
+      refresh();
+    }
+
+    /** @param {string} id */
+    async function syncWatcher(id) {
+      clearErrors()
+      const res = await fetch(`/watchers/${id}/sync`, { method: 'POST', headers });
+      const data = await res.json();
+      if (!data.success) return setError(data.error);
+
+      refresh();
+    }
+
+    document.querySelector("form#create").addEventListener('submit', async function (e) {
+      clearErrors()
+      e.preventDefault();
+
+      const playlist_from = document.querySelector("#input-playlist-from").value;
+      const playlist_to = document.querySelector("#input-playlist-to").value;
+      const should_remove = document.querySelector("#checkbox-should-remove").checked;
+
+      const res = await fetch("/watchers", {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ playlist_from, playlist_to, should_remove }),
+      });
+
+      const data = await res.json();
+      if (!data.success) return setError(data.error);
+
+      refresh();
+    }, true);
   </script>
 {% endblock script %}

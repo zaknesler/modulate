@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.7.0] - 2023-11-26
+
+### Fixed
+
+- Playlist images will now display the only option regardless of width
+
+### Changed
+
+- Endpoints are now called via `fetch` using JSON, to make displaying errors easier
+- Errors are now displayed after API calls
+
 ## [0.6.0] - 2023-11-26
 
 ### Added
@@ -137,7 +148,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/zaknesler/modulate/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/zaknesler/modulate/compare/v0.5.5...v0.6.0
 [0.5.5]: https://github.com/zaknesler/modulate/compare/v0.5.4...v0.5.5
 [0.5.4]: https://github.com/zaknesler/modulate/compare/v0.5.3...v0.5.4

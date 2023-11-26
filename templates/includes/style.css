@@ -2,6 +2,7 @@
   --spotify-green: #1db954;
   --spotify-green-muted: #1db9544f;
   --spotify-green-darker: #0b8937;
+  --error: #d3371b;
 }
 
 *,
@@ -165,10 +166,16 @@ select {
 }
 
 .items,
+.errors,
 .watchers {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.errors p {
+  color: var(--error);
+  font-size: 0.875rem;
 }
 
 .watchers {
@@ -277,6 +284,7 @@ select {
 }
 
 .link {
+  display: inline-flex;
   appearance: none;
   font-size: inherit;
   background: none;
@@ -293,6 +301,10 @@ select {
 
 .link:hover {
   color: #222;
+}
+
+.hidden {
+  display: none;
 }
 
 @media screen and (min-width: 640px) {

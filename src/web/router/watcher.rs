@@ -6,20 +6,21 @@ use crate::{
     web::{middleware::auth, session},
 };
 use axum::{
-    extract::{Form, Path, State},
+    extract::{Path, State},
     middleware,
-    response::{IntoResponse, Redirect},
-    routing::post,
-    Extension, Router,
+    response::IntoResponse,
+    routing::{delete, post},
+    Extension, Json, Router,
 };
 use serde::Deserialize;
+use serde_json::json;
 use validator::Validate;
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/watchers", post(create_watcher))
+        .route("/watchers/:id", delete(delete_watcher))
         .route("/watchers/:id/sync", post(sync_watcher))
-        .route("/watchers/:id/delete", post(delete_watcher))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -29,25 +30,20 @@ pub fn router(ctx: AppContext) -> Router {
 
 #[derive(Debug, Deserialize, Validate)]
 struct CreateWatcherParams {
-    #[validate(required)]
-    playlist_from: Option<String>,
-
-    #[validate(required)]
-    playlist_to: Option<String>,
-
-    should_remove: Option<String>,
+    playlist_from: String,
+    playlist_to: String,
+    should_remove: bool,
 }
 
 async fn create_watcher(
     Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
-    Form(data): Form<CreateWatcherParams>,
+    Json(data): Json<CreateWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
 
-    let from = PlaylistType::from_value(&data.playlist_from.expect("validated"));
-    let to = PlaylistType::from_value(&data.playlist_to.expect("validated"));
-    let should_remove = data.should_remove.is_some();
+    let from = PlaylistType::from_value(&data.playlist_from);
+    let to = PlaylistType::from_value(&data.playlist_to);
 
     if to == from {
         return Err(crate::error::Error::InvalidFormData(
@@ -67,15 +63,15 @@ async fn create_watcher(
         return Err(crate::error::Error::InvalidFormData(
             "cannot create watcher as one already exists for this playlist with `should_remove` enabled".into(),
         ));
-    } else if should_remove && !existing_watchers.is_empty() {
+    } else if data.should_remove && !existing_watchers.is_empty() {
         return Err(crate::error::Error::InvalidFormData(
             "cannot create watcher with `should_remove` enabled as one already exists for this playlist".into(),
         ));
     }
 
-    repo.create_watcher(&session.user_id, &from, &to, should_remove)?;
+    repo.create_watcher(&session.user_id, &from, &to, data.should_remove)?;
 
-    Ok(Redirect::to("/me"))
+    Ok(Json(json!({ "success": true })))
 }
 
 #[derive(Deserialize)]
@@ -101,7 +97,7 @@ async fn delete_watcher(
         &watcher.playlist_to,
     )?;
 
-    Ok(Redirect::to("/me"))
+    Ok(Json(json!({ "success": true })))
 }
 
 async fn sync_watcher(
@@ -120,5 +116,5 @@ async fn sync_watcher(
         .try_transfer(&watcher)
         .await?;
 
-    Ok(Redirect::to("/me"))
+    Ok(Json(json!({ "success": true })))
 }

@@ -7,12 +7,13 @@ use crate::{
 use axum::{
     extract::State,
     middleware,
-    response::{IntoResponse, Redirect},
-    routing::{get, post},
-    Extension, Router,
+    response::IntoResponse,
+    routing::{delete, get},
+    Extension, Json, Router,
 };
 use futures::TryStreamExt;
 use rspotify::prelude::*;
+use serde_json::json;
 use tower_cookies::{
     cookie::{
         time::{ext::NumericalDuration, OffsetDateTime},
@@ -24,7 +25,7 @@ use tower_cookies::{
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/me", get(get_current_user_dashboard))
-        .route("/me/delete", post(delete_current_user))
+        .route("/me", delete(delete_current_user))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -69,5 +70,5 @@ async fn delete_current_user(
             .finish(),
     );
 
-    Ok(Redirect::to("/"))
+    Ok(Json(json!({ "success": true })))
 }
