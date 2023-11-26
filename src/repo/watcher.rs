@@ -1,5 +1,5 @@
 use crate::model::{playlist::PlaylistType, watcher::Watcher};
-use rusqlite::params;
+use rusqlite::{params, OptionalExtension};
 
 pub struct WatcherRepo {
     ctx: crate::context::AppContext,
@@ -24,8 +24,23 @@ impl WatcherRepo {
             .map_err(|err| err.into())
     }
 
+    /// Get all watchers for a specific playlist.
+    pub fn get_watchers_for_playlist(&self, from: &PlaylistType) -> crate::Result<Vec<Watcher>> {
+        self.ctx
+            .db
+            .get()?
+            .prepare("
+                SELECT watchers.id, watchers.user_id, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
+                FROM watchers
+                WHERE watchers.playlist_from = ?1
+            ")?
+            .query_map(params![from.to_value()], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, ).unwrap()))?
+            .collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(|err| err.into())
+    }
+
     /// Get all watchers for a given user ID.
-    pub fn get_all_watchers_by_user(&self, user_id: &str) -> crate::Result<Vec<Watcher>> {
+    pub fn get_watchers_by_user(&self, user_id: &str) -> crate::Result<Vec<Watcher>> {
         self.ctx
             .db
             .get()?
@@ -40,7 +55,11 @@ impl WatcherRepo {
     }
 
     /// Get specific watcher for a given ID and user ID.
-    pub fn get_watcher_by_id_and_user(&self, id: i64, user_id: &str) -> crate::Result<Watcher> {
+    pub fn get_watcher_by_id_and_user(
+        &self,
+        id: i64,
+        user_id: &str,
+    ) -> crate::Result<Option<Watcher>> {
         self.ctx
             .db
             .get()?
@@ -50,15 +69,16 @@ impl WatcherRepo {
                 WHERE watchers.id = ?1 AND watchers.user_id = ?2
             ")?
             .query_row(params![id, user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?).unwrap()))
-            .map_err(|err|err.into())
+            .optional()
+            .map_err(|err| err.into())
     }
 
     /// Create a watcher for a user and playlist.
     pub fn create_watcher(
         &self,
         user_id: &str,
-        from: PlaylistType,
-        to: PlaylistType,
+        from: &PlaylistType,
+        to: &PlaylistType,
         should_remove: bool,
     ) -> crate::Result<()> {
         self.ctx
@@ -77,8 +97,8 @@ impl WatcherRepo {
     pub fn delete_watcher_by_user_and_playlists(
         &self,
         user_id: &str,
-        from: PlaylistType,
-        to: PlaylistType,
+        from: &PlaylistType,
+        to: &PlaylistType,
     ) -> crate::Result<()> {
         self.ctx
             .db

@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Ability to disable syncing with `sync.enabled` (set to `true` by default, but `false` will disable)
+
+### Changed
+
+- Env prefix `SPOTIFY` has been changed to `MODULATE`
+- Repo methods will now return `Option` instead of erroring if a record could not be found (not including ones that return arrays)
+- Can no longer create a watcher if either:
+  1. A watcher with `should_remove` enabled already exists for that playlist
+  2. They are trying to create a watcher with `should_remove` enabled and *any* other watcher already exists for that playlist
+
+### Fixed
+
+- Env arg parsing, e.g. `MODULATE_SYNC_ENABLED=false` will disable syncing
+
 ## [0.5.5] - 2023-11-22
 
 ### Changed

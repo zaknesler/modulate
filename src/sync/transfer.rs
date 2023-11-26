@@ -1,6 +1,7 @@
 use crate::{
     context::AppContext,
     model::{playlist::PlaylistType, watcher::Watcher},
+    CONFIG,
 };
 use anyhow::anyhow;
 use futures::TryStreamExt;
@@ -22,11 +23,15 @@ impl PlaylistTransfer {
         Self { ctx, client }
     }
 
-    /// Using data from a watcher, transfer tracks from one playlist to another, regardless of playlist type.
-    pub async fn transfer(&self, watcher: &Watcher) -> crate::Result<bool> {
+    /// Using data from a watcher, attempt to transfer tracks from one playlist to another.
+    pub async fn try_transfer(&self, watcher: &Watcher) -> crate::Result<bool> {
+        if !CONFIG.sync.enabled {
+            return Ok(false);
+        }
+
         Ok(match (&watcher.playlist_from, &watcher.playlist_to) {
-            (PlaylistType::Saved, PlaylistType::WithId(playlist_id)) => {
-                let playlist_id = PlaylistId::from_id_or_uri(&playlist_id)?;
+            (PlaylistType::Saved, PlaylistType::WithId(to_id)) => {
+                let to_id = PlaylistId::from_id_or_uri(&to_id)?;
 
                 // Get all saved tracks
                 let saved_track_ids = self.get_saved_track_ids().await?;
@@ -37,7 +42,7 @@ impl PlaylistTransfer {
                 }
 
                 // Get IDs from current playlist and remove any from the saved tracks to prevent duplicates
-                let playlist_track_ids = self.get_playlist_track_ids(playlist_id.clone()).await?;
+                let playlist_track_ids = self.get_playlist_track_ids(to_id.clone()).await?;
 
                 // Get only the saved tracks that are not already in the playlist
                 let ids_to_insert = saved_track_ids
@@ -48,7 +53,7 @@ impl PlaylistTransfer {
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
                     self.client
-                        .playlist_add_items(playlist_id, ids_to_insert, None)
+                        .playlist_add_items(to_id, ids_to_insert, None)
                         .await?;
                 }
 

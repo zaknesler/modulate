@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::path;
 
 pub const CONFIG_DIR: &str = ".config";
-const CONFIG_ENV_PREFIX: &str = "SPOTIFY";
+const CONFIG_ENV_PREFIX: &str = "MODULATE";
 const CONFIG_FILE_PRECEDENCE: [&str; 2] = ["default.toml", "local.toml"];
 
 #[derive(Debug, Deserialize, Clone)]
@@ -26,6 +26,7 @@ pub enum LogLevel {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct SyncConfig {
+    pub enabled: bool,
     pub interval_mins: u32,
 }
 
@@ -58,7 +59,12 @@ impl Config {
             .fold(::config::Config::builder(), |config, file| {
                 config.add_source(::config::File::with_name(dir.join(file).to_str().unwrap()))
             })
-            .add_source(::config::Environment::with_prefix(CONFIG_ENV_PREFIX))
+            .add_source(
+                ::config::Environment::with_prefix(CONFIG_ENV_PREFIX)
+                    .try_parsing(true)
+                    .separator("_")
+                    .list_separator(" "),
+            )
             .build()?
             .try_deserialize()?)
     }
