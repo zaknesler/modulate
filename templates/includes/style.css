@@ -60,12 +60,12 @@ section {
 
 header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
 }
 
 header a {
-  margin-top: 0.1rem;
+  margin-bottom: 0.18rem;
   font-size: 0.75rem;
   color: #666;
   text-decoration: none;
