@@ -354,14 +354,6 @@ select {
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #191414;
-    --color-border: #444;
-    --color-separator: #666;
-    --color-secondary: #ddd;
-    --color-body: #fff;
-  }
-
   .link {
     color: var(--color-spotify-green);
   }
