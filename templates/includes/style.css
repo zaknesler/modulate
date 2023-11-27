@@ -1,8 +1,33 @@
 :root {
-  --spotify-green: #1db954;
-  --spotify-green-muted: #1db9544f;
-  --spotify-green-darker: #0b8937;
-  --error: #d3371b;
+  /* Generic colors */
+  --color-spotify-green: #1db954;
+  --color-spotify-green-muted: #1db9544f;
+  --color-spotify-green-darker: #0b8937;
+  --color-red: #d3371b;
+
+  /* Element-specific colors */
+  --color-bg: #fff;
+  --color-border: #ccc;
+  --color-separator: #ddd;
+  --color-secondary: #666;
+  --color-body: #191414;
+  --color-button-text: #fff;
+
+  /* Font */
+  --lh-sm: 1.3;
+  --fs-xs: 0.875rem;
+  --fs-base: 1rem;
+  --fs-xl: 1.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #191414;
+    --color-border: #444;
+    --color-separator: #666;
+    --color-secondary: #ddd;
+    --color-body: #fff;
+  }
 }
 
 *,
@@ -21,8 +46,9 @@ body {
     Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   font-size: 16px;
   padding: 1rem;
-  color: #222;
+  color: var(--color-body);
   line-height: 1.45;
+  background: var(--color-bg);
 }
 
 h1,
@@ -40,17 +66,17 @@ h6 {
 }
 
 h2 {
-  font-size: 1.25rem;
+  var(--fs-xl);
 }
 
 h3 {
-  font-size: 1rem;
-  line-height: 1.3;
+  font-size: var(--fs-base);
+  line-height: var(--lh-sm);
 }
 
 h4 {
-  font-size: 0.875rem;
-  line-height: 1.3;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-sm);
 }
 
 section {
@@ -59,16 +85,20 @@ section {
   gap: 1rem;
 }
 
+section.left {
+  align-items: flex-start;
+}
+
 header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 0.5rem;
 }
 
 header a {
-  margin-bottom: 0.18rem;
+  margin-bottom: -0.1rem;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--color-secondary);
   text-decoration: none;
 }
 
@@ -79,19 +109,25 @@ header a:hover {
 p,
 label,
 small {
-  color: #666;
+  color: var(--color-secondary);
 }
 
 label,
 small {
   display: block;
-  font-size: 0.875rem;
+  font-size: var(--fs-xs);
 }
 
 label,
 select {
   width: 100%;
   user-select: none;
+}
+
+select,
+option {
+  color: var(--color-body);
+  background: var(--color-bg);
 }
 
 input[type="checkbox"] {
@@ -103,10 +139,10 @@ input[type="checkbox"] {
   height: 1.25rem;
   padding: 0;
   border-radius: 0.25rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   font: inherit;
   color: currentColor;
-  background: #fff;
+  background: var(--color-bg);
 }
 
 input[type="checkbox"]::before {
@@ -115,7 +151,7 @@ input[type="checkbox"]::before {
   height: 0.75rem;
   transform: scale(0);
   transition: transform 150ms ease-in-out;
-  box-shadow: inset 1.25rem 1.25rem var(--spotify-green);
+  box-shadow: inset 1.25rem 1.25rem var(--color-spotify-green);
   border-radius: 0.125rem;
 }
 
@@ -126,18 +162,18 @@ input[type="checkbox"]:checked::before {
 select,
 input {
   appearance: none;
-  font-size: 0.875rem;
+  font-size: var(--fs-xs);
   padding: 0.75rem;
   border-radius: 0.5rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   transition: border 150ms ease-in-out, box-shadow 150ms ease-in-out;
 }
 
 select:focus,
 input:focus {
   outline: none;
-  border-color: var(--spotify-green);
-  box-shadow: 0 0 0 4px var(--spotify-green-muted);
+  border-color: var(--color-spotify-green);
+  box-shadow: 0 0 0 4px var(--color-spotify-green-muted);
 }
 
 select {
@@ -162,7 +198,7 @@ select {
 .separator {
   width: 6rem;
   height: 0.2rem;
-  background: #ddd;
+  background: var(--color-separator);
 }
 
 .items,
@@ -174,8 +210,8 @@ select {
 }
 
 .errors p {
-  color: var(--error);
-  font-size: 0.875rem;
+  color: var(--color-red);
+  font-size: var(--fs-xs);
 }
 
 .watchers {
@@ -203,7 +239,7 @@ select {
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: #222;
+  color: var(--color-body);
 }
 
 .watcher a:hover {
@@ -225,7 +261,7 @@ select {
   flex-shrink: 0;
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--spotify-green);
+  color: var(--color-spotify-green);
 }
 
 .split {
@@ -250,11 +286,11 @@ select {
   justify-content: center;
   align-items: center;
   gap: 0.75rem;
-  background: var(--spotify-green);
+  background: var(--color-spotify-green);
+  color: var(--color-button-text);
   padding: 0.75rem 1rem;
   font-weight: 500;
-  font-size: 1rem;
-  color: white;
+  font-size: var(--fs-base);
   user-select: none;
   text-decoration: none;
   border: none;
@@ -271,12 +307,12 @@ select {
 }
 
 .button:hover {
-  background: var(--spotify-green-darker);
+  background: var(--color-spotify-green-darker);
 }
 
 .button:focus {
-  background: var(--spotify-green-darker);
-  box-shadow: 0 0 0 4px var(--spotify-green-muted);
+  background: var(--color-spotify-green-darker);
+  box-shadow: 0 0 0 4px var(--color-spotify-green-muted);
 }
 
 .button svg {
@@ -289,18 +325,18 @@ select {
   font-size: inherit;
   background: none;
   border: none;
-  color: var(--spotify-green-darker);
+  color: var(--color-spotify-green-darker);
   text-decoration: underline;
   cursor: pointer;
 }
 
 .button.sm,
 .link.sm {
-  font-size: 0.875rem;
+  font-size: var(--fs-xs);
 }
 
 .link:hover {
-  color: #222;
+  color: var(--color-body);
 }
 
 .hidden {
@@ -314,5 +350,23 @@ select {
 
   .content {
     max-width: 375px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #191414;
+    --color-border: #444;
+    --color-separator: #666;
+    --color-secondary: #ddd;
+    --color-body: #fff;
+  }
+
+  .link {
+    color: var(--color-spotify-green);
+  }
+
+  .link:hover {
+    color: var(--color-spotify-green-darker);
   }
 }

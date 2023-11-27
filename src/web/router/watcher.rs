@@ -47,7 +47,7 @@ async fn create_watcher(
 
     if to == from {
         return Err(crate::error::Error::InvalidFormData(
-            "cannot create watcher that transfers between the same playlist".into(),
+            "Cannot create watcher that transfers between the same playlist.".into(),
         ));
     }
 
@@ -61,11 +61,11 @@ async fn create_watcher(
 
     if !existing_mutable_watchers.is_empty() {
         return Err(crate::error::Error::InvalidFormData(
-            "cannot create watcher as one already exists for this playlist with `should_remove` enabled".into(),
+            "Cannot create watcher as one already exists for this playlist with track removal enabled.".into(),
         ));
     } else if data.should_remove && !existing_watchers.is_empty() {
         return Err(crate::error::Error::InvalidFormData(
-            "cannot create watcher with `should_remove` enabled as one already exists for this playlist".into(),
+            "Cannot create watcher with track removal enabled as one already exists for this playlist.".into(),
         ));
     }
 
