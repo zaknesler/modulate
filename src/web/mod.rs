@@ -34,8 +34,11 @@ pub async fn serve(ctx: AppContext) -> crate::Result<()> {
         .layer(cors)
         .layer(CookieManagerLayer::new());
 
-    let listener = TcpListener::bind(format!("{}:{}", CONFIG.web.host, CONFIG.web.port)).await?;
-    axum::serve(listener, app.into_make_service()).await?;
+    axum::serve(
+        TcpListener::bind(format!("{}:{}", CONFIG.web.host, CONFIG.web.port)).await?,
+        app.into_make_service(),
+    )
+    .await?;
 
     Ok(())
 }
