@@ -1,6 +1,7 @@
 use crate::{context::AppContext, CONFIG};
 use anyhow::anyhow;
 use axum::http::{header, HeaderValue, Method};
+use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
@@ -34,10 +35,8 @@ pub async fn serve(ctx: AppContext) -> crate::Result<()> {
         .layer(cors)
         .layer(CookieManagerLayer::new());
 
-    axum::Server::bind(&format!("{}:{}", CONFIG.web.host, CONFIG.web.port).parse()?)
-        .serve(app.into_make_service())
-        .await
-        .map_err(|e| anyhow!(e))?;
+    let listener = TcpListener::bind(format!("{}:{}", CONFIG.web.host, CONFIG.web.port)).await?;
+    axum::serve(listener, app.into_make_service()).await?;
 
     Ok(())
 }

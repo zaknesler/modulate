@@ -1,15 +1,16 @@
 use crate::web::router::JWT_COOKIE;
 use axum::{
+    body::Body,
     http::Request,
     middleware::Next,
     response::{IntoResponse, Redirect},
 };
 use tower_cookies::Cookies;
 
-pub async fn middleware<B>(
+pub async fn middleware(
     cookies: Cookies,
-    req: Request<B>,
-    next: Next<B>,
+    req: Request<Body>,
+    next: Next,
 ) -> crate::Result<impl IntoResponse> {
     // If the user has a JWT (valid or not), redirect to the dashboard to let the auth middleware verify it
     if cookies.get(JWT_COOKIE).is_some() {

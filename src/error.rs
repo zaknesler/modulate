@@ -64,6 +64,9 @@ pub enum Error {
     #[error("invalid header value: {0}")]
     InvalidHeaderValueError(#[from] axum::http::header::InvalidHeaderValue),
 
+    #[error("i/o error: {0}")]
+    IOError(#[from] std::io::Error),
+
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
 }

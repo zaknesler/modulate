@@ -5,14 +5,14 @@ use crate::{
     web::{router::JWT_COOKIE, session},
     CONFIG,
 };
-use axum::{extract::State, http::Request, middleware::Next, response::IntoResponse};
+use axum::{body::Body, extract::State, http::Request, middleware::Next, response::IntoResponse};
 use tower_cookies::Cookies;
 
-pub async fn middleware<B>(
+pub async fn middleware(
     cookies: Cookies,
     State(ctx): State<AppContext>,
-    mut req: Request<B>,
-    next: Next<B>,
+    mut req: Request<Body>,
+    next: Next,
 ) -> crate::Result<impl IntoResponse> {
     let jwt_cookie = cookies
         .get(JWT_COOKIE)

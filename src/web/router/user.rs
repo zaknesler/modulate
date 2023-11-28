@@ -67,7 +67,7 @@ async fn delete_current_user(
         CookieBuilder::new(JWT_COOKIE, "")
             .path("/")
             .expires(OffsetDateTime::now_utc().checked_sub(1.days()))
-            .finish(),
+            .build(),
     );
 
     Ok(Json(json!({ "success": true })))

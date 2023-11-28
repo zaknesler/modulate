@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.8.0] - 2023-11-28
+
+### Changed
+
+- Updated to axum `v0.7` (as well as `tower-http`, `tower-cookies`, and `askama-axum`)
+
 ## [0.7.2] - 2023-11-27
 
 ### Changed
@@ -165,7 +171,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.7.2...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/zaknesler/modulate/compare/v0.7.2...v0.8.0
 [0.7.2]: https://github.com/zaknesler/modulate/compare/v0.7.1...v0.7.2
 [0.7.1]: https://github.com/zaknesler/modulate/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/zaknesler/modulate/compare/v0.6.0...v0.7.0

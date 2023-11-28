@@ -63,7 +63,7 @@ async fn handle_callback(
         CookieBuilder::new(JWT_COOKIE, jwt)
             .path("/")
             .expires(OffsetDateTime::now_utc().checked_add(JWT_EXPIRATION_DAYS.days()))
-            .finish(),
+            .build(),
     );
 
     Ok(Redirect::to("/me"))
