@@ -1,5 +1,4 @@
 use crate::{context::AppContext, CONFIG};
-use anyhow::anyhow;
 use axum::http::{header, HeaderValue, Method};
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
