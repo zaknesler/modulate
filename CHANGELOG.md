@@ -9,11 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
-## [0.8.0] - 2023-11-28
+## [0.8.0] - 2023-11-29
 
 ### Changed
 
 - Updated to axum `v0.7` (as well as `tower-http`, `tower-cookies`, and `askama-axum`)
+- Reverse items when inserting to retain original sort order
 
 ## [0.7.2] - 2023-11-27
 

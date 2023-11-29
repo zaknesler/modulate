@@ -45,10 +45,13 @@ impl PlaylistTransfer {
                 let playlist_track_ids = self.get_playlist_track_ids(to_id.clone()).await?;
 
                 // Get only the saved tracks that are not already in the playlist
-                let ids_to_insert = saved_track_ids
+                let mut ids_to_insert = saved_track_ids
                     .difference(&playlist_track_ids)
                     .map(|id| PlayableId::Track(id.clone()))
                     .collect::<Vec<_>>();
+
+                // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
+                ids_to_insert.reverse();
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
@@ -86,10 +89,13 @@ impl PlaylistTransfer {
                 let to_track_ids = self.get_playlist_track_ids(to_id.clone()).await?;
 
                 // Get only the saved tracks that are not already in the playlist
-                let ids_to_insert = from_track_ids
+                let mut ids_to_insert = from_track_ids
                     .difference(&to_track_ids)
                     .map(|id| PlayableId::Track(id.clone()))
                     .collect::<Vec<_>>();
+
+                // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
+                ids_to_insert.reverse();
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
