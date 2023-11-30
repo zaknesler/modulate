@@ -25,6 +25,9 @@ pub enum Error {
     #[error("invalid jwt")]
     JwtInvalidError,
 
+    #[error("invalid sync interval: \"{0}\"")]
+    InvalidSyncInterval(String),
+
     #[error("config error: {0}")]
     ConfigError(#[from] config::ConfigError),
 

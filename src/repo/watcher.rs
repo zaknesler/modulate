@@ -1,4 +1,8 @@
-use crate::model::{playlist::PlaylistType, watcher::Watcher};
+use crate::model::{
+    playlist::PlaylistType,
+    watcher::{SyncInterval, Watcher, WATCHER_COLUMNS},
+};
+use chrono::Utc;
 use rusqlite::{params, OptionalExtension};
 
 pub struct WatcherRepo {
@@ -15,11 +19,8 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare("
-                SELECT watchers.id, watchers.user_id, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
-                FROM watchers
-            ")?
-            .query_map([], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?).unwrap()))?
+            .prepare(format!("SELECT {} FROM watchers", WATCHER_COLUMNS).as_ref())?
+            .query_map([], |row| Ok(Watcher::try_from_row(row).unwrap()))?
             .collect::<rusqlite::Result<Vec<_>>>()
             .map_err(|err| err.into())
     }
@@ -29,12 +30,16 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare("
-                SELECT watchers.id, watchers.user_id, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
-                FROM watchers
-                WHERE watchers.playlist_from = ?1
-            ")?
-            .query_map(params![from.to_value()], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, ).unwrap()))?
+            .prepare(
+                format!(
+                    "SELECT {} FROM watchers WHERE watchers.playlist_from = ?1",
+                    WATCHER_COLUMNS
+                )
+                .as_ref(),
+            )?
+            .query_map(params![from.to_value()], |row| {
+                Ok(Watcher::try_from_row(row).unwrap())
+            })?
             .collect::<rusqlite::Result<Vec<_>>>()
             .map_err(|err| err.into())
     }
@@ -44,12 +49,16 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare("
-                SELECT watchers.id, watchers.user_id, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
-                FROM watchers
-                WHERE watchers.user_id = ?1
-            ")?
-            .query_map(params![user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, ).unwrap()))?
+            .prepare(
+                format!(
+                    "SELECT {} FROM watchers WHERE watchers.user_id = ?1",
+                    WATCHER_COLUMNS
+                )
+                .as_ref(),
+            )?
+            .query_map(params![user_id], |row| {
+                Ok(Watcher::try_from_row(row).unwrap())
+            })?
             .collect::<rusqlite::Result<Vec<_>>>()
             .map_err(|err| err.into())
     }
@@ -63,12 +72,16 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare("
-                SELECT watchers.id, watchers.user_id, watchers.playlist_from, watchers.playlist_to, watchers.should_remove
-                FROM watchers
-                WHERE watchers.id = ?1 AND watchers.user_id = ?2
-            ")?
-            .query_row(params![id, user_id], |row| Ok(Watcher::try_from_row_data(row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?).unwrap()))
+            .prepare(
+                format!(
+                    "SELECT {} FROM watchers WHERE watchers.id = ?1 AND watchers.user_id = ?2",
+                    WATCHER_COLUMNS
+                )
+                .as_ref(),
+            )?
+            .query_row(params![id, user_id], |row| {
+                Ok(Watcher::try_from_row(row).unwrap())
+            })
             .optional()
             .map_err(|err| err.into())
     }
@@ -80,15 +93,13 @@ impl WatcherRepo {
         from: &PlaylistType,
         to: &PlaylistType,
         should_remove: bool,
+        sync_interval: SyncInterval,
     ) -> crate::Result<()> {
         self.ctx
             .db
             .get()?
-            .prepare(
-                "INSERT INTO watchers (user_id, playlist_from, playlist_to, should_remove, created_at)
-                VALUES (?1, ?2, ?3, ?4, datetime())",
-            )?
-            .execute(params![user_id, from.to_value(), to.to_value(), should_remove])?;
+            .prepare("INSERT INTO watchers (user_id, playlist_from, playlist_to, should_remove, sync_interval, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")?
+            .execute(params![user_id, from.to_value(), to.to_value(), should_remove, sync_interval.to_string(), Utc::now().to_rfc3339()])?;
 
         Ok(())
     }
@@ -103,9 +114,7 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare(
-                "DELETE FROM watchers WHERE user_id = ?1 AND playlist_from = ?2 AND playlist_to = ?3",
-            )?
+            .prepare("DELETE FROM watchers WHERE user_id = ?1 AND playlist_from = ?2 AND playlist_to = ?3")?
             .execute(params![user_id, from.to_value(), to.to_value()])?;
 
         Ok(())

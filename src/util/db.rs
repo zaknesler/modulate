@@ -26,6 +26,8 @@ pub fn init_db(file: &str) -> crate::Result<Pool<SqliteConnectionManager>> {
             playlist_from   TEXT    NOT NULL,
             playlist_to     TEXT    NOT NULL,
             should_remove   BOOLEAN CHECK (should_remove IN (0, 1)),
+            sync_interval   TEXT    NOT NULL,
+            last_synced_at  TEXT,
             created_at      TEXT    NOT NULL,
 
             UNIQUE (user_id, playlist_from, playlist_to)

@@ -1,6 +1,6 @@
 use crate::{
     context::AppContext,
-    model::playlist::PlaylistType,
+    model::{playlist::PlaylistType, watcher::SyncInterval},
     repo::watcher::WatcherRepo,
     sync::transfer,
     web::{middleware::auth, session},
@@ -33,6 +33,7 @@ struct CreateWatcherParams {
     playlist_from: String,
     playlist_to: String,
     should_remove: bool,
+    sync_interval: SyncInterval,
 }
 
 async fn create_watcher(
@@ -69,7 +70,13 @@ async fn create_watcher(
         ));
     }
 
-    repo.create_watcher(&session.user_id, &from, &to, data.should_remove)?;
+    repo.create_watcher(
+        &session.user_id,
+        &from,
+        &to,
+        data.should_remove,
+        data.sync_interval,
+    )?;
 
     Ok(Json(json!({ "success": true })))
 }

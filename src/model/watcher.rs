@@ -1,4 +1,11 @@
 use super::playlist::PlaylistType;
+use chrono::{DateTime, Utc};
+use rusqlite::Row;
+use serde::{Deserialize, Serialize};
+use std::{fmt::Display, str::FromStr};
+
+/// Columns to select from watchers table to map to a Watcher
+pub const WATCHER_COLUMNS: &str = "id, user_id, playlist_from, playlist_to, should_remove, sync_interval, last_synced_at, created_at";
 
 #[derive(Debug)]
 pub struct Watcher {
@@ -7,22 +14,60 @@ pub struct Watcher {
     pub playlist_from: PlaylistType,
     pub playlist_to: PlaylistType,
     pub should_remove: bool,
+    pub sync_interval: SyncInterval,
+    pub last_synced_at: Option<DateTime<Utc>>,
+    pub created_at: DateTime<Utc>,
 }
 
 impl Watcher {
-    pub fn try_from_row_data(
-        id: i64,
-        user_id: String,
-        playlist_from: String,
-        playlist_to: String,
-        should_remove: bool,
-    ) -> crate::Result<Self> {
+    pub fn try_from_row(row: &Row<'_>) -> crate::Result<Self> {
         Ok(Self {
-            id,
-            user_id,
-            playlist_from: PlaylistType::from_value(&playlist_from),
-            playlist_to: PlaylistType::from_value(&playlist_to),
-            should_remove,
+            id: row.get(0)?,
+            user_id: row.get(1)?,
+            playlist_from: PlaylistType::from_value(&row.get::<_, String>(2)?),
+            playlist_to: PlaylistType::from_value(&row.get::<_, String>(3)?),
+            should_remove: row.get(4)?,
+            sync_interval: row.get::<_, String>(5)?.parse()?,
+            last_synced_at: row
+                .get::<_, Option<String>>(6)?
+                .map(|val| val.parse().ok())
+                .flatten(),
+            created_at: row.get::<_, String>(7)?.parse()?,
+        })
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SyncInterval {
+    #[default]
+    Hour,
+    Day,
+    Week,
+    Month,
+}
+
+impl Display for SyncInterval {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self {
+            Self::Hour => write!(f, "hour"),
+            Self::Day => write!(f, "day"),
+            Self::Week => write!(f, "week"),
+            Self::Month => write!(f, "month"),
+        }
+    }
+}
+
+impl FromStr for SyncInterval {
+    type Err = crate::error::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "hour" => SyncInterval::Hour,
+            "day" => SyncInterval::Day,
+            "week" => SyncInterval::Week,
+            "month" => SyncInterval::Month,
+            _ => return Err(crate::error::Error::InvalidSyncInterval(s.to_string())),
         })
     }
 }
