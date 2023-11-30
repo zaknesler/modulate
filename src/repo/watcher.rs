@@ -3,7 +3,7 @@ use crate::model::{
     watcher::{SyncInterval, Watcher, WATCHER_COLUMNS},
 };
 use chrono::Utc;
-use rusqlite::{params, OptionalExtension};
+use rusqlite::params;
 
 pub struct WatcherRepo {
     ctx: crate::context::AppContext,
@@ -20,9 +20,8 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(format!("SELECT {} FROM watchers", WATCHER_COLUMNS).as_ref())?
-            .query_map([], |row| Ok(Watcher::try_from_row(row).unwrap()))?
-            .collect::<rusqlite::Result<Vec<_>>>()
-            .map_err(|err| err.into())
+            .query_and_then([], |row| row.try_into())?
+            .collect::<crate::Result<Vec<_>>>()
     }
 
     /// Get all watchers for a specific playlist.
@@ -37,11 +36,8 @@ impl WatcherRepo {
                 )
                 .as_ref(),
             )?
-            .query_map(params![from.to_value()], |row| {
-                Ok(Watcher::try_from_row(row).unwrap())
-            })?
-            .collect::<rusqlite::Result<Vec<_>>>()
-            .map_err(|err| err.into())
+            .query_and_then(params![from.to_value()], |row| row.try_into())?
+            .collect::<crate::Result<Vec<_>>>()
     }
 
     /// Get all watchers for a given user ID.
@@ -56,11 +52,8 @@ impl WatcherRepo {
                 )
                 .as_ref(),
             )?
-            .query_map(params![user_id], |row| {
-                Ok(Watcher::try_from_row(row).unwrap())
-            })?
-            .collect::<rusqlite::Result<Vec<_>>>()
-            .map_err(|err| err.into())
+            .query_and_then(params![user_id], |row| row.try_into())?
+            .collect::<crate::Result<Vec<_>>>()
     }
 
     /// Get specific watcher for a given ID and user ID.
@@ -69,7 +62,8 @@ impl WatcherRepo {
         id: i64,
         user_id: &str,
     ) -> crate::Result<Option<Watcher>> {
-        self.ctx
+        Ok(self
+            .ctx
             .db
             .get()?
             .prepare(
@@ -79,11 +73,10 @@ impl WatcherRepo {
                 )
                 .as_ref(),
             )?
-            .query_row(params![id, user_id], |row| {
-                Ok(Watcher::try_from_row(row).unwrap())
-            })
-            .optional()
-            .map_err(|err| err.into())
+            .query_and_then(params![id, user_id], |row| Watcher::try_from(row))?
+            .collect::<crate::Result<Vec<_>>>()?
+            .first()
+            .cloned())
     }
 
     /// Create a watcher for a user and playlist.

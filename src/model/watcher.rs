@@ -7,7 +7,7 @@ use std::{fmt::Display, str::FromStr};
 /// Columns to select from watchers table to map to a Watcher
 pub const WATCHER_COLUMNS: &str = "id, user_id, playlist_from, playlist_to, should_remove, sync_interval, last_synced_at, created_at";
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Watcher {
     pub id: i64,
     pub user_id: String,
@@ -19,8 +19,10 @@ pub struct Watcher {
     pub created_at: DateTime<Utc>,
 }
 
-impl Watcher {
-    pub fn try_from_row(row: &Row<'_>) -> crate::Result<Self> {
+impl TryFrom<&Row<'_>> for Watcher {
+    type Error = crate::error::Error;
+
+    fn try_from(row: &Row<'_>) -> Result<Self, Self::Error> {
         Ok(Self {
             id: row.get(0)?,
             user_id: row.get(1)?,
@@ -37,7 +39,7 @@ impl Watcher {
     }
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum SyncInterval {
     #[default]
