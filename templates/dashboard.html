@@ -53,10 +53,9 @@
       <div class="item">
         <label for="input-sync-interval">Sync interval</label>
         <select id="input-sync-interval" onchange="playlistUpdated()">
-          <option value="{{ crate::model::watcher::SyncInterval::Hour.to_string() }}">1 hour</option>
-          <option value="{{ crate::model::watcher::SyncInterval::Day.to_string() }}">1 day</option>
-          <option value="{{ crate::model::watcher::SyncInterval::Week.to_string() }}">1 week</option>
-          <option value="{{ crate::model::watcher::SyncInterval::Month.to_string() }}">1 month</option>
+          <option value="{{ crate::model::watcher::SyncInterval::Hour.to_string() }}">Every hour</option>
+          <option value="{{ crate::model::watcher::SyncInterval::Day.to_string() }}">Every day</option>
+          <option value="{{ crate::model::watcher::SyncInterval::Week.to_string() }}">Every week</option>
         </select>
       </div>
 

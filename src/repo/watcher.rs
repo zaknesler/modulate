@@ -79,6 +79,21 @@ impl WatcherRepo {
             .cloned())
     }
 
+    /// Update the next_sync_at date of a watcher by ID.
+    pub fn update_watcher_next_sync_at(
+        &self,
+        id: i64,
+        next_sync_at: chrono::DateTime<chrono::Utc>,
+    ) -> crate::Result<()> {
+        self.ctx
+            .db
+            .get()?
+            .prepare("UPDATE watchers SET next_sync_at = ?1 WHERE watchers.id = ?2")?
+            .execute(params![next_sync_at.to_rfc3339(), id])?;
+
+        Ok(())
+    }
+
     /// Create a watcher for a user and playlist.
     pub fn create_watcher(
         &self,

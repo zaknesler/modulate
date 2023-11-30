@@ -26,9 +26,7 @@ use tower_cookies::{
 };
 
 pub fn router(ctx: AppContext) -> Router {
-    Router::new()
-        .route("/callback", get(handle_callback))
-        .with_state(ctx)
+    Router::new().route("/callback", get(handle_callback)).with_state(ctx)
 }
 
 #[derive(Debug, Deserialize)]

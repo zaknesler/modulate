@@ -55,16 +55,12 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client
-                        .playlist_add_items(to_id, ids_to_insert, None)
-                        .await?;
+                    self.client.playlist_add_items(to_id, ids_to_insert, None).await?;
                 }
 
                 // Remove all saved tracks
                 if watcher.should_remove {
-                    self.client
-                        .current_user_saved_tracks_delete(saved_track_ids)
-                        .await?;
+                    self.client.current_user_saved_tracks_delete(saved_track_ids).await?;
                 }
 
                 true
@@ -99,9 +95,7 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client
-                        .playlist_add_items(to_id, ids_to_insert, None)
-                        .await?;
+                    self.client.playlist_add_items(to_id, ids_to_insert, None).await?;
                 }
 
                 // Remove all tracks from original playlist
@@ -109,9 +103,7 @@ impl PlaylistTransfer {
                     self.client
                         .playlist_remove_all_occurrences_of_items(
                             from_id,
-                            from_track_ids
-                                .iter()
-                                .map(|id| PlayableId::Track(id.clone())),
+                            from_track_ids.iter().map(|id| PlayableId::Track(id.clone())),
                             None,
                         )
                         .await?;

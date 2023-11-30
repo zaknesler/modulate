@@ -21,9 +21,7 @@ pub type Result<T> = std::result::Result<T, crate::error::Error>;
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_max_level(CONFIG.log_level.clone())
-        .init();
+    tracing_subscriber::fmt().with_max_level(CONFIG.log_level.clone()).init();
 
     let db = util::db::init_db(CONFIG.db.file.as_ref())?;
     let ctx = context::AppContext { db };

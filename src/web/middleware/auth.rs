@@ -14,9 +14,8 @@ pub async fn middleware(
     mut req: Request<Body>,
     next: Next,
 ) -> crate::Result<impl IntoResponse> {
-    let jwt_cookie = cookies
-        .get(JWT_COOKIE)
-        .ok_or_else(|| crate::error::Error::UnauthorizedError)?;
+    let jwt_cookie =
+        cookies.get(JWT_COOKIE).ok_or_else(|| crate::error::Error::UnauthorizedError)?;
 
     let session = try_create_auth_session(jwt_cookie.value(), ctx)
         .await

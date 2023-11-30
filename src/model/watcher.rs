@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 /// Columns to select from watchers table to map to a Watcher
-pub const WATCHER_COLUMNS: &str = "id, user_id, playlist_from, playlist_to, should_remove, sync_interval, last_synced_at, created_at";
+pub const WATCHER_COLUMNS: &str = "id, user_id, playlist_from, playlist_to, should_remove, sync_interval, next_sync_at, created_at";
 
 #[derive(Debug, Clone)]
 pub struct Watcher {
@@ -15,7 +15,7 @@ pub struct Watcher {
     pub playlist_to: PlaylistType,
     pub should_remove: bool,
     pub sync_interval: SyncInterval,
-    pub last_synced_at: Option<DateTime<Utc>>,
+    pub next_sync_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -30,10 +30,7 @@ impl TryFrom<&Row<'_>> for Watcher {
             playlist_to: PlaylistType::from_value(&row.get::<_, String>(3)?),
             should_remove: row.get(4)?,
             sync_interval: row.get::<_, String>(5)?.parse()?,
-            last_synced_at: row
-                .get::<_, Option<String>>(6)?
-                .map(|val| val.parse().ok())
-                .flatten(),
+            next_sync_at: row.get::<_, Option<String>>(6)?.map(|val| val.parse().ok()).flatten(),
             created_at: row.get::<_, String>(7)?.parse()?,
         })
     }
@@ -46,7 +43,6 @@ pub enum SyncInterval {
     Hour,
     Day,
     Week,
-    Month,
 }
 
 impl Display for SyncInterval {
@@ -55,7 +51,6 @@ impl Display for SyncInterval {
             Self::Hour => write!(f, "hour"),
             Self::Day => write!(f, "day"),
             Self::Week => write!(f, "week"),
-            Self::Month => write!(f, "month"),
         }
     }
 }
@@ -68,8 +63,17 @@ impl FromStr for SyncInterval {
             "hour" => SyncInterval::Hour,
             "day" => SyncInterval::Day,
             "week" => SyncInterval::Week,
-            "month" => SyncInterval::Month,
             _ => return Err(crate::error::Error::InvalidSyncInterval(s.to_string())),
         })
+    }
+}
+
+impl From<SyncInterval> for chrono::Duration {
+    fn from(value: SyncInterval) -> Self {
+        match value {
+            SyncInterval::Hour => chrono::Duration::hours(1),
+            SyncInterval::Day => chrono::Duration::days(1),
+            SyncInterval::Week => chrono::Duration::weeks(1),
+        }
     }
 }
