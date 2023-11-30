@@ -27,7 +27,6 @@ pub enum LogLevel {
 #[derive(Debug, Deserialize, Clone)]
 pub struct SyncConfig {
     pub enabled: bool,
-    pub interval_mins: u32,
 }
 
 #[derive(Debug, Deserialize, Clone)]
