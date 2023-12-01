@@ -40,11 +40,7 @@ async fn get_current_user_dashboard(
     let user = session.client.current_user().await?;
 
     let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id.to_string())?;
-    let playlists = session
-        .client
-        .current_user_playlists()
-        .try_collect::<Vec<_>>()
-        .await?;
+    let playlists = session.client.current_user_playlists().try_collect::<Vec<_>>().await?;
 
     Ok(DashboardTemplate {
         name: user.id.id().into(),

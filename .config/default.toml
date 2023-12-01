@@ -3,7 +3,6 @@ log_level = "warn"
 
 [sync]
 enabled = true
-interval_mins = 60
 
 [db]
 # sqlite database file name, relative to .config

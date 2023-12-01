@@ -26,9 +26,7 @@ use tower_cookies::{
 };
 
 pub fn router(ctx: AppContext) -> Router {
-    Router::new()
-        .route("/callback", get(handle_callback))
-        .with_state(ctx)
+    Router::new().route("/callback", get(handle_callback)).with_state(ctx)
 }
 
 #[derive(Debug, Deserialize)]
@@ -57,7 +55,7 @@ async fn handle_callback(
 
     UserRepo::new(ctx.clone()).upsert_user_token(&user_id.to_string(), &token)?;
 
-    let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), user_id.to_string())?;
+    let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), &user_id.to_string())?;
 
     cookies.add(
         CookieBuilder::new(JWT_COOKIE, jwt)

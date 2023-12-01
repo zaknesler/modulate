@@ -1,3 +1,5 @@
+use rusqlite::params;
+
 pub struct UserRepo {
     ctx: crate::context::AppContext,
 }
@@ -13,9 +15,9 @@ impl UserRepo {
             .db
             .get()?
             .prepare(
-                "INSERT OR REPLACE INTO users (user_id, token, created_at) VALUES (?1, ?2, datetime())",
+                "INSERT OR REPLACE INTO users (user_id, token, created_at) VALUES (?1, ?2, ?3)",
             )?
-            .execute(&[user_id, token])?;
+            .execute(params![user_id, token, chrono::Utc::now().to_rfc3339()])?;
 
         Ok(())
     }
@@ -26,18 +28,18 @@ impl UserRepo {
             .db
             .get()?
             .prepare("SELECT token FROM users WHERE user_id = ?1 LIMIT 1")?
-            .query_row(&[user_id], |row| Ok(row.get(0)?))
+            .query_row(params![user_id], |row| Ok(row.get(0)?))
             .map_err(|err| err.into())
     }
 
     /// Delete a user by ID.
-    pub fn delete_user_by_id(&self, user_id: &str) -> crate::Result<bool> {
+    pub fn delete_user_by_id(&self, user_id: &str) -> crate::Result<()> {
         self.ctx
             .db
             .get()?
             .prepare("DELETE FROM users WHERE user_id = ?1")?
-            .execute(&[user_id])
-            .map(|_| true)
+            .execute(params![user_id])
+            .map(|_| ())
             .map_err(|err| err.into())
     }
 }

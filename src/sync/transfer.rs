@@ -29,7 +29,7 @@ impl PlaylistTransfer {
             return Ok(false);
         }
 
-        Ok(match (&watcher.playlist_from, &watcher.playlist_to) {
+        match (&watcher.playlist_from, &watcher.playlist_to) {
             (PlaylistType::Saved, PlaylistType::WithId(to_id)) => {
                 let to_id = PlaylistId::from_id_or_uri(&to_id)?;
 
@@ -55,19 +55,13 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client
-                        .playlist_add_items(to_id, ids_to_insert, None)
-                        .await?;
+                    self.client.playlist_add_items(to_id, ids_to_insert, None).await?;
                 }
 
                 // Remove all saved tracks
                 if watcher.should_remove {
-                    self.client
-                        .current_user_saved_tracks_delete(saved_track_ids)
-                        .await?;
+                    self.client.current_user_saved_tracks_delete(saved_track_ids).await?;
                 }
-
-                true
             }
             (PlaylistType::WithId(from_id), PlaylistType::WithId(to_id)) => {
                 if from_id == to_id {
@@ -99,9 +93,7 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client
-                        .playlist_add_items(to_id, ids_to_insert, None)
-                        .await?;
+                    self.client.playlist_add_items(to_id, ids_to_insert, None).await?;
                 }
 
                 // Remove all tracks from original playlist
@@ -109,18 +101,16 @@ impl PlaylistTransfer {
                     self.client
                         .playlist_remove_all_occurrences_of_items(
                             from_id,
-                            from_track_ids
-                                .iter()
-                                .map(|id| PlayableId::Track(id.clone())),
+                            from_track_ids.iter().map(|id| PlayableId::Track(id.clone())),
                             None,
                         )
                         .await?;
                 }
-
-                true
             }
             _ => return Err(anyhow!("unsupported transfer type").into()),
-        })
+        }
+
+        Ok(true)
     }
 
     async fn get_saved_track_ids(&self) -> crate::Result<HashSet<TrackId<'_>>> {

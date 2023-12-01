@@ -11,16 +11,16 @@ const JWT_CLAIM_ISSUED_AT: &str = "iat";
 const JWT_CLAIM_EXPIRES_AT: &str = "exp";
 
 /// Create a JWT for the given user ID
-pub fn sign_jwt(secret: &str, user_id: String) -> crate::Result<String> {
+pub fn sign_jwt(secret: &str, user_id: &str) -> crate::Result<String> {
     let key: Hmac<Sha256> = Hmac::new_from_slice(secret.as_bytes())?;
     let now: DateTime<Utc> = Utc::now();
 
     BTreeMap::from([
         (JWT_CLAIM_USER, user_id),
-        (JWT_CLAIM_ISSUED_AT, now.to_rfc3339()),
+        (JWT_CLAIM_ISSUED_AT, &now.to_rfc3339()),
         (
             JWT_CLAIM_EXPIRES_AT,
-            (now + Duration::days(JWT_EXPIRATION_DAYS)).to_rfc3339(),
+            &(now + Duration::days(JWT_EXPIRATION_DAYS)).to_rfc3339(),
         ),
     ])
     .sign_with_key(&key)
@@ -48,8 +48,5 @@ pub fn verify_jwt(secret: &str, jwt: &str) -> crate::Result<String> {
     }
 
     // Attempt to extract the user ID
-    Ok(claims
-        .get(JWT_CLAIM_USER)
-        .ok_or_else(|| Error::JwtInvalidError)?
-        .to_owned())
+    Ok(claims.get(JWT_CLAIM_USER).ok_or_else(|| Error::JwtInvalidError)?.to_owned())
 }
