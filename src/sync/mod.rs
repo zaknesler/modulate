@@ -66,8 +66,7 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
         let user_token: rspotify::Token =
             serde_json::from_str(&user_repo.get_token_by_user_id(&watcher.user_id)?)?;
         let (client, _) =
-            client::get_token_ensure_refreshed(watcher.user_id.clone(), &user_token, ctx.clone())
-                .await?;
+            client::get_token_ensure_refreshed(&watcher.user_id, &user_token, ctx.clone()).await?;
 
         transfer::PlaylistTransfer::new(ctx.clone(), client)
             .try_transfer(&watcher)

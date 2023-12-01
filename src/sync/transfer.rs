@@ -29,7 +29,7 @@ impl PlaylistTransfer {
             return Ok(false);
         }
 
-        Ok(match (&watcher.playlist_from, &watcher.playlist_to) {
+        match (&watcher.playlist_from, &watcher.playlist_to) {
             (PlaylistType::Saved, PlaylistType::WithId(to_id)) => {
                 let to_id = PlaylistId::from_id_or_uri(&to_id)?;
 
@@ -62,8 +62,6 @@ impl PlaylistTransfer {
                 if watcher.should_remove {
                     self.client.current_user_saved_tracks_delete(saved_track_ids).await?;
                 }
-
-                true
             }
             (PlaylistType::WithId(from_id), PlaylistType::WithId(to_id)) => {
                 if from_id == to_id {
@@ -108,11 +106,11 @@ impl PlaylistTransfer {
                         )
                         .await?;
                 }
-
-                true
             }
             _ => return Err(anyhow!("unsupported transfer type").into()),
-        })
+        }
+
+        Ok(true)
     }
 
     async fn get_saved_track_ids(&self) -> crate::Result<HashSet<TrackId<'_>>> {
