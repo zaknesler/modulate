@@ -46,15 +46,23 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
     let watcher_repo = WatcherRepo::new(ctx.clone());
     let watchers = watcher_repo.get_all_watchers()?;
 
-    tracing::info!("Syncing playlists of {} user(s)...", watchers.len());
+    let to_sync = watchers
+        .into_iter()
+        .filter(|watcher| {
+            watcher.next_sync_at.is_none()
+                || watcher.next_sync_at.is_some_and(|next_sync| next_sync <= Utc::now())
+        })
+        .collect::<Vec<_>>();
+
+    if to_sync.is_empty() {
+        return Ok(());
+    }
+
+    tracing::info!("Syncing {} watcher(s)...", to_sync.len());
 
     let now = Utc::now().with_second(0).unwrap().with_nanosecond(0).unwrap();
 
-    for watcher in watchers {
-        if watcher.next_sync_at.is_some_and(|next_sync| next_sync > Utc::now()) {
-            continue;
-        }
-
+    for watcher in to_sync {
         let user_token: rspotify::Token =
             serde_json::from_str(&user_repo.get_token_by_user_id(&watcher.user_id)?)?;
         let (client, _) =
