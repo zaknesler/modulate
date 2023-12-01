@@ -8,7 +8,7 @@
       {% if watchers.is_empty() %}
         You don't have any watchers configured for your account. Create one below to get started.
       {% else %}
-        You currently have <strong>{{ watchers.len() }}</strong> {% if watchers.len() == 1 %}watcher{% else %}watchers{% endif %} configured. Manage your existing watchers or create more below.
+        You currently have <strong>{{ watchers.len() }}</strong> {% if watchers.len() == 1 %}watcher{% else %}watchers{% endif %} configured. Create more watchers below.
       {% endif %}
     </p>
 
@@ -78,8 +78,7 @@
             {% call playlist_item(to_data) %}
           </h4>
 
-          <small>Syncs every {{ watcher.sync_interval }}</small>
-          <small>Tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed after syncing.</small>
+          <small>Syncs every {{ watcher.sync_interval }}. Tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed from original playlist after syncing.</small>
 
           <div class="split">
             <button class="button sm" {% if !crate::CONFIG.sync.enabled %}disabled{% endif %} onclick="syncWatcher('{{ watcher.id }}')">Sync now</button>
