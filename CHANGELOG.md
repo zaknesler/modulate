@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- Intervals are now attached to each watcher
+  - Supports running watcher every hour, day, or week
+- Auth middleware will now redirect unset invalid JWTs and redirect to connect page
 
 ## [0.8.0] - 2023-11-29
 
