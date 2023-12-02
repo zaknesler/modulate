@@ -43,8 +43,8 @@ async fn create_watcher(
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
 
-    let from = PlaylistType::from_value(&data.playlist_from);
-    let to = PlaylistType::from_value(&data.playlist_to);
+    let from = PlaylistType::try_from_value(&data.playlist_from)?;
+    let to = PlaylistType::try_from_value(&data.playlist_to)?;
 
     if to == from {
         return Err(crate::error::Error::InvalidFormData(

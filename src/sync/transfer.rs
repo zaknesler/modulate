@@ -30,7 +30,7 @@ impl PlaylistTransfer {
         }
 
         match (&watcher.playlist_from, &watcher.playlist_to) {
-            (PlaylistType::Saved, PlaylistType::WithId(to_id)) => {
+            (PlaylistType::Saved, PlaylistType::CurrentUser(to_id)) => {
                 let to_id = PlaylistId::from_id_or_uri(&to_id)?;
 
                 // Get all saved tracks
@@ -63,7 +63,7 @@ impl PlaylistTransfer {
                     self.client.current_user_saved_tracks_delete(saved_track_ids).await?;
                 }
             }
-            (PlaylistType::WithId(from_id), PlaylistType::WithId(to_id)) => {
+            (PlaylistType::CurrentUser(from_id), PlaylistType::CurrentUser(to_id)) => {
                 if from_id == to_id {
                     return Err(crate::error::Error::InvalidTransfer(
                         "cannot transfer to the same playlist".to_owned(),

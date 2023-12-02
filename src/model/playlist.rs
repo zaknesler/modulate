@@ -1,3 +1,4 @@
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -6,15 +7,22 @@ pub const LIKED_PLAYLIST_VALUE: &str = "_liked";
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub enum PlaylistType {
+    /// Saved/liked tracks
     Saved,
-    WithId(String),
+
+    /// Playlist on the current user's account (playlist may be modified)
+    CurrentUser(String),
+
+    /// Public playlist by Spotify URL (playlist cannot be modified)
+    PublicUrl(String),
 }
 
 impl Display for PlaylistType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             PlaylistType::Saved => write!(f, "Liked Tracks"),
-            PlaylistType::WithId(value) => write!(f, "{}", value),
+            PlaylistType::CurrentUser(value) => write!(f, "{}", value),
+            PlaylistType::PublicUrl(value) => write!(f, "{}", value),
         }
     }
 }
@@ -22,18 +30,30 @@ impl Display for PlaylistType {
 impl PlaylistType {
     /// Convert to value string for storage.
     /// Use `.to_string()` for displaying.
-    pub fn to_value(&self) -> &str {
+    pub fn to_value(&self) -> String {
         match self {
-            PlaylistType::Saved => LIKED_PLAYLIST_VALUE,
-            PlaylistType::WithId(value) => value,
+            PlaylistType::Saved => LIKED_PLAYLIST_VALUE.to_owned(),
+            PlaylistType::CurrentUser(value) => format!("user({})", value),
+            PlaylistType::PublicUrl(value) => format!("public({})", value),
         }
     }
 
     /// Convert from value string.
-    pub fn from_value(value: &str) -> Self {
-        match value {
+    pub fn try_from_value(value: &str) -> crate::Result<Self> {
+        Ok(match value {
             LIKED_PLAYLIST_VALUE => Self::Saved,
-            _ => Self::WithId(value.to_owned()),
-        }
+            _ => Regex::new(r#"(user|public)\(([^)]+)\)"#)?
+                .captures(value)
+                .and_then(|captures| {
+                    let kind = captures.get(1)?;
+                    let inner = captures.get(2)?;
+                    match (kind.as_str(), inner.as_str()) {
+                        ("user", inner) => Some(Self::CurrentUser(inner.to_owned())),
+                        ("public", inner) => Some(Self::PublicUrl(inner.to_owned())),
+                        _ => None,
+                    }
+                })
+                .ok_or(crate::error::Error::InvalidPlaylistType(value.to_owned()))?,
+        })
     }
 }
