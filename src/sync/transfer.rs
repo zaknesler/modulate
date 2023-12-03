@@ -100,11 +100,22 @@ impl PlaylistTransfer {
                 if watcher.should_remove {
                     self.client
                         .playlist_remove_all_occurrences_of_items(
-                            from_id,
+                            from_id.clone(),
                             from_track_ids.iter().map(|id| PlayableId::Track(id.clone())),
                             None,
                         )
-                        .await?;
+                        .await
+                        .map_err(|err| match &err {
+                            rspotify::ClientError::Http(inner_err) => match inner_err.as_ref() {
+                                rspotify::http::HttpError::StatusCode(res)
+                                    if res.status().as_u16() == 403 =>
+                                {
+                                    crate::error::Error::CouldNotRemoveTracks(from_id.to_string())
+                                }
+                                _ => err.into(),
+                            },
+                            _ => err.into(),
+                        })?;
                 }
             }
             _ => return Err(anyhow!("unsupported transfer type").into()),

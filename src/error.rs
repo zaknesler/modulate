@@ -31,6 +31,9 @@ pub enum Error {
     #[error("invalid playlist ID: {0}")]
     InvalidPlaylistId(String),
 
+    #[error("could not remove tracks from playlist: {0}")]
+    CouldNotRemoveTracks(String),
+
     #[error("config error: {0}")]
     ConfigError(#[from] config::ConfigError),
 
