@@ -46,8 +46,8 @@ fn try_extract_playlist_uri(value: &str) -> crate::Result<String> {
         .ok_or_else(|| crate::error::Error::InvalidPlaylistId(value.to_owned()))
 }
 
+#[cfg(test)]
 mod test {
-    #[allow(unused_imports)]
     use super::*;
 
     #[test]
