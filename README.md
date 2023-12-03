@@ -10,14 +10,14 @@ I like keeping my favorite Spotify tracks in playlists labeled by year (e.g. a p
 
 This tool allows you to transfer the tracks from one playlist to another on an interval. Most importantly, this also includes moving tracks from your liked/saved playlist, so you can press ❤️ and go on with your obviously busy life.
 
-Once you connect your Spotify account and configure a watcher, it'll stay running and auto-transfer your tracks on the interval you choose (e.g. every hour). You can also configure it to just copy tracks instead of removing them. For example, you can keep your saved tracks synced to a collaborative playlist with your friends, or vice-versa.
+Once you connect your Spotify account and configure a watcher, it'll stay running and auto-transfer your tracks on the interval you choose (e.g. every hour/week/day). You can also configure it to just copy tracks instead of removing them. For example, you can keep your saved tracks synced to a collaborative playlist with your friends, or vice-versa.
 
 <details>
   <summary><strong>View screenshot</strong></summary>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/f1fbb7cf-641b-4f15-94a6-78612e996814">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/zaknesler/modulate/assets/7189795/458e46a4-3a5c-4d48-b99e-87d455676996">
-    <img src="https://github.com/zaknesler/modulate/assets/7189795/458e46a4-3a5c-4d48-b99e-87d455676996" alt="screenshot of app after configuring 2 watchers" width="400">
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/348cd29f-878b-4db7-b140-532e35412afd">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/zaknesler/modulate/assets/7189795/872f7451-85bf-4c30-b8cf-c1f6cf951d81">
+    <img src="https://github.com/zaknesler/modulate/assets/7189795/872f7451-85bf-4c30-b8cf-c1f6cf951d81" alt="screenshot of app after configuring watchers" width="400">
   </picture>
 </details>
 
