@@ -28,15 +28,19 @@
           <a href="#" onclick="togglePlaylistFrom()" id="toggle-text">Manually enter URL</a>
         </label>
 
-        <input type="text" id="input-playlist-from" oninput="onInputUpdate()" onkeydown="onInputUpdate()" onpaste="onInputUpdate()" class="hidden" placeholder="Enter playlist URL or ID...">
+        <input type="text" id="input-playlist-from" oninput="onInputUpdate()" onkeydown="onInputUpdate()" onpaste="onInputUpdate()" class="hidden" placeholder="Enter playlist URL or URI...">
 
         <select id="select-playlist-from" onchange="onInputUpdate()">
           <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>
             {{ crate::model::playlist::PlaylistType::Saved.to_string() }}
           </option>
 
-          {% for playlist in playlists %}
-            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% for playlist in user_playlists %}
+            {% match playlist.uri %}
+              {% when Some with (uri) %}
+              <option value="{{ uri }}">{{ playlist.name }}</option>
+              {% else %}
+            {% endmatch %}
           {% endfor %}
         </select>
       </div>
@@ -46,8 +50,12 @@
         <select id="select-playlist-to" onchange="onInputUpdate()">
           <option value="" disabled selected hidden>Select a playlist...</option>
 
-          {% for playlist in playlists %}
-            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% for playlist in user_playlists %}
+            {% match playlist.uri %}
+              {% when Some with (uri) %}
+              <option value="{{ uri }}">{{ playlist.name }}</option>
+              {% else %}
+            {% endmatch %}
           {% endfor %}
         </select>
       </div>
@@ -110,10 +118,10 @@
 {% macro playlist_item(playlist) %}
   {% match playlist %}
     {% when Some with (data) %}
-    <a href="{{ data.spotify_url }}" target="_blank" rel="noreferrer">
-      {% match data.image_url %}
+    <a href="{{ data.display.spotify_url }}" target="_blank" rel="noreferrer">
+      {% match data.display.image_url %}
         {% when Some with (image_url) %}
-        <img src="{{ image_url }}" alt="{{ data.display_name }}" />
+        <img src="{{ image_url }}" alt="{{ data.display.name }}" />
 
         {% when None %}
         {% match data.kind %}
@@ -129,7 +137,7 @@
         {% endmatch %}
       {% endmatch %}
 
-      {{ data.display_name }}
+      {{ data.display.name }}
     </a>
 
     {% when None %}

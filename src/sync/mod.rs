@@ -1,7 +1,7 @@
 use crate::{
+    api::client,
     context::AppContext,
     repo::{user::UserRepo, watcher::WatcherRepo},
-    util::client,
 };
 use chrono::{Timelike, Utc};
 

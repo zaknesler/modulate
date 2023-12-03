@@ -1,8 +1,13 @@
 use super::JWT_COOKIE;
 use crate::{
+    api,
     context::AppContext,
     repo::{user::UserRepo, watcher::WatcherRepo},
-    web::{middleware::auth, session, view::DashboardTemplate},
+    web::{
+        middleware::auth,
+        session,
+        view::{DashboardTemplate, DisplayPlaylist},
+    },
 };
 use axum::{
     extract::State,
@@ -14,6 +19,7 @@ use axum::{
 use futures::TryStreamExt;
 use rspotify::prelude::*;
 use serde_json::json;
+use std::collections::HashSet;
 use tower_cookies::{
     cookie::{
         time::{ext::NumericalDuration, OffsetDateTime},
@@ -40,12 +46,48 @@ async fn get_current_user_dashboard(
     let user = session.client.current_user().await?;
 
     let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id.to_string())?;
-    let playlists = session.client.current_user_playlists().try_collect::<Vec<_>>().await?;
+    let user_playlists = session
+        .client
+        .current_user_playlists()
+        .try_collect::<Vec<_>>()
+        .await?
+        .into_iter()
+        .map(|item| item.into())
+        .collect::<Vec<DisplayPlaylist>>();
+
+    let user_playlist_ids = user_playlists
+        .iter()
+        .filter_map(|playlist| playlist.uri.as_ref().map(|uri| uri.to_owned()))
+        .collect::<HashSet<_>>();
+    let missing_playlist_ids = watchers
+        .iter()
+        .flat_map(|watcher| vec![&watcher.playlist_from, &watcher.playlist_to])
+        .filter_map(|playlist| match playlist {
+            crate::model::playlist::PlaylistType::Uri(uri) => Some(uri.to_owned()),
+            _ => None,
+        })
+        .collect::<HashSet<_>>();
+
+    let missing_playlists = api::playlist::get_playlists_by_ids(
+        session.client,
+        missing_playlist_ids.difference(&user_playlist_ids),
+    )
+    .await?
+    .into_iter()
+    .map(|item| item.into())
+    .collect::<Vec<DisplayPlaylist>>();
+
+    let all_playlists = user_playlists
+        .iter()
+        .cloned()
+        .chain(missing_playlists.iter().cloned())
+        .collect();
 
     Ok(DashboardTemplate {
         name: user.id.id().into(),
         watchers,
-        playlists,
+        user_playlists,
+        all_playlists,
     })
 }
 

@@ -1,7 +1,8 @@
 use crate::{
+    api,
     context::AppContext,
     repo::user::UserRepo,
-    util::{client, jwt},
+    util::jwt,
     web::{router::JWT_COOKIE, session},
     CONFIG,
 };
@@ -64,7 +65,8 @@ async fn try_create_auth_session(
     ctx: AppContext,
 ) -> crate::Result<session::Session> {
     let (client, token) =
-        client::get_token_ensure_refreshed(user_id, &serde_json::from_str(token_str)?, ctx).await?;
+        api::client::get_token_ensure_refreshed(user_id, &serde_json::from_str(token_str)?, ctx)
+            .await?;
 
     Ok(session::Session {
         user_id: user_id.to_string(),

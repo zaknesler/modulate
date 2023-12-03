@@ -1,11 +1,9 @@
 use super::JWT_COOKIE;
 use crate::{
+    api::client::create_oauth_client,
     context::AppContext,
     repo::user::UserRepo,
-    util::{
-        client::create_oauth_client,
-        jwt::{self, JWT_EXPIRATION_DAYS},
-    },
+    util::jwt::{self, JWT_EXPIRATION_DAYS},
     CONFIG,
 };
 use anyhow::anyhow;

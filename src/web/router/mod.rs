@@ -1,5 +1,5 @@
 use super::{middleware::guest, view::ConnectTemplate};
-use crate::{context::AppContext, util::client::create_oauth_client};
+use crate::{api::client::create_oauth_client, context::AppContext};
 use axum::{middleware, response::IntoResponse, routing::get, Router};
 
 mod connect;
