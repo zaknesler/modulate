@@ -3,12 +3,12 @@
 {% macro header_section() %}
   <section>
     <p>
-      Hello, <strong>{{ name }}</strong>.
+      You are signed in as <strong>{{ name }}</strong>.
 
       {% if watchers.is_empty() %}
-        You don't have any watchers configured for your account. Create one below to get started.
+        You don't have any watchers configured for your account.
       {% else %}
-        You currently have <strong>{{ watchers.len() }}</strong> {% if watchers.len() == 1 %}watcher{% else %}watchers{% endif %} configured. Create more below.
+        You currently have <strong>{{ watchers.len() }}</strong> {% if watchers.len() == 1 %}watcher{% else %}watchers{% endif %} configured.
       {% endif %}
     </p>
 
@@ -23,41 +23,55 @@
     <h3>Create watcher</h3>
     <form class="items" id="create">
       <div class="item">
-        <label for="input-playlist-from">From playlist</label>
-        <select id="input-playlist-from" onchange="playlistUpdated()">
+        <label for="select-playlist-from">
+          <span>From playlist</span>
+          <a href="#" onclick="togglePlaylistFrom()" id="toggle-text">Manually enter URL</a>
+        </label>
+
+        <input type="text" id="input-playlist-from" oninput="onInputUpdate()" onkeydown="onInputUpdate()" onpaste="onInputUpdate()" class="hidden" placeholder="Enter playlist URL or URI...">
+
+        <select id="select-playlist-from" onchange="onInputUpdate()">
           <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>
             {{ crate::model::playlist::PlaylistType::Saved.to_string() }}
           </option>
 
-          {% for playlist in playlists %}
-            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% for playlist in user_playlists %}
+            {% match playlist.uri %}
+              {% when Some with (uri) %}
+              <option value="{{ uri }}">{{ playlist.name }}</option>
+              {% else %}
+            {% endmatch %}
           {% endfor %}
         </select>
       </div>
 
       <div class="item">
-        <label for="input-playlist-to">To playlist</label>
-        <select id="input-playlist-to" onchange="playlistUpdated()">
+        <label for="select-playlist-to">To playlist</label>
+        <select id="select-playlist-to" onchange="onInputUpdate()">
           <option value="" disabled selected hidden>Select a playlist...</option>
 
-          {% for playlist in playlists %}
-            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+          {% for playlist in user_playlists %}
+            {% match playlist.uri %}
+              {% when Some with (uri) %}
+              <option value="{{ uri }}">{{ playlist.name }}</option>
+              {% else %}
+            {% endmatch %}
           {% endfor %}
         </select>
       </div>
 
       <div class="item">
         <label for="input-sync-interval">Sync interval</label>
-        <select id="input-sync-interval" onchange="playlistUpdated()">
+        <select id="input-sync-interval">
           <option value="{{ crate::model::watcher::SyncInterval::Hour.to_string() }}">Every hour</option>
           <option value="{{ crate::model::watcher::SyncInterval::Day.to_string() }}">Every day</option>
           <option value="{{ crate::model::watcher::SyncInterval::Week.to_string() }}">Every week</option>
         </select>
       </div>
 
-      <div class="item checkbox">
-        <input type="checkbox" id="checkbox-should-remove" checked />
-        <label for="checkbox-should-remove">After syncing, remove transferred tracks from original playlist</label>
+      <div class="item checkbox" id="checkbox-should-remove-wrapper">
+        <input type="checkbox" id="checkbox-should-remove" />
+        <label for="checkbox-should-remove">Remove tracks from original playlist after syncing</label>
       </div>
 
       <button id="submit" class="button" disabled>Create watcher</button>
@@ -78,7 +92,9 @@
             {% call playlist_item(to_data) %}
           </h4>
 
-          <small>Syncs every {{ watcher.sync_interval }}. Tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed from original playlist after syncing.</small>
+          <p>
+            <small>Syncs every {{ watcher.sync_interval }}. Original tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed.</small>
+          </p>
 
           <div class="split">
             <button class="button sm" {% if !crate::CONFIG.sync.enabled %}disabled{% endif %} onclick="syncWatcher('{{ watcher.id }}')">Sync now</button>
@@ -93,8 +109,8 @@
 {% macro data_section() %}
   <section class="left">
     <h3>Your data</h3>
-    <small>Playlist and user data supplied by Spotify. This app is not affiliated with nor endorsed by Spotify in any way.</small>
-    <small>Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later.</small>
+    <p><small>Playlist and user data supplied by Spotify. This app is not affiliated with nor endorsed by Spotify in any way.</small></p>
+    <p><small>Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later.</small></p>
     <button class="link sm" onclick="deleteUser()">Delete your data</button>
   </section>
 {% endmacro %}
@@ -102,10 +118,10 @@
 {% macro playlist_item(playlist) %}
   {% match playlist %}
     {% when Some with (data) %}
-    <a href="{{ data.spotify_url }}" target="_blank" rel="noreferrer">
-      {% match data.image_url %}
+    <a href="{{ data.display.spotify_url }}" target="_blank" rel="noreferrer">
+      {% match data.display.image_url %}
         {% when Some with (image_url) %}
-        <img src="{{ image_url }}" alt="{{ data.display_name }}" />
+        <img src="{{ image_url }}" alt="{{ data.display.name }}" />
 
         {% when None %}
         {% match data.kind %}
@@ -121,7 +137,7 @@
         {% endmatch %}
       {% endmatch %}
 
-      {{ data.display_name }}
+      {{ data.display.name }}
     </a>
 
     {% when None %}

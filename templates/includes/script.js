@@ -6,6 +6,8 @@ const headers = {
 const deleteMessage =
   "Are you sure? This will delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later";
 
+let manualEntry = false;
+
 /** @param {string} message */
 function setError(message) {
   document.querySelector("#errors-text").innerHTML = message;
@@ -22,9 +24,32 @@ function refresh() {
   window.location.reload();
 }
 
-function playlistUpdated(e) {
-  const from = document.querySelector("#input-playlist-from").value;
-  const to = document.querySelector("#input-playlist-to").value;
+function togglePlaylistFrom() {
+  manualEntry = !manualEntry;
+
+  const select = document.querySelector("#select-playlist-from");
+  const input = document.querySelector("#input-playlist-from");
+
+  select.classList.toggle("hidden");
+  input.classList.toggle("hidden");
+  document
+    .querySelector("#checkbox-should-remove-wrapper")
+    .classList.toggle("hidden");
+  input.value = "";
+
+  document.querySelector("#toggle-text").innerHTML = manualEntry
+    ? "Select playlist"
+    : "Manually enter URL";
+
+  onInputUpdate();
+}
+
+function onInputUpdate() {
+  const from_input = document.querySelector("#input-playlist-from");
+  const from_select = document.querySelector("#select-playlist-from");
+
+  const from = manualEntry ? from_input.value : from_select.value;
+  const to = document.querySelector("#select-playlist-to").value;
   const sync_interval = document.querySelector("#input-sync-interval").value;
 
   document.querySelector("#submit").disabled =
@@ -71,8 +96,9 @@ document.querySelector("form#create").addEventListener(
     clearErrors();
     e.preventDefault();
 
-    const playlist_from = document.querySelector("#input-playlist-from").value;
-    const playlist_to = document.querySelector("#input-playlist-to").value;
+    const from_select = document.querySelector("#select-playlist-from").value;
+    const from_input = document.querySelector("#input-playlist-from").value;
+    const playlist_to = document.querySelector("#select-playlist-to").value;
     const should_remove = document.querySelector(
       "#checkbox-should-remove"
     ).checked;
@@ -82,9 +108,9 @@ document.querySelector("form#create").addEventListener(
       method: "POST",
       headers,
       body: JSON.stringify({
-        playlist_from,
+        playlist_from: manualEntry ? from_input : from_select,
         playlist_to,
-        should_remove,
+        should_remove: manualEntry ? false : should_remove,
         sync_interval,
       }),
     });

@@ -43,8 +43,8 @@ async fn create_watcher(
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
 
-    let from = PlaylistType::from_value(&data.playlist_from);
-    let to = PlaylistType::from_value(&data.playlist_to);
+    let from = PlaylistType::try_from_value(&data.playlist_from)?;
+    let to = PlaylistType::try_from_value(&data.playlist_to)?;
 
     if to == from {
         return Err(crate::error::Error::InvalidFormData(
@@ -64,7 +64,9 @@ async fn create_watcher(
         return Err(crate::error::Error::InvalidFormData(
             "Cannot create watcher as one already exists for this playlist with track removal enabled.".into(),
         ));
-    } else if data.should_remove && !existing_watchers.is_empty() {
+    }
+
+    if data.should_remove && !existing_watchers.is_empty() {
         return Err(crate::error::Error::InvalidFormData(
             "Cannot create watcher with track removal enabled as one already exists for this playlist.".into(),
         ));

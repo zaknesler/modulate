@@ -25,8 +25,14 @@ pub enum Error {
     #[error("invalid jwt")]
     JwtInvalidError,
 
-    #[error("invalid sync interval: \"{0}\"")]
+    #[error("invalid sync interval: {0}")]
     InvalidSyncInterval(String),
+
+    #[error("invalid playlist ID: {0}")]
+    InvalidPlaylistId(String),
+
+    #[error("could not remove tracks from playlist: {0}")]
+    CouldNotRemoveTracks(String),
 
     #[error("config error: {0}")]
     ConfigError(#[from] config::ConfigError),
@@ -69,6 +75,9 @@ pub enum Error {
 
     #[error("i/o error: {0}")]
     IOError(#[from] std::io::Error),
+
+    #[error("regex error: {0}")]
+    RegexError(#[from] regex::Error),
 
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),

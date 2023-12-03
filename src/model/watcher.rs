@@ -26,8 +26,8 @@ impl TryFrom<&Row<'_>> for Watcher {
         Ok(Self {
             id: row.get(0)?,
             user_id: row.get(1)?,
-            playlist_from: PlaylistType::from_value(&row.get::<_, String>(2)?),
-            playlist_to: PlaylistType::from_value(&row.get::<_, String>(3)?),
+            playlist_from: PlaylistType::try_from_value(&row.get::<_, String>(2)?)?,
+            playlist_to: PlaylistType::try_from_value(&row.get::<_, String>(3)?)?,
             should_remove: row.get(4)?,
             sync_interval: row.get::<_, String>(5)?.parse()?,
             next_sync_at: row.get::<_, Option<String>>(6)?.map(|val| val.parse().ok()).flatten(),

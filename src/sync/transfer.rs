@@ -30,7 +30,7 @@ impl PlaylistTransfer {
         }
 
         match (&watcher.playlist_from, &watcher.playlist_to) {
-            (PlaylistType::Saved, PlaylistType::WithId(to_id)) => {
+            (PlaylistType::Saved, PlaylistType::Uri(to_id)) => {
                 let to_id = PlaylistId::from_id_or_uri(&to_id)?;
 
                 // Get all saved tracks
@@ -63,7 +63,7 @@ impl PlaylistTransfer {
                     self.client.current_user_saved_tracks_delete(saved_track_ids).await?;
                 }
             }
-            (PlaylistType::WithId(from_id), PlaylistType::WithId(to_id)) => {
+            (PlaylistType::Uri(from_id), PlaylistType::Uri(to_id)) => {
                 if from_id == to_id {
                     return Err(crate::error::Error::InvalidTransfer(
                         "cannot transfer to the same playlist".to_owned(),
@@ -100,11 +100,22 @@ impl PlaylistTransfer {
                 if watcher.should_remove {
                     self.client
                         .playlist_remove_all_occurrences_of_items(
-                            from_id,
+                            from_id.clone(),
                             from_track_ids.iter().map(|id| PlayableId::Track(id.clone())),
                             None,
                         )
-                        .await?;
+                        .await
+                        .map_err(|err| match &err {
+                            rspotify::ClientError::Http(inner_err) => match inner_err.as_ref() {
+                                rspotify::http::HttpError::StatusCode(res)
+                                    if res.status().as_u16() == 403 =>
+                                {
+                                    crate::error::Error::CouldNotRemoveTracks(from_id.to_string())
+                                }
+                                _ => err.into(),
+                            },
+                            _ => err.into(),
+                        })?;
                 }
             }
             _ => return Err(anyhow!("unsupported transfer type").into()),
