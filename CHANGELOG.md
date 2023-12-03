@@ -15,6 +15,10 @@ Nothing yet.
 
 - Watchers can now be created for any playlist (by manually entering URI/URL)
 
+## Changed
+
+- If tracks cannot be removed, a custom error is thrown
+
 ## [0.9.0] - 2023-11-30
 
 ### Changed
