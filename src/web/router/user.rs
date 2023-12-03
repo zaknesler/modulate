@@ -46,6 +46,8 @@ async fn get_current_user_dashboard(
     let user = session.client.current_user().await?;
 
     let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id.to_string())?;
+
+    // Get all playlists that belong to the user
     let user_playlists = session
         .client
         .current_user_playlists()
@@ -54,11 +56,12 @@ async fn get_current_user_dashboard(
         .into_iter()
         .map(|item| item.into())
         .collect::<Vec<DisplayPlaylist>>();
-
     let user_playlist_ids = user_playlists
         .iter()
         .filter_map(|playlist| playlist.uri.as_ref().map(|uri| uri.to_owned()))
         .collect::<HashSet<_>>();
+
+    // Fetch the details of the playlists that the user does not own
     let missing_playlist_ids = watchers
         .iter()
         .flat_map(|watcher| vec![&watcher.playlist_from, &watcher.playlist_to])
@@ -67,7 +70,6 @@ async fn get_current_user_dashboard(
             _ => None,
         })
         .collect::<HashSet<_>>();
-
     let missing_playlists = api::playlist::get_playlists_by_ids(
         session.client,
         missing_playlist_ids.difference(&user_playlist_ids),
@@ -77,6 +79,7 @@ async fn get_current_user_dashboard(
     .map(|item| item.into())
     .collect::<Vec<DisplayPlaylist>>();
 
+    // Combine the playlists that either belong to the user or are referenced by a watcher, in display format
     let all_playlists = user_playlists
         .iter()
         .cloned()
