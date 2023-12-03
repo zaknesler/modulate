@@ -121,9 +121,9 @@ small {
   color: var(--color-secondary);
 }
 
-label,
-small {
-  display: block;
+label {
+  display: flex;
+  justify-content: space-between;
   font-size: var(--fs-sm);
 }
 

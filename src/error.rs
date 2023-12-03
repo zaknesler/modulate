@@ -28,8 +28,8 @@ pub enum Error {
     #[error("invalid sync interval: {0}")]
     InvalidSyncInterval(String),
 
-    #[error("invalid playlist type: {0}")]
-    InvalidPlaylistType(String),
+    #[error("invalid playlist ID: {0}")]
+    InvalidPlaylistId(String),
 
     #[error("config error: {0}")]
     ConfigError(#[from] config::ConfigError),

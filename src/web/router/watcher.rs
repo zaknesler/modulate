@@ -32,7 +32,7 @@ pub fn router(ctx: AppContext) -> Router {
 struct CreateWatcherParams {
     playlist_from: String,
     playlist_to: String,
-    should_remove: bool,
+    should_remove: Option<bool>,
     sync_interval: SyncInterval,
 }
 
@@ -42,6 +42,8 @@ async fn create_watcher(
     Json(data): Json<CreateWatcherParams>,
 ) -> crate::Result<impl IntoResponse> {
     data.validate()?;
+
+    let should_remove = data.should_remove.is_some_and(|val| val);
 
     let from = PlaylistType::try_from_value(&data.playlist_from)?;
     let to = PlaylistType::try_from_value(&data.playlist_to)?;
@@ -64,7 +66,9 @@ async fn create_watcher(
         return Err(crate::error::Error::InvalidFormData(
             "Cannot create watcher as one already exists for this playlist with track removal enabled.".into(),
         ));
-    } else if data.should_remove && !existing_watchers.is_empty() {
+    }
+
+    if should_remove && !existing_watchers.is_empty() {
         return Err(crate::error::Error::InvalidFormData(
             "Cannot create watcher with track removal enabled as one already exists for this playlist.".into(),
         ));
@@ -74,7 +78,7 @@ async fn create_watcher(
         &session.user_id,
         &from,
         &to,
-        data.should_remove,
+        should_remove,
         data.sync_interval,
     )?;
 

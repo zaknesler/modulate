@@ -46,7 +46,7 @@ impl DashboardTemplate {
                 image_url: None,
                 spotify_url: SPOTIFY_LIKED_TRACKS_URL.into(),
             }),
-            PlaylistType::CurrentUser(id) => {
+            PlaylistType::Uri(id) => {
                 self.playlists.iter().find(|data| data.id.to_string() == *id).map(|data| {
                     PlaylistDisplayData {
                         kind: playlist.clone(),
@@ -69,12 +69,6 @@ impl DashboardTemplate {
                     }
                 })
             }
-            PlaylistType::PublicUrl(url) => Some(PlaylistDisplayData {
-                kind: playlist.clone(),
-                display_name: playlist.to_string(),
-                image_url: None,
-                spotify_url: url.clone(),
-            }),
         }
     }
 }
