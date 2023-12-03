@@ -3,12 +3,12 @@
 {% macro header_section() %}
   <section>
     <p>
-      Hello, <strong>{{ name }}</strong>.
+      You are signed in as <strong>{{ name }}</strong>.
 
       {% if watchers.is_empty() %}
-        You don't have any watchers configured for your account. Create one below to get started.
+        You don't have any watchers configured for your account.
       {% else %}
-        You currently have <strong>{{ watchers.len() }}</strong> {% if watchers.len() == 1 %}watcher{% else %}watchers{% endif %} configured. Create more below.
+        You currently have <strong>{{ watchers.len() }}</strong> {% if watchers.len() == 1 %}watcher{% else %}watchers{% endif %} configured.
       {% endif %}
     </p>
 
@@ -93,7 +93,7 @@
           </h4>
 
           <p>
-            <small>Syncs every {{ watcher.sync_interval }}. Tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed from original playlist after syncing.</small>
+            <small>Syncs every {{ watcher.sync_interval }}. Original tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed.</small>
           </p>
 
           <div class="split">
