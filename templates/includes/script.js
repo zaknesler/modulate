@@ -24,24 +24,28 @@ function refresh() {
   window.location.reload();
 }
 
-function togglePlaylistFrom() {
+function togglePlaylistInput(e) {
   manualEntry = !manualEntry;
 
   const select = document.querySelector("#select-playlist-from");
   const input = document.querySelector("#input-playlist-from");
+  const checkbox = document.querySelector("#checkbox-should-remove-wrapper");
+
+  const activeElement = manualEntry ? input : select;
 
   select.classList.toggle("hidden");
   input.classList.toggle("hidden");
-  document
-    .querySelector("#checkbox-should-remove-wrapper")
-    .classList.toggle("hidden");
+  checkbox.classList.toggle("hidden");
   input.value = "";
 
   document.querySelector("#toggle-text").innerHTML = manualEntry
     ? "Select playlist"
     : "Manually enter URL";
 
+  activeElement.focus();
   onInputUpdate();
+
+  return false;
 }
 
 function onInputUpdate() {

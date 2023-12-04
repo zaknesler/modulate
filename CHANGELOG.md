@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.10.1] - 2023-12-04
+
+## Fixed
+
+- Input colors on dark mode
+
+## Changed
+
+- First input/select autofocuses
+- Input now re-focuses on mode change
+
 ## [0.10.0] - 2023-12-03
 
 ## Added

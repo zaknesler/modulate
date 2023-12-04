@@ -141,7 +141,8 @@ select {
 }
 
 select,
-option {
+option,
+input {
   color: var(--color-body);
   background: var(--color-bg);
 }

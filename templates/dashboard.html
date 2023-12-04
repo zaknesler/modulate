@@ -25,12 +25,12 @@
       <div class="item">
         <label for="select-playlist-from">
           <span>From playlist</span>
-          <a href="#" onclick="togglePlaylistFrom()" id="toggle-text">Manually enter URL</a>
+          <button class="link sm" onclick="return togglePlaylistInput()" id="toggle-text">Manually enter URL</button>
         </label>
 
-        <input type="text" id="input-playlist-from" oninput="onInputUpdate()" onkeydown="onInputUpdate()" onpaste="onInputUpdate()" class="hidden" placeholder="Enter playlist URL or URI...">
+        <input autofocus type="text" id="input-playlist-from" oninput="onInputUpdate()" onkeydown="onInputUpdate()" onpaste="onInputUpdate()" class="hidden" placeholder="Enter playlist URL or URI...">
 
-        <select id="select-playlist-from" onchange="onInputUpdate()">
+        <select autofocus id="select-playlist-from" onchange="onInputUpdate()">
           <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>
             {{ crate::model::playlist::PlaylistType::Saved.to_string() }}
           </option>
