@@ -116,7 +116,7 @@ Nothing yet.
 
 ### Changed
 
-- Display playist images
+- Display playlist images
 - Link to playlists
 - Some more style tweaks
 - Add Spotify attribution
