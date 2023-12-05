@@ -32,6 +32,7 @@ pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/me", get(get_current_user_dashboard))
         .route("/me", delete(delete_current_user))
+        .route("/me/demo", get(demo))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -112,4 +113,12 @@ async fn delete_current_user(
     );
 
     Ok(Json(json!({ "success": true })))
+}
+
+async fn demo(Extension(session): Extension<session::Session>) -> crate::Result<impl IntoResponse> {
+    let client = crate::api::client2::Client::from_token(session.token.access_token.as_ref());
+
+    let playlist = client.get_playlist("5qgLEa0o3k51FH78jSp50D").await?;
+
+    Ok(Json(json!({ "data": playlist })))
 }

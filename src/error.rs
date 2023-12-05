@@ -80,6 +80,12 @@ pub enum Error {
     RegexError(#[from] regex::Error),
 
     #[error(transparent)]
+    ReqwestError(#[from] reqwest::Error),
+
+    #[error(transparent)]
+    HeaderValueError(#[from] reqwest::header::InvalidHeaderValue),
+
+    #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
 }
 
