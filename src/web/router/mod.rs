@@ -1,5 +1,5 @@
 use super::{middleware::guest, view::ConnectTemplate};
-use crate::{api::client2, context::AppContext};
+use crate::{api::client, context::AppContext};
 use axum::{middleware, response::IntoResponse, routing::get, Router};
 use tower_cookies::{
     cookie::{
@@ -27,7 +27,7 @@ pub fn router(ctx: AppContext) -> Router {
 }
 
 async fn root(cookies: Cookies) -> crate::Result<impl IntoResponse> {
-    let (url, csrf) = client2::Client::new()?.new_authorize_url();
+    let (url, csrf) = client::Client::new()?.new_authorize_url();
 
     // Set CSRF cookie to verify once user is redirected back
     cookies.add(

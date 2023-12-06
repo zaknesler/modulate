@@ -55,12 +55,6 @@ pub enum Error {
     #[error("sqlite error: {0}")]
     SQLiteError(#[from] r2d2_sqlite::rusqlite::Error),
 
-    #[error("spotify client error: {0}")]
-    SpotifyClientError(#[from] rspotify::ClientError),
-
-    #[error("spotify ID error: {0}")]
-    SpotifyIdError(#[from] rspotify::model::IdError),
-
     #[error("addr parse error: {0}")]
     AddrParseError(#[from] std::net::AddrParseError),
 

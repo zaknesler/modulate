@@ -29,13 +29,15 @@ impl UserRepo {
     }
 
     /// Try to find a user's auth token.
-    pub fn get_token_by_user_id(&self, user_id: &str) -> crate::Result<String> {
-        self.ctx
+    pub fn get_token_by_user_id(&self, user_id: &str) -> crate::Result<Token> {
+        let token_str: String = self
+            .ctx
             .db
             .get()?
             .prepare("SELECT token FROM users WHERE user_id = ?1 LIMIT 1")?
-            .query_row(params![user_id], |row| Ok(row.get(0)?))
-            .map_err(|err| err.into())
+            .query_row(params![user_id], |row| Ok(row.get(0)?))?;
+
+        serde_json::from_str(&token_str).map_err(|err| err.into())
     }
 
     /// Delete a user by ID.

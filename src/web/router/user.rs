@@ -17,8 +17,6 @@ use axum::{
     routing::{delete, get},
     Extension, Json, Router,
 };
-use futures::TryStreamExt;
-use rspotify::prelude::*;
 use serde_json::json;
 use std::collections::HashSet;
 use tower_cookies::Cookies;
@@ -39,9 +37,9 @@ async fn get_current_user_dashboard(
     Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
-    let user = session.client.current_user().await?;
+    let user = session.client.get_current_user().await?;
 
-    let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id.to_string())?;
+    let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id)?;
 
     // Get all playlists that belong to the user
     let user_playlists = session
@@ -66,7 +64,7 @@ async fn get_current_user_dashboard(
             _ => None,
         })
         .collect::<HashSet<_>>();
-    let missing_playlists = api::playlist::get_playlists_by_ids(
+    let missing_playlists = api::util::get_playlists_by_ids(
         session.client,
         missing_playlist_ids.difference(&user_playlist_ids),
     )
@@ -83,7 +81,7 @@ async fn get_current_user_dashboard(
         .collect();
 
     Ok(DashboardTemplate {
-        name: user.id.id().into(),
+        name: user.display_name,
         watchers,
         user_playlists,
         all_playlists,

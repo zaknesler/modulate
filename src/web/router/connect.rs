@@ -1,9 +1,12 @@
 use super::{CSRF_COOKIE, JWT_COOKIE};
 use crate::{
-    api::client2,
+    api::client,
     context::AppContext,
     repo::user::UserRepo,
-    util::jwt::{self, JWT_EXPIRATION_DAYS},
+    util::{
+        cookie::unset_cookie,
+        jwt::{self, JWT_EXPIRATION_DAYS},
+    },
     CONFIG,
 };
 use anyhow::anyhow;
@@ -39,16 +42,20 @@ async fn handle_callback(
 ) -> crate::Result<impl IntoResponse> {
     let csrf = cookies.get(CSRF_COOKIE).ok_or_else(|| anyhow!("missing csrf cookie"))?;
 
+    // Ensure the state we get back from the API key is the value we set before the user was redirected
     if csrf.value() != params.state {
         return Err(anyhow!("invalid csrf token").into());
     }
 
-    let client = client2::Client::new()?;
+    // Remove the CSRF cookie now that we've validated the response
+    cookies.add(unset_cookie(CSRF_COOKIE));
 
-    let token = client.request_token(params.code).await?;
+    let client = client::Client::new()?;
+
+    let token = client.get_token_from_code(params.code).await?;
     client.set_token(token.clone())?;
 
-    let user = client.me().await?;
+    let user = client.get_current_user().await?;
 
     UserRepo::new(ctx.clone()).upsert_user_token(&user.uri, &token)?;
 

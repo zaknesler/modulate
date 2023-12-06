@@ -1,9 +1,8 @@
-use crate::api::client2;
+use crate::api::{client::Client, token::Token};
 
 #[derive(Debug, Clone)]
 pub struct Session {
     pub user_id: String,
-    pub token: rspotify::Token,
-    pub client: rspotify::AuthCodeSpotify,
-    pub client2: client2::Client,
+    pub token: Token,
+    pub client: Client,
 }

@@ -1,10 +1,11 @@
 use crate::{
-    constant::{SPOTIFY_EXTERNAL_URL_KEY, SPOTIFY_LIKED_TRACKS_URL},
+    api::{
+        model::{Image, Playlist},
+        SPOTIFY_LIKED_TRACKS_URL,
+    },
     model::{playlist::PlaylistType, watcher::Watcher},
 };
 use askama::Template;
-use rspotify::model::{FullPlaylist, Image, SimplifiedPlaylist};
-use std::collections::HashMap;
 
 #[derive(Template)]
 #[template(path = "connect.html")]
@@ -69,24 +70,13 @@ impl DashboardTemplate {
     }
 }
 
-impl From<FullPlaylist> for DisplayPlaylist {
-    fn from(data: FullPlaylist) -> Self {
+impl From<Playlist> for DisplayPlaylist {
+    fn from(data: Playlist) -> Self {
         Self {
-            uri: Some(data.id.to_string()),
-            name: data.name.clone(),
+            uri: Some(data.uri),
+            name: data.name,
             image_url: get_display_image(data.images),
-            spotify_url: get_external_url(data.external_urls),
-        }
-    }
-}
-
-impl From<SimplifiedPlaylist> for DisplayPlaylist {
-    fn from(data: SimplifiedPlaylist) -> Self {
-        Self {
-            uri: Some(data.id.to_string()),
-            name: data.name.clone(),
-            image_url: get_display_image(data.images),
-            spotify_url: get_external_url(data.external_urls),
+            spotify_url: data.external_urls.spotify,
         }
     }
 }
@@ -101,11 +91,4 @@ fn get_display_image(images: Vec<Image>) -> Option<String> {
             .map(|image| image.url.clone()),
         _ => None,
     }
-}
-
-fn get_external_url(external_urls: HashMap<String, String>) -> String {
-    external_urls
-        .get(SPOTIFY_EXTERNAL_URL_KEY)
-        .expect("should include spotify url")
-        .clone()
 }

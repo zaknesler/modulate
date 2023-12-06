@@ -37,7 +37,6 @@ If you'd like to run it for yourself:
 
 A few honorable mentions:
 
-- [rspotify](https://github.com/ramsayleung/rspotify) — for interacting w/ Spotify API
 - [axum](https://github.com/tokio-rs/axum) — to provide a web interface
 - [askama](https://github.com/djc/askama) — for HTML templating so we don't waste precious bytes with pointless JS
 - [rusqlite](https://github.com/rusqlite/rusqlite) — for easily storing tokens and watchers

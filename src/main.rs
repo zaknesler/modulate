@@ -4,7 +4,6 @@ use lazy_static::lazy_static;
 
 mod api;
 mod config;
-mod constant;
 mod context;
 mod error;
 mod model;
