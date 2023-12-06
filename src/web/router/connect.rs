@@ -1,6 +1,6 @@
-use super::JWT_COOKIE;
+use super::{CSRF_COOKIE, JWT_COOKIE};
 use crate::{
-    api::client::create_oauth_client,
+    api::client2,
     context::AppContext,
     repo::user::UserRepo,
     util::jwt::{self, JWT_EXPIRATION_DAYS},
@@ -13,7 +13,6 @@ use axum::{
     routing::get,
     Router,
 };
-use rspotify::clients::{BaseClient, OAuthClient};
 use serde::Deserialize;
 use tower_cookies::{
     cookie::{
@@ -30,6 +29,7 @@ pub fn router(ctx: AppContext) -> Router {
 #[derive(Debug, Deserialize)]
 struct CallbackParams {
     code: String,
+    state: String,
 }
 
 async fn handle_callback(
@@ -37,28 +37,29 @@ async fn handle_callback(
     cookies: Cookies,
     State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
-    let client = create_oauth_client();
-    client.request_token(&params.code).await?;
+    let csrf = cookies.get(CSRF_COOKIE).ok_or_else(|| anyhow!("missing csrf cookie"))?;
 
-    let user_id = client.current_user().await?.id;
+    if csrf.value() != params.state {
+        return Err(anyhow!("invalid csrf token").into());
+    }
 
-    let token = client
-        .get_token()
-        .lock()
-        .await
-        .unwrap()
-        .as_ref()
-        .and_then(|token| serde_json::to_string(token).ok())
-        .ok_or_else(|| anyhow!("no token"))?;
+    let client = client2::Client::new()?;
 
-    UserRepo::new(ctx.clone()).upsert_user_token(&user_id.to_string(), &token)?;
+    let token = client.request_token(params.code).await?;
+    client.set_token(token.clone())?;
 
-    let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), &user_id.to_string())?;
+    let user = client.me().await?;
+
+    UserRepo::new(ctx.clone()).upsert_user_token(&user.uri, &token)?;
+
+    let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), &user.uri.to_string())?;
 
     cookies.add(
         CookieBuilder::new(JWT_COOKIE, jwt)
             .path("/")
             .expires(OffsetDateTime::now_utc().checked_add(JWT_EXPIRATION_DAYS.days()))
+            .http_only(true)
+            .same_site(tower_cookies::cookie::SameSite::Strict)
             .build(),
     );
 

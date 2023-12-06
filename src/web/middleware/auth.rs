@@ -2,7 +2,7 @@ use crate::{
     api,
     context::AppContext,
     repo::user::UserRepo,
-    util::jwt,
+    util::{cookie::unset_cookie, jwt},
     web::{router::JWT_COOKIE, session},
     CONFIG,
 };
@@ -13,13 +13,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Redirect},
 };
-use tower_cookies::{
-    cookie::{
-        time::{ext::NumericalDuration, OffsetDateTime},
-        CookieBuilder,
-    },
-    Cookies,
-};
+use tower_cookies::Cookies;
 
 pub async fn middleware(
     cookies: Cookies,
@@ -39,12 +33,7 @@ pub async fn middleware(
         Some(value) => value,
         None => {
             // Unset the JWT cookie if it isn't valid
-            cookies.add(
-                CookieBuilder::new(JWT_COOKIE, "")
-                    .path("/")
-                    .expires(OffsetDateTime::now_utc().checked_sub(1.days()))
-                    .build(),
-            );
+            cookies.add(unset_cookie(JWT_COOKIE));
 
             return Ok(Redirect::to("/").into_response());
         }
@@ -68,9 +57,12 @@ async fn try_create_auth_session(
         api::client::get_token_ensure_refreshed(user_id, &serde_json::from_str(token_str)?, ctx)
             .await?;
 
+    let client2 = api::client2::Client::new()?;
+
     Ok(session::Session {
         user_id: user_id.to_string(),
         token,
         client,
+        client2,
     })
 }

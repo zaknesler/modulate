@@ -25,6 +25,15 @@ pub enum Error {
     #[error("invalid jwt")]
     JwtInvalidError,
 
+    #[error("mutex lock error")]
+    MutexLockError,
+
+    #[error(transparent)]
+    OAuthUrlParseError(#[from] oauth2::url::ParseError),
+
+    #[error(transparent)]
+    ChronoOutOfRangeError(#[from] chrono::OutOfRangeError),
+
     #[error("invalid sync interval: {0}")]
     InvalidSyncInterval(String),
 

@@ -2,20 +2,29 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct User {
+    pub id: String,
+    pub uri: String,
+    pub display_name: String,
+    pub images: Vec<Image>,
+    pub external_urls: ExternalUrls,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Playlist {
-    id: String,
-    uri: String,
-    name: String,
-    snapshot_id: String,
-    images: Vec<Image>,
-    external_urls: ExternalUrls,
+    pub id: String,
+    pub uri: String,
+    pub name: String,
+    pub snapshot_id: String,
+    pub images: Vec<Image>,
+    pub external_urls: ExternalUrls,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Image {
-    url: String,
-    width: Option<i32>,
-    height: Option<i32>,
+    pub url: String,
+    pub width: Option<i32>,
+    pub height: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

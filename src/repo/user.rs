@@ -1,5 +1,7 @@
 use rusqlite::params;
 
+use crate::api::token::Token;
+
 pub struct UserRepo {
     ctx: crate::context::AppContext,
 }
@@ -10,14 +12,18 @@ impl UserRepo {
     }
 
     /// Create a new user record with a token or overwrite an existing user's token.
-    pub fn upsert_user_token(&self, user_id: &str, token: &str) -> crate::Result<()> {
+    pub fn upsert_user_token(&self, user_id: &str, token: &Token) -> crate::Result<()> {
         self.ctx
             .db
             .get()?
             .prepare(
                 "INSERT OR REPLACE INTO users (user_id, token, created_at) VALUES (?1, ?2, ?3)",
             )?
-            .execute(params![user_id, token, chrono::Utc::now().to_rfc3339()])?;
+            .execute(params![
+                user_id,
+                serde_json::to_string(token)?,
+                chrono::Utc::now().to_rfc3339()
+            ])?;
 
         Ok(())
     }

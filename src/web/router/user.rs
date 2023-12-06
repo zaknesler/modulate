@@ -3,6 +3,7 @@ use crate::{
     api,
     context::AppContext,
     repo::{user::UserRepo, watcher::WatcherRepo},
+    util::cookie::unset_cookie,
     web::{
         middleware::auth,
         session,
@@ -20,19 +21,13 @@ use futures::TryStreamExt;
 use rspotify::prelude::*;
 use serde_json::json;
 use std::collections::HashSet;
-use tower_cookies::{
-    cookie::{
-        time::{ext::NumericalDuration, OffsetDateTime},
-        CookieBuilder,
-    },
-    Cookies,
-};
+use tower_cookies::Cookies;
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/me", get(get_current_user_dashboard))
         .route("/me", delete(delete_current_user))
-        .route("/me/demo", get(demo))
+        // .route("/me/demo", get(demo))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -105,20 +100,13 @@ async fn delete_current_user(
     UserRepo::new(ctx).delete_user_by_id(&session.user_id)?;
 
     // Unset the JWT cookie
-    cookies.add(
-        CookieBuilder::new(JWT_COOKIE, "")
-            .path("/")
-            .expires(OffsetDateTime::now_utc().checked_sub(1.days()))
-            .build(),
-    );
+    cookies.add(unset_cookie(JWT_COOKIE));
 
     Ok(Json(json!({ "success": true })))
 }
 
-async fn demo(Extension(session): Extension<session::Session>) -> crate::Result<impl IntoResponse> {
-    let client = crate::api::client2::Client::from_token(session.token.access_token.as_ref());
+// async fn demo(Extension(session): Extension<session::Session>) -> crate::Result<impl IntoResponse> {
+//     let playlist = session.client2.get_playlist_partial("5qgLEa0o3k51FH78jSp50D").await?;
 
-    let playlist = client.get_playlist("5qgLEa0o3k51FH78jSp50D").await?;
-
-    Ok(Json(json!({ "data": playlist })))
-}
+//     Ok(Json(json!({ "data": playlist })))
+// }

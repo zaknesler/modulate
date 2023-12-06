@@ -68,7 +68,7 @@ pub async fn get_token_ensure_refreshed(
         client.write_token_cache().await?;
 
         // Update the token in the database
-        UserRepo::new(ctx.clone()).upsert_user_token(user_id, &serde_json::to_string(&token)?)?;
+        // UserRepo::new(ctx.clone()).upsert_user_token(user_id, "fake string".to_string())?;
     }
 
     // If we requested a new token, the client now has it

@@ -1,12 +1,20 @@
 use super::{middleware::guest, view::ConnectTemplate};
-use crate::{api::client::create_oauth_client, context::AppContext};
+use crate::{api::client2, context::AppContext};
 use axum::{middleware, response::IntoResponse, routing::get, Router};
+use tower_cookies::{
+    cookie::{
+        time::{Duration, OffsetDateTime},
+        CookieBuilder,
+    },
+    Cookies,
+};
 
 mod connect;
 mod user;
 mod watcher;
 
 pub const JWT_COOKIE: &str = "modulate_jwt";
+pub const CSRF_COOKIE: &str = "modulate_csrf";
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
@@ -18,9 +26,20 @@ pub fn router(ctx: AppContext) -> Router {
         .merge(user::router(ctx))
 }
 
-async fn root() -> crate::Result<impl IntoResponse> {
-    let client = create_oauth_client();
-    let url = client.get_authorize_url(true)?;
+async fn root(cookies: Cookies) -> crate::Result<impl IntoResponse> {
+    let (url, csrf) = client2::Client::new()?.new_authorize_url();
 
-    Ok(ConnectTemplate { url })
+    // Set CSRF cookie to verify once user is redirected back
+    cookies.add(
+        CookieBuilder::new(CSRF_COOKIE, csrf.secret().clone())
+            .path("/")
+            .expires(OffsetDateTime::now_utc().checked_add(Duration::hours(1)))
+            .http_only(true)
+            .same_site(tower_cookies::cookie::SameSite::Strict)
+            .build(),
+    );
+
+    Ok(ConnectTemplate {
+        url: url.to_string(),
+    })
 }
