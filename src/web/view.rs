@@ -1,6 +1,6 @@
 use crate::{
     api::{
-        model::{Image, Playlist},
+        model::{Image, PlaylistPartial},
         SPOTIFY_LIKED_TRACKS_URL,
     },
     model::{playlist::PlaylistType, watcher::Watcher},
@@ -70,8 +70,8 @@ impl DashboardTemplate {
     }
 }
 
-impl From<Playlist> for DisplayPlaylist {
-    fn from(data: Playlist) -> Self {
+impl From<PlaylistPartial> for DisplayPlaylist {
+    fn from(data: PlaylistPartial) -> Self {
         Self {
             uri: Some(data.uri),
             name: data.name,

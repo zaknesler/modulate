@@ -37,8 +37,8 @@ pub enum Error {
     #[error("invalid sync interval: {0}")]
     InvalidSyncInterval(String),
 
-    #[error("invalid playlist ID: {0}")]
-    InvalidPlaylistId(String),
+    #[error("invalid spotify ID: {0}")]
+    InvalidSpotifyId(String),
 
     #[error("could not remove tracks from playlist: {0}")]
     CouldNotRemoveTracks(String),

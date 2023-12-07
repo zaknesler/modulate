@@ -26,6 +26,8 @@ impl PlaylistTransfer {
 
         match (&watcher.playlist_from, &watcher.playlist_to) {
             (PlaylistType::Saved, PlaylistType::Uri(to_uri)) => {
+                // TODO: make to_uri an ID
+
                 // Get all saved tracks
                 let saved_track_ids = self.get_saved_track_ids().await?;
 
@@ -35,18 +37,26 @@ impl PlaylistTransfer {
                 }
 
                 // Get IDs from current playlist and remove any from the saved tracks to prevent duplicates
-                let playlist_track_ids = self.client.get_playlist_track_ids(&to_uri).await?;
+                let playlist_track_ids = self
+                    .client
+                    .playlist_track_partials(&to_uri)
+                    .await?
+                    .into_iter()
+                    .map(|track| track.id)
+                    .collect::<HashSet<_>>();
 
                 // Get only the saved tracks that are not already in the playlist
-                let mut ids_to_insert =
-                    saved_track_ids.difference(&playlist_track_ids).collect::<Vec<_>>();
+                let mut ids_to_insert = saved_track_ids
+                    .difference(&playlist_track_ids)
+                    .map(|val| val.as_ref())
+                    .collect::<Vec<_>>();
 
                 // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
                 ids_to_insert.reverse();
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_items(to_id, ids_to_insert, None).await?;
+                    self.client.playlist_add_uris(to_uri, ids_to_insert.as_slice()).await?;
                 }
 
                 // Remove all saved tracks
@@ -55,31 +65,47 @@ impl PlaylistTransfer {
                 }
             }
             (PlaylistType::Uri(from_uri), PlaylistType::Uri(to_uri)) => {
+                // TODO: make these IDs not URIs
+
                 if from_uri == to_uri {
                     return Err(crate::error::Error::InvalidTransfer(
                         "cannot transfer to the same playlist".to_owned(),
                     ));
                 }
 
-                let from_track_ids = self.client.get_playlist_track_ids(&from_uri).await?;
+                let from_track_ids = self
+                    .client
+                    .playlist_track_partials(&from_uri)
+                    .await?
+                    .into_iter()
+                    .map(|track| track.id)
+                    .collect::<HashSet<_>>();
 
                 // Don't do anything if there are no tracks in the playlist
                 if from_track_ids.is_empty() {
                     return Ok(false);
                 }
 
-                let to_track_ids = self.client.get_playlist_track_ids(&to_uri).await?;
+                let to_track_ids = self
+                    .client
+                    .playlist_track_partials(&to_uri)
+                    .await?
+                    .into_iter()
+                    .map(|track| track.id)
+                    .collect::<HashSet<_>>();
 
                 // Get only the saved tracks that are not already in the playlist
-                let mut ids_to_insert =
-                    from_track_ids.difference(&to_track_ids).collect::<Vec<_>>();
+                let mut ids_to_insert = from_track_ids
+                    .difference(&to_track_ids)
+                    .map(|val| val.as_ref())
+                    .collect::<Vec<_>>();
 
                 // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
                 ids_to_insert.reverse();
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_items(to_uri, ids_to_insert, None).await?;
+                    self.client.playlist_add_uris(to_uri, ids_to_insert.as_slice()).await?;
                 }
 
                 // Remove all tracks from original playlist
@@ -113,11 +139,10 @@ impl PlaylistTransfer {
     async fn get_saved_track_ids(&self) -> crate::Result<HashSet<String>> {
         Ok(self
             .client
-            .get_current_user_saved_tracks()
-            .try_collect::<Vec<_>>()
+            .current_user_saved_track_partials()
             .await?
             .into_iter()
-            .filter_map(|track| track.track.id)
+            .map(|track| track.id)
             .collect::<HashSet<_>>())
     }
 }

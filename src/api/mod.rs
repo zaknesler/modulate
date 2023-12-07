@@ -1,4 +1,5 @@
 pub mod client;
+pub mod id;
 pub mod model;
 pub mod pagination;
 pub mod token;

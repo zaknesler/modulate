@@ -10,8 +10,23 @@ pub struct User {
     pub external_urls: ExternalUrls,
 }
 
+#[derive(Deserialize)]
+pub struct TrackPartial {
+    pub id: String,
+    pub uri: String,
+    #[serde(rename = "type")]
+    pub kind: TrackType,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TrackType {
+    Episode,
+    Track,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Playlist {
+pub struct PlaylistPartial {
     pub id: String,
     pub uri: String,
     pub name: String,

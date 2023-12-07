@@ -7,6 +7,6 @@ pub struct PaginatedResponse<T> {
     pub total: u32,
     pub items: Vec<T>,
     pub href: String,
-    pub previous: String,
-    pub next: String,
+    pub previous: Option<String>,
+    pub next: Option<String>,
 }

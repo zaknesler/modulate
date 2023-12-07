@@ -37,7 +37,7 @@ async fn get_current_user_dashboard(
     Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
-    let user = session.client.get_current_user().await?;
+    let user = session.client.current_user().await?;
 
     let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id)?;
 
@@ -45,7 +45,6 @@ async fn get_current_user_dashboard(
     let user_playlists = session
         .client
         .current_user_playlists()
-        .try_collect::<Vec<_>>()
         .await?
         .into_iter()
         .map(|item| item.into())

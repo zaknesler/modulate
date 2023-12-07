@@ -3,7 +3,12 @@ use super::{
     pagination::PaginatedResponse,
     token::Token,
 };
-use crate::{context::AppContext, repo::user::UserRepo, CONFIG};
+use crate::{
+    api::model::{TrackPartial, TrackType},
+    context::AppContext,
+    repo::user::UserRepo,
+    CONFIG,
+};
 use anyhow::anyhow;
 use oauth2::{
     basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
@@ -11,10 +16,8 @@ use oauth2::{
 };
 use reqwest::{header, Url};
 use serde::Deserialize;
-use std::{
-    collections::HashSet,
-    sync::{Arc, Mutex},
-};
+use serde_json::json;
+use std::sync::{Arc, Mutex};
 
 const SPOTIFY_OAUTH2_AUTH_URL: &str = "https://accounts.spotify.com/authorize";
 const SPOTIFY_OAUTH2_TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
@@ -135,7 +138,7 @@ impl Client {
             .map_err(|err| err.into())
     }
 
-    pub async fn get_current_user(&self) -> crate::Result<model::User> {
+    pub async fn current_user(&self) -> crate::Result<model::User> {
         self.create_request()?
             .get(format!("{}/me", SPOTIFY_API_BASE_URL))
             .send()
@@ -145,19 +148,27 @@ impl Client {
             .map_err(|err| err.into())
     }
 
-    pub async fn get_current_user_playlists(&self) -> crate::Result<Vec<model::Playlist>> {
-        // TODO: paginate
-        Ok(self
-            .create_request()?
-            .get(format!("{}/me/playlists", SPOTIFY_API_BASE_URL))
-            .send()
-            .await?
-            .json::<PaginatedResponse<model::Playlist>>()
-            .await?
-            .items)
+    pub async fn current_user_playlists(&self) -> crate::Result<Vec<model::PlaylistPartial>> {
+        self.collect_paginated(
+            format!("{}/me/playlists", SPOTIFY_API_BASE_URL).as_ref(),
+            None,
+        )
+        .await
+        .map_err(|err| err.into())
     }
 
-    pub async fn get_playlist(&self, id: &str) -> crate::Result<model::Playlist> {
+    pub async fn current_user_saved_track_partials(
+        &self,
+    ) -> crate::Result<Vec<model::PlaylistPartial>> {
+        self.collect_paginated(
+            format!("{}/me/playlists", SPOTIFY_API_BASE_URL).as_ref(),
+            None,
+        )
+        .await
+        .map_err(|err| err.into())
+    }
+
+    pub async fn playlist(&self, id: &str) -> crate::Result<model::PlaylistPartial> {
         self.create_request()?
             .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
             .query(&[(
@@ -166,39 +177,76 @@ impl Client {
             )])
             .send()
             .await?
-            .json::<model::Playlist>()
+            .json::<model::PlaylistPartial>()
             .await
             .map_err(|err| err.into())
     }
 
     /// Get a list of all track IDs in a playlist
-    pub async fn get_playlist_track_ids(&self, id: &str) -> crate::Result<HashSet<String>> {
+    pub async fn playlist_track_partials(&self, id: &str) -> crate::Result<Vec<TrackPartial>> {
         #[derive(Deserialize)]
         struct TrackPartialWrapper {
             is_local: bool,
             track: TrackPartial,
         }
 
-        #[derive(Deserialize)]
-        struct TrackPartial {
-            id: String,
-            #[serde(rename = "type")]
-            kind: String,
-        }
-
-        // TODO: paginate
-
         Ok(self
-            .create_request()?
-            .get(format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id))
-            .query(&[("fields", "items(is_local,track(id,type))")])
+            .collect_paginated::<TrackPartialWrapper>(
+                format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id).as_ref(),
+                Some("items(is_local,track(id,uri,type))"),
+            )
+            .await?
+            .into_iter()
+            .filter_map(|item| {
+                (!item.is_local && matches!(item.track.kind, TrackType::Track)).then(|| item.track)
+            })
+            .collect::<Vec<_>>())
+    }
+
+    pub async fn playlist_add_uris(
+        &self,
+        id: &str,
+        uris: &[&str],
+    ) -> crate::Result<model::PlaylistPartial> {
+        self.create_request()?
+            .post(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
+            .json(&json!({"uris": &uris.join(",")}))
             .send()
             .await?
-            .json::<PaginatedResponse<TrackPartialWrapper>>()
-            .await?
-            .items
-            .into_iter()
-            .filter_map(|item| (item.is_local && item.track.kind == "track").then(|| item.track.id))
-            .collect::<HashSet<_>>())
+            .json::<model::PlaylistPartial>()
+            .await
+            .map_err(|err| err.into())
+    }
+
+    /// Make the GET requests needed to paginate through all records given a URL
+    async fn collect_paginated<T>(&self, url: &str, fields: Option<&str>) -> crate::Result<Vec<T>>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        let mut items = vec![];
+        let mut next = Some(url.to_string());
+
+        let mut query = vec![("limit", "50".to_string())];
+
+        if let Some(fields) = fields {
+            query.push(("fields", ["next,limit,offset,total", fields].join(",")));
+        }
+
+        // TODO: make requests concurrent
+        while let Some(url) = next {
+            let mut res = self
+                .create_request()?
+                .get(url)
+                .query(&query)
+                .send()
+                .await?
+                .json::<PaginatedResponse<T>>()
+                .await?;
+
+            next = res.next;
+            items.append(&mut res.items);
+        }
+
+        Ok(items)
     }
 }

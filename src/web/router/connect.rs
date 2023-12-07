@@ -55,7 +55,7 @@ async fn handle_callback(
     let token = client.get_token_from_code(params.code).await?;
     client.set_token(token.clone())?;
 
-    let user = client.get_current_user().await?;
+    let user = client.current_user().await?;
 
     UserRepo::new(ctx.clone()).upsert_user_token(&user.uri, &token)?;
 

@@ -43,7 +43,7 @@ fn try_extract_playlist_uri(value: &str) -> crate::Result<String> {
     Regex::new(r"(?:https?://open\.spotify\.com/playlist/|spotify:playlist:)([a-zA-Z0-9]+)")?
         .captures(value)
         .and_then(|captures| Some(format!("spotify:playlist:{}", captures.get(1)?.as_str())))
-        .ok_or_else(|| crate::error::Error::InvalidPlaylistId(value.to_owned()))
+        .ok_or_else(|| crate::error::Error::InvalidSpotifyId(value.to_owned()))
 }
 
 #[cfg(test)]
