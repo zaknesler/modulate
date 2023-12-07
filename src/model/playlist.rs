@@ -23,10 +23,10 @@ impl Display for PlaylistType {
 impl PlaylistType {
     /// Convert to value string for storage.
     /// Use `.to_string()` for displaying.
-    pub fn to_value(&self) -> &str {
+    pub fn to_value(&self) -> String {
         match self {
-            PlaylistType::Saved => LIKED_PLAYLIST_VALUE,
-            PlaylistType::Id(PlaylistId(id)) => id,
+            PlaylistType::Saved => LIKED_PLAYLIST_VALUE.to_string(),
+            PlaylistType::Id(id) => id.uri(),
         }
     }
 

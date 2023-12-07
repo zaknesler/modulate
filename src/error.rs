@@ -40,6 +40,9 @@ pub enum Error {
     #[error("invalid spotify ID: {0}")]
     InvalidSpotifyId(String),
 
+    #[error("spotify {status} error: {message}")]
+    SpotifyApiError { status: u16, message: String },
+
     #[error("could not remove tracks from playlist: {0}")]
     CouldNotRemoveTracks(String),
 
@@ -109,6 +112,11 @@ impl IntoResponse for Error {
                 json!({ "fields": err.field_errors() }),
             ),
             Self::ValidationError(err) => (StatusCode::UNPROCESSABLE_ENTITY, json!(err)),
+            Self::SpotifyApiError { status, message } => (
+                axum::http::StatusCode::from_u16(status)
+                    .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+                Value::String(message),
+            ),
             _ => {
                 tracing::error!("{:?}", self);
                 (

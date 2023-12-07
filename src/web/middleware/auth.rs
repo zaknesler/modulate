@@ -21,14 +21,14 @@ pub async fn middleware(
     mut req: Request<Body>,
     next: Next,
 ) -> crate::Result<impl IntoResponse> {
-    let (user_id, token) = match cookies
+    let (user_uri, token) = match cookies
         .get(JWT_COOKIE)
         .and_then(|cookie| jwt::verify_jwt(CONFIG.web.jwt_secret.as_ref(), cookie.value()).ok())
-        .and_then(|user_id| {
+        .and_then(|user_uri| {
             UserRepo::new(ctx.clone())
-                .get_token_by_user_id(&user_id)
+                .get_token_by_user_uri(&user_uri)
                 .ok()
-                .map(|token| (user_id, token))
+                .map(|token| (user_uri, token))
         }) {
         Some(value) => value,
         None => {
@@ -39,7 +39,7 @@ pub async fn middleware(
         }
     };
 
-    let session = try_create_auth_session(&user_id, token, ctx)
+    let session = try_create_auth_session(&user_uri, token, ctx)
         .await
         .map_err(|_| crate::error::Error::UnauthorizedError)?;
 
@@ -49,17 +49,17 @@ pub async fn middleware(
 }
 
 async fn try_create_auth_session(
-    user_id: &str,
+    user_uri: &str,
     token: Token,
     ctx: AppContext,
 ) -> crate::Result<session::Session> {
     let client = api::client::Client::new_with_token(token.clone())?;
 
     // Ensure access token is refreshed
-    client.ensure_token_refreshed(ctx, user_id).await?;
+    client.ensure_token_refreshed(ctx, user_uri).await?;
 
     Ok(session::Session {
-        user_id: user_id.to_string(),
+        user_uri: user_uri.to_string(),
         token,
         client,
     })

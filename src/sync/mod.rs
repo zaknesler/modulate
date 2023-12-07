@@ -63,7 +63,7 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
     let now = Utc::now().with_second(0).unwrap().with_nanosecond(0).unwrap();
 
     for watcher in to_sync {
-        let user_token = user_repo.get_token_by_user_id(&watcher.user_id)?;
+        let user_token = user_repo.get_token_by_user_uri(&watcher.user_uri)?;
         let client = client::Client::new_with_token(user_token)?;
 
         transfer::PlaylistTransfer::new(ctx.clone(), client)

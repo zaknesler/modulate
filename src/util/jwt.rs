@@ -11,12 +11,12 @@ const JWT_CLAIM_ISSUED_AT: &str = "iat";
 const JWT_CLAIM_EXPIRES_AT: &str = "exp";
 
 /// Create a JWT for the given user ID
-pub fn sign_jwt(secret: &str, user_id: &str) -> crate::Result<String> {
+pub fn sign_jwt(secret: &str, user_uri: &str) -> crate::Result<String> {
     let key: Hmac<Sha256> = Hmac::new_from_slice(secret.as_bytes())?;
     let now: DateTime<Utc> = Utc::now();
 
     BTreeMap::from([
-        (JWT_CLAIM_USER, user_id),
+        (JWT_CLAIM_USER, user_uri),
         (JWT_CLAIM_ISSUED_AT, &now.to_rfc3339()),
         (
             JWT_CLAIM_EXPIRES_AT,

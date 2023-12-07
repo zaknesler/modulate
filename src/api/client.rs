@@ -3,6 +3,7 @@ use super::{
     model::{self, User},
     pagination::PaginatedResponse,
     token::Token,
+    SpotifyResponse,
 };
 use crate::{
     api::model::{TrackPartial, TrackType},
@@ -86,7 +87,7 @@ impl Client {
     pub async fn ensure_token_refreshed(
         &self,
         ctx: AppContext,
-        user_id: &str,
+        user_uri: &str,
     ) -> crate::Result<&Self> {
         let token = self
             .token
@@ -101,18 +102,25 @@ impl Client {
             return Ok(self);
         }
 
-        let token: Token = self
+        if token.refresh_token.is_none() {
+            return Err(anyhow!("missing refresh token").into());
+        }
+
+        let mut new_token: Token = self
             .oauth
-            .exchange_refresh_token(&RefreshToken::new(token.refresh_token))
+            .exchange_refresh_token(&RefreshToken::new(token.refresh_token.clone().unwrap()))
             .request_async(async_http_client)
             .await
             .map_err(|err| anyhow!(err))?
             .try_into()?;
 
-        self.set_token(token.clone())?;
+        // Since the auth flow does not return a refresh token, we must use the old one
+        new_token.refresh_token = Some(token.refresh_token.unwrap());
+
+        self.set_token(new_token.clone())?;
 
         // Update user
-        UserRepo::new(ctx).upsert_user_token(user_id, &token)?;
+        UserRepo::new(ctx).upsert_user_token(user_uri, &new_token)?;
 
         Ok(self)
     }
@@ -188,7 +196,8 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
     ) -> crate::Result<model::PlaylistPartial> {
-        self.create_request()?
+        let res = self
+            .create_request()?
             .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
             .query(&[(
                 "fields",
@@ -196,9 +205,13 @@ impl Client {
             )])
             .send()
             .await?
-            .json::<model::PlaylistPartial>()
-            .await
-            .map_err(|err| err.into())
+            .json::<SpotifyResponse<model::PlaylistPartial>>()
+            .await?;
+
+        Ok(match res {
+            SpotifyResponse::Ok(res) => res,
+            SpotifyResponse::Err(err) => return Err(err.into()),
+        })
     }
 
     /// Get a list of all track IDs in a playlist
@@ -274,7 +287,10 @@ impl Client {
         let mut query = vec![("limit", "50".to_string())];
 
         if let Some(fields) = fields {
-            query.push(("fields", ["next,limit,offset,total", fields].join(",")));
+            query.push((
+                "fields",
+                ["next,previous,limit,offset,total", fields].join(","),
+            ));
         }
 
         // TODO: make requests concurrent

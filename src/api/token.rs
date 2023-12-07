@@ -13,7 +13,7 @@ pub struct Token {
     #[serde_as(as = "serde_with::DurationSeconds<i64>")]
     pub expires_in: chrono::Duration,
     pub expires_at: chrono::DateTime<chrono::Utc>,
-    pub refresh_token: String,
+    pub refresh_token: Option<String>,
     pub scopes: HashSet<String>,
 }
 
@@ -42,7 +42,7 @@ impl TryFrom<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>> for T
             access_token: res.access_token().secret().to_string(),
             expires_in,
             expires_at,
-            refresh_token: res.refresh_token().expect("spotify returns this").secret().to_string(),
+            refresh_token: res.refresh_token().map(|token| token.secret().clone()),
             scopes: HashSet::from_iter(scopes.iter().map(|scope| scope.to_string())),
         })
     }

@@ -21,7 +21,6 @@ pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/me", get(get_current_user_dashboard))
         .route("/me", delete(delete_current_user))
-        // .route("/me/demo", get(demo))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,
@@ -35,7 +34,7 @@ async fn get_current_user_dashboard(
 ) -> crate::Result<impl IntoResponse> {
     let user = session.client.current_user().await?;
 
-    let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id)?;
+    let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.uri)?;
 
     // Get all playlists that belong to the user
     let user_playlists = session.client.current_user_playlists().await?;
@@ -82,17 +81,11 @@ async fn delete_current_user(
     State(ctx): State<AppContext>,
 ) -> crate::Result<impl IntoResponse> {
     // Delete all user's watchers and then the user
-    WatcherRepo::new(ctx.clone()).delete_all_watchers_by_user(&session.user_id)?;
-    UserRepo::new(ctx).delete_user_by_id(&session.user_id)?;
+    WatcherRepo::new(ctx.clone()).delete_all_watchers_by_user(&session.user_uri)?;
+    UserRepo::new(ctx).delete_user_by_id(&session.user_uri)?;
 
     // Unset the JWT cookie
     cookies.add(unset_cookie(JWT_COOKIE));
 
     Ok(Json(json!({ "success": true })))
 }
-
-// async fn demo(Extension(session): Extension<session::Session>) -> crate::Result<impl IntoResponse> {
-//     let playlist = session.client2.get_playlist_partial("5qgLEa0o3k51FH78jSp50D").await?;
-
-//     Ok(Json(json!({ "data": playlist })))
-// }
