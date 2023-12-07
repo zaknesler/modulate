@@ -54,7 +54,7 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_uris(playlist_to, ids_to_insert.as_slice()).await?;
+                    self.client.playlist_add_ids(playlist_to, ids_to_insert.as_slice()).await?;
                 }
 
                 // Remove all saved tracks
@@ -109,13 +109,13 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_uris(playlist_to, ids_to_insert.as_slice()).await?;
+                    self.client.playlist_add_ids(playlist_to, ids_to_insert.as_slice()).await?;
                 }
 
                 // Remove all tracks from original playlist
                 if watcher.should_remove {
                     self.client
-                        .playlist_remove_uris(
+                        .playlist_remove_ids(
                             playlist_from,
                             from_track_ids
                                 .iter()

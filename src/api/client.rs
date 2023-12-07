@@ -6,7 +6,10 @@ use super::{
     SpotifyResponse,
 };
 use crate::{
-    api::model::{TrackPartial, TrackType},
+    api::{
+        model::{TrackPartial, TrackType},
+        SnapshotResponse,
+    },
     context::AppContext,
     repo::user::UserRepo,
     CONFIG,
@@ -249,26 +252,31 @@ impl Client {
             .collect::<Vec<_>>())
     }
 
-    pub async fn playlist_add_uris(
+    pub async fn playlist_add_ids(
         &self,
         PlaylistId(id): &PlaylistId,
-        uris: &[&str],
+        ids: &[&str],
     ) -> crate::Result<Vec<String>> {
         let mut snapshot_ids = vec![];
+
+        // Map IDs to URIs
+        let uris = ids.iter().map(|id| format!("spotify:track:{}", id)).collect::<Vec<_>>();
 
         // Endpoint can only be sent a maximum of 100 objects
         for uris in uris.chunks(100) {
             let res = self
                 .create_request()?
-                .post(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
-                .json(&json!({"uris": &uris.join(",")}))
+                .post(format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id))
+                .json(&json!({"uris": &uris}))
                 .send()
                 .await?
-                .json::<SpotifyResponse<String>>()
+                .json::<SpotifyResponse<SnapshotResponse>>()
                 .await?;
 
             match res {
-                SpotifyResponse::Success(snapshot_id) => snapshot_ids.push(snapshot_id),
+                SpotifyResponse::Success(SnapshotResponse { snapshot_id }) => {
+                    snapshot_ids.push(snapshot_id)
+                }
                 SpotifyResponse::Error(err) => return Err(err.into()),
             }
         }
@@ -276,26 +284,31 @@ impl Client {
         Ok(snapshot_ids)
     }
 
-    pub async fn playlist_remove_uris(
+    pub async fn playlist_remove_ids(
         &self,
         PlaylistId(id): &PlaylistId,
-        uris: &[&str],
+        ids: &[&str],
     ) -> crate::Result<Vec<String>> {
         let mut snapshot_ids = vec![];
+
+        // Map IDs to URIs
+        let uris = ids.iter().map(|id| format!("spotify:track:{}", id)).collect::<Vec<_>>();
 
         // Endpoint can only be sent a maximum of 100 objects
         for uris in uris.chunks(100) {
             let res = self
                 .create_request()?
-                .delete(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
+                .delete(format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id))
                 .json(&json!({"uris": &uris.join(",")}))
                 .send()
                 .await?
-                .json::<SpotifyResponse<String>>()
+                .json::<SpotifyResponse<SnapshotResponse>>()
                 .await?;
 
             match res {
-                SpotifyResponse::Success(snapshot_id) => snapshot_ids.push(snapshot_id),
+                SpotifyResponse::Success(SnapshotResponse { snapshot_id }) => {
+                    snapshot_ids.push(snapshot_id)
+                }
                 SpotifyResponse::Error(err) => return Err(err.into()),
             }
         }

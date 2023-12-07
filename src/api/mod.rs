@@ -11,6 +11,11 @@ pub mod util;
 pub const SPOTIFY_LIKED_TRACKS_URL: &str = "https://open.spotify.com/collection/tracks";
 
 #[derive(Debug, Deserialize)]
+pub struct SnapshotResponse {
+    snapshot_id: String,
+}
+
+#[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum SpotifyResponse<T> {
     Success(T),
