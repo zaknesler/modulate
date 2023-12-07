@@ -25,9 +25,7 @@ impl PlaylistTransfer {
         }
 
         match (&watcher.playlist_from, &watcher.playlist_to) {
-            (PlaylistType::Saved, PlaylistType::Uri(to_uri)) => {
-                // TODO: make to_uri an ID
-
+            (PlaylistType::Saved, PlaylistType::Id(playlist_to)) => {
                 // Get all saved tracks
                 let saved_track_ids = self.get_saved_track_ids().await?;
 
@@ -39,7 +37,7 @@ impl PlaylistTransfer {
                 // Get IDs from current playlist and remove any from the saved tracks to prevent duplicates
                 let playlist_track_ids = self
                     .client
-                    .playlist_track_partials(&to_uri)
+                    .playlist_track_partials(playlist_to)
                     .await?
                     .into_iter()
                     .map(|track| track.id)
@@ -56,7 +54,7 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_uris(to_uri, ids_to_insert.as_slice()).await?;
+                    self.client.playlist_add_uris(playlist_to, ids_to_insert.as_slice()).await?;
                 }
 
                 // Remove all saved tracks
@@ -64,10 +62,10 @@ impl PlaylistTransfer {
                     self.client.current_user_saved_tracks_delete(saved_track_ids).await?;
                 }
             }
-            (PlaylistType::Uri(from_uri), PlaylistType::Uri(to_uri)) => {
+            (PlaylistType::Id(playlist_from), PlaylistType::Id(playlist_to)) => {
                 // TODO: make these IDs not URIs
 
-                if from_uri == to_uri {
+                if playlist_from == playlist_to {
                     return Err(crate::error::Error::InvalidTransfer(
                         "cannot transfer to the same playlist".to_owned(),
                     ));
@@ -75,7 +73,7 @@ impl PlaylistTransfer {
 
                 let from_track_ids = self
                     .client
-                    .playlist_track_partials(&from_uri)
+                    .playlist_track_partials(&playlist_from)
                     .await?
                     .into_iter()
                     .map(|track| track.id)
@@ -88,7 +86,7 @@ impl PlaylistTransfer {
 
                 let to_track_ids = self
                     .client
-                    .playlist_track_partials(&to_uri)
+                    .playlist_track_partials(&playlist_to)
                     .await?
                     .into_iter()
                     .map(|track| track.id)
@@ -105,14 +103,14 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_uris(to_uri, ids_to_insert.as_slice()).await?;
+                    self.client.playlist_add_uris(playlist_to, ids_to_insert.as_slice()).await?;
                 }
 
                 // Remove all tracks from original playlist
                 if watcher.should_remove {
                     self.client
                         .playlist_remove_all_occurrences_of_items(
-                            from_uri.clone(),
+                            playlist_from.clone(),
                             from_track_ids,
                             None,
                         )

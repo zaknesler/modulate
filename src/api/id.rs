@@ -1,8 +1,9 @@
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq, Eq)]
-pub struct PlaylistId(String);
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct PlaylistId(pub String);
 
 impl FromStr for PlaylistId {
     type Err = crate::error::Error;
@@ -16,7 +17,45 @@ impl FromStr for PlaylistId {
 }
 
 impl PlaylistId {
+    pub fn id(&self) -> String {
+        self.0
+    }
+
     pub fn uri(&self) -> String {
         format!("spotify:playlist:{}", self.0)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn it_fails_for_bad_ids() {
+        assert!(matches!(PlaylistId::from_str("some bad id"), Err(_)));
+    }
+
+    #[test]
+    fn it_parses_uris_and_urls() {
+        let expected = PlaylistId("spotify:playlist:EX3J5Phq9j7KcpkZJskhRP".to_string());
+
+        assert_eq!(
+            PlaylistId::from_str("spotify:playlist:EX3J5Phq9j7KcpkZJskhRP").unwrap(),
+            expected
+        );
+
+        assert_eq!(
+            PlaylistId::from_str("https://open.spotify.com/playlist/EX3J5Phq9j7KcpkZJskhRP")
+                .unwrap(),
+            expected
+        );
+
+        assert_eq!(
+            PlaylistId::from_str(
+                "https://open.spotify.com/playlist/EX3J5Phq9j7KcpkZJskhRP?some=other&query=params"
+            )
+            .unwrap(),
+            expected
+        );
     }
 }

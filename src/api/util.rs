@@ -1,11 +1,11 @@
-use super::{client::Client, model};
+use super::{client::Client, id::PlaylistId, model};
 
 pub async fn get_playlists_by_ids<'a, I>(
     client: Client,
     ids: I,
 ) -> crate::Result<Vec<model::PlaylistPartial>>
 where
-    I: IntoIterator<Item = &'a String>,
+    I: IntoIterator<Item = &'a PlaylistId>,
 {
     let mut playlists = vec![];
 

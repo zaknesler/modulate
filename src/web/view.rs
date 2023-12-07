@@ -1,5 +1,6 @@
 use crate::{
     api::{
+        id::PlaylistId,
         model::{Image, PlaylistPartial},
         SPOTIFY_LIKED_TRACKS_URL,
     },
@@ -24,7 +25,7 @@ pub struct DashboardTemplate {
 
 #[derive(Debug, Clone)]
 pub struct DisplayPlaylist {
-    pub uri: Option<String>,
+    pub id: Option<PlaylistId>,
     pub name: String,
     pub image_url: Option<String>,
     pub spotify_url: String,
@@ -52,16 +53,16 @@ impl DashboardTemplate {
             PlaylistType::Saved => Some(PlaylistItem {
                 kind: playlist.clone(),
                 display: DisplayPlaylist {
-                    uri: None,
+                    id: None,
                     name: playlist.to_string(),
                     image_url: None,
                     spotify_url: SPOTIFY_LIKED_TRACKS_URL.into(),
                 },
             }),
-            PlaylistType::Uri(id) => self
+            PlaylistType::Id(id) => self
                 .all_playlists
                 .iter()
-                .find(|data| data.uri.as_ref().is_some_and(|uri| *uri == *id))
+                .find(|data| data.id.is_some_and(|uri| uri == *id))
                 .map(|display| PlaylistItem {
                     kind: playlist.clone(),
                     display: display.clone(),
@@ -73,7 +74,7 @@ impl DashboardTemplate {
 impl From<PlaylistPartial> for DisplayPlaylist {
     fn from(data: PlaylistPartial) -> Self {
         Self {
-            uri: Some(data.uri),
+            id: data.id.parse().ok(),
             name: data.name,
             image_url: get_display_image(data.images),
             spotify_url: data.external_urls.spotify,

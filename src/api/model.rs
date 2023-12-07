@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: String,
     pub uri: String,
@@ -10,7 +10,7 @@ pub struct User {
     pub external_urls: ExternalUrls,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrackPartial {
     pub id: String,
     pub uri: String,
@@ -18,14 +18,14 @@ pub struct TrackPartial {
     pub kind: TrackType,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TrackType {
     Episode,
     Track,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlaylistPartial {
     pub id: String,
     pub uri: String,
@@ -35,14 +35,14 @@ pub struct PlaylistPartial {
     pub external_urls: ExternalUrls,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Image {
     pub url: String,
     pub width: Option<i32>,
     pub height: Option<i32>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExternalUrls {
     pub spotify: String,
     #[serde(flatten)]

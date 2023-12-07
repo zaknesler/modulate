@@ -36,9 +36,9 @@
           </option>
 
           {% for playlist in user_playlists %}
-            {% match playlist.uri %}
-              {% when Some with (uri) %}
-              <option value="{{ uri }}">{{ playlist.name }}</option>
+            {% match playlist.id %}
+              {% when Some with (id) %}
+              <option value="{{ id.uri() }}">{{ playlist.name }}</option>
               {% else %}
             {% endmatch %}
           {% endfor %}
@@ -51,9 +51,9 @@
           <option value="" disabled selected hidden>Select a playlist...</option>
 
           {% for playlist in user_playlists %}
-            {% match playlist.uri %}
-              {% when Some with (uri) %}
-              <option value="{{ uri }}">{{ playlist.name }}</option>
+            {% match playlist.id %}
+              {% when Some with (id) %}
+              <option value="{{ id.uri() }}">{{ playlist.name }}</option>
               {% else %}
             {% endmatch %}
           {% endfor %}

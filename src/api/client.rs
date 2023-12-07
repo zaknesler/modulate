@@ -1,4 +1,5 @@
 use super::{
+    id::PlaylistId,
     model::{self, User},
     pagination::PaginatedResponse,
     token::Token,
@@ -168,7 +169,10 @@ impl Client {
         .map_err(|err| err.into())
     }
 
-    pub async fn playlist(&self, id: &str) -> crate::Result<model::PlaylistPartial> {
+    pub async fn playlist(
+        &self,
+        PlaylistId(id): &PlaylistId,
+    ) -> crate::Result<model::PlaylistPartial> {
         self.create_request()?
             .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
             .query(&[(
@@ -183,7 +187,10 @@ impl Client {
     }
 
     /// Get a list of all track IDs in a playlist
-    pub async fn playlist_track_partials(&self, id: &str) -> crate::Result<Vec<TrackPartial>> {
+    pub async fn playlist_track_partials(
+        &self,
+        PlaylistId(id): &PlaylistId,
+    ) -> crate::Result<Vec<TrackPartial>> {
         #[derive(Deserialize)]
         struct TrackPartialWrapper {
             is_local: bool,
@@ -205,7 +212,7 @@ impl Client {
 
     pub async fn playlist_add_uris(
         &self,
-        id: &str,
+        PlaylistId(id): &PlaylistId,
         uris: &[&str],
     ) -> crate::Result<model::PlaylistPartial> {
         self.create_request()?
