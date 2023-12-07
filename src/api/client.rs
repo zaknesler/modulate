@@ -169,6 +169,21 @@ impl Client {
         .map_err(|err| err.into())
     }
 
+    pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[&str]) -> crate::Result<()> {
+        // Endpoint can only be sent a maximum of 50 IDs
+        for ids in ids.chunks(50) {
+            self.create_request()?
+                .delete(format!("{}/me/tracks", SPOTIFY_API_BASE_URL))
+                .json(&json!({"ids": &ids.join(",")}))
+                .send()
+                .await?
+                .json::<String>()
+                .await?;
+        }
+
+        Ok(())
+    }
+
     pub async fn playlist(
         &self,
         PlaylistId(id): &PlaylistId,
@@ -223,6 +238,29 @@ impl Client {
             .json::<model::PlaylistPartial>()
             .await
             .map_err(|err| err.into())
+    }
+
+    pub async fn playlist_remove_uris(
+        &self,
+        PlaylistId(id): &PlaylistId,
+        uris: &[&str],
+    ) -> crate::Result<Vec<String>> {
+        let mut snapshot_ids = vec![];
+
+        // Endpoint can only be sent a maximum of 100 objects
+        for uris in uris.chunks(100) {
+            snapshot_ids.push(
+                self.create_request()?
+                    .delete(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
+                    .json(&json!({"uris": &uris.join(",")}))
+                    .send()
+                    .await?
+                    .json::<String>()
+                    .await?,
+            );
+        }
+
+        Ok(snapshot_ids)
     }
 
     /// Make the GET requests needed to paginate through all records given a URL

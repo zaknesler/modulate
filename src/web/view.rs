@@ -62,7 +62,7 @@ impl DashboardTemplate {
             PlaylistType::Id(id) => self
                 .all_playlists
                 .iter()
-                .find(|data| data.id.is_some_and(|uri| uri == *id))
+                .find(|data| data.id.as_ref().is_some_and(|uri| *uri == *id))
                 .map(|display| PlaylistItem {
                     kind: playlist.clone(),
                     display: display.clone(),

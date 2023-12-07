@@ -59,12 +59,18 @@ impl PlaylistTransfer {
 
                 // Remove all saved tracks
                 if watcher.should_remove {
-                    self.client.current_user_saved_tracks_delete(saved_track_ids).await?;
+                    self.client
+                        .current_user_saved_tracks_remove_ids(
+                            saved_track_ids
+                                .iter()
+                                .map(|id| id.as_ref())
+                                .collect::<Vec<_>>()
+                                .as_slice(),
+                        )
+                        .await?;
                 }
             }
             (PlaylistType::Id(playlist_from), PlaylistType::Id(playlist_to)) => {
-                // TODO: make these IDs not URIs
-
                 if playlist_from == playlist_to {
                     return Err(crate::error::Error::InvalidTransfer(
                         "cannot transfer to the same playlist".to_owned(),
@@ -109,23 +115,15 @@ impl PlaylistTransfer {
                 // Remove all tracks from original playlist
                 if watcher.should_remove {
                     self.client
-                        .playlist_remove_all_occurrences_of_items(
-                            playlist_from.clone(),
-                            from_track_ids,
-                            None,
+                        .playlist_remove_uris(
+                            playlist_from,
+                            from_track_ids
+                                .iter()
+                                .map(|id| id.as_ref())
+                                .collect::<Vec<_>>()
+                                .as_slice(),
                         )
-                        .await
-                        .map_err(|err| match &err {
-                            // rspotify::ClientError::Http(inner_err) => match inner_err.as_ref() {
-                            //     rspotify::http::HttpError::StatusCode(res)
-                            //         if res.status().as_u16() == 403 =>
-                            //     {
-                            //         crate::error::Error::CouldNotRemoveTracks(from_id.to_string())
-                            //     }
-                            //     _ => err.into(),
-                            // },
-                            _ => err.into(),
-                        })?;
+                        .await?;
                 }
             }
             _ => return Err(anyhow!("unsupported transfer type").into()),

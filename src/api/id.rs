@@ -17,10 +17,6 @@ impl FromStr for PlaylistId {
 }
 
 impl PlaylistId {
-    pub fn id(&self) -> String {
-        self.0
-    }
-
     pub fn uri(&self) -> String {
         format!("spotify:playlist:{}", self.0)
     }
