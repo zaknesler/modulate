@@ -148,13 +148,18 @@ impl Client {
     }
 
     pub async fn current_user(&self) -> crate::Result<model::User> {
-        self.create_request()?
+        let res = self
+            .create_request()?
             .get(format!("{}/me", SPOTIFY_API_BASE_URL))
             .send()
             .await?
-            .json::<User>()
-            .await
-            .map_err(|err| err.into())
+            .json::<SpotifyResponse<User>>()
+            .await?;
+
+        Ok(match res {
+            SpotifyResponse::Success(res) => res,
+            SpotifyResponse::Error(err) => return Err(err.into()),
+        })
     }
 
     pub async fn current_user_playlists(&self) -> crate::Result<Vec<model::PlaylistPartial>> {
@@ -180,13 +185,19 @@ impl Client {
     pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[&str]) -> crate::Result<()> {
         // Endpoint can only be sent a maximum of 50 IDs
         for ids in ids.chunks(50) {
-            self.create_request()?
+            let res = self
+                .create_request()?
                 .delete(format!("{}/me/tracks", SPOTIFY_API_BASE_URL))
                 .json(&json!({"ids": &ids.join(",")}))
                 .send()
                 .await?
-                .json::<String>()
+                .json::<SpotifyResponse<()>>()
                 .await?;
+
+            match res {
+                SpotifyResponse::Error(err) => return Err(err.into()),
+                _ => {}
+            }
         }
 
         Ok(())
@@ -209,8 +220,8 @@ impl Client {
             .await?;
 
         Ok(match res {
-            SpotifyResponse::Ok(res) => res,
-            SpotifyResponse::Err(err) => return Err(err.into()),
+            SpotifyResponse::Success(res) => res,
+            SpotifyResponse::Error(err) => return Err(err.into()),
         })
     }
 
@@ -242,15 +253,27 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
         uris: &[&str],
-    ) -> crate::Result<model::PlaylistPartial> {
-        self.create_request()?
-            .post(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
-            .json(&json!({"uris": &uris.join(",")}))
-            .send()
-            .await?
-            .json::<model::PlaylistPartial>()
-            .await
-            .map_err(|err| err.into())
+    ) -> crate::Result<Vec<String>> {
+        let mut snapshot_ids = vec![];
+
+        // Endpoint can only be sent a maximum of 100 objects
+        for uris in uris.chunks(100) {
+            let res = self
+                .create_request()?
+                .post(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
+                .json(&json!({"uris": &uris.join(",")}))
+                .send()
+                .await?
+                .json::<SpotifyResponse<String>>()
+                .await?;
+
+            match res {
+                SpotifyResponse::Success(snapshot_id) => snapshot_ids.push(snapshot_id),
+                SpotifyResponse::Error(err) => return Err(err.into()),
+            }
+        }
+
+        Ok(snapshot_ids)
     }
 
     pub async fn playlist_remove_uris(
@@ -262,15 +285,19 @@ impl Client {
 
         // Endpoint can only be sent a maximum of 100 objects
         for uris in uris.chunks(100) {
-            snapshot_ids.push(
-                self.create_request()?
-                    .delete(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
-                    .json(&json!({"uris": &uris.join(",")}))
-                    .send()
-                    .await?
-                    .json::<String>()
-                    .await?,
-            );
+            let res = self
+                .create_request()?
+                .delete(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
+                .json(&json!({"uris": &uris.join(",")}))
+                .send()
+                .await?
+                .json::<SpotifyResponse<String>>()
+                .await?;
+
+            match res {
+                SpotifyResponse::Success(snapshot_id) => snapshot_ids.push(snapshot_id),
+                SpotifyResponse::Error(err) => return Err(err.into()),
+            }
         }
 
         Ok(snapshot_ids)
@@ -295,17 +322,22 @@ impl Client {
 
         // TODO: make requests concurrent
         while let Some(url) = next {
-            let mut res = self
+            let res = self
                 .create_request()?
                 .get(url)
                 .query(&query)
                 .send()
                 .await?
-                .json::<PaginatedResponse<T>>()
+                .json::<SpotifyResponse<PaginatedResponse<T>>>()
                 .await?;
 
-            next = res.next;
-            items.append(&mut res.items);
+            match res {
+                SpotifyResponse::Success(mut res) => {
+                    next = res.next;
+                    items.append(&mut res.items);
+                }
+                SpotifyResponse::Error(err) => return Err(err.into()),
+            };
         }
 
         Ok(items)

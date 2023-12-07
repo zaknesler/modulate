@@ -13,8 +13,8 @@ pub const SPOTIFY_LIKED_TRACKS_URL: &str = "https://open.spotify.com/collection/
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum SpotifyResponse<T> {
-    Ok(T),
-    Err(SpotifyErrorWrapper),
+    Success(T),
+    Error(SpotifyErrorWrapper),
 }
 
 #[derive(Debug, Deserialize)]
