@@ -1,12 +1,10 @@
-use crate::db::error::DbError;
-
 use super::playlist::PlaylistType;
+use crate::db::error::DbError;
 use chrono::{DateTime, Utc};
 use rusqlite::Row;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
-/// Columns to select from watchers table to map to a Watcher
 pub const WATCHER_COLUMNS: &str = "id, user_uri, playlist_from, playlist_to, should_remove, sync_interval, next_sync_at, created_at";
 
 #[derive(Debug, Clone)]

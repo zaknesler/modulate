@@ -79,7 +79,7 @@ impl IntoResponse for WebError {
     }
 }
 
-/// Create a specific response given the error
+/// Create a response for a specific error type
 fn handle_error_response(error: &WebError) -> Option<(StatusCode, Value)> {
     Some(match error {
         WebError::NotFoundError => (StatusCode::NOT_FOUND, Value::String(error.to_string())),

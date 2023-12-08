@@ -1,9 +1,8 @@
+use self::error::DbResult;
 use crate::config::CONFIG_DIR;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use std::path::Path;
-
-use self::error::DbResult;
 
 pub mod error;
 pub mod model;
@@ -14,8 +13,8 @@ pub fn init(file: &str) -> DbResult<Pool<SqliteConnectionManager>> {
     let db_manager = SqliteConnectionManager::file(db_path);
     let db = Pool::new(db_manager)?;
 
-    // Ensure tables exist
     let conn = db.get()?;
+
     conn.execute(
         "CREATE TABLE IF NOT EXISTS users (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +24,7 @@ pub fn init(file: &str) -> DbResult<Pool<SqliteConnectionManager>> {
         )",
         [],
     )?;
+
     conn.execute(
         "CREATE TABLE IF NOT EXISTS watchers (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,

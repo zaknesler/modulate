@@ -12,7 +12,7 @@ pub enum DbError {
     DateParseError(#[from] chrono::ParseError),
 
     #[error(transparent)]
-    DbError(#[from] r2d2::Error),
+    PoolError(#[from] r2d2::Error),
 
     #[error(transparent)]
     SQLiteError(#[from] r2d2_sqlite::rusqlite::Error),
