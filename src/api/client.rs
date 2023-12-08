@@ -2,12 +2,14 @@ use super::{
     error::{ClientError, ClientResult},
     id::PlaylistId,
     model::{self, User},
-    pagination::PaginatedResponse,
+    response::PaginatedResponse,
     token::Token,
-    SpotifyResponse,
 };
 use crate::{
-    api::{model::TrackPartial, SnapshotResponse},
+    api::{
+        model::TrackPartial,
+        response::{SnapshotResponse, SpotifyResponse},
+    },
     context::AppContext,
     db::repo::user::UserRepo,
     CONFIG,
