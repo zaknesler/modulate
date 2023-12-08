@@ -23,7 +23,10 @@ use oauth2::{
 use reqwest::{header, Url};
 use serde::Deserialize;
 use serde_json::json;
-use std::sync::{Arc, Mutex};
+use std::{
+    fmt::Debug,
+    sync::{Arc, Mutex},
+};
 
 const SPOTIFY_OAUTH2_AUTH_URL: &str = "https://accounts.spotify.com/authorize";
 const SPOTIFY_OAUTH2_TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
@@ -177,13 +180,21 @@ impl Client {
 
     pub async fn current_user_saved_track_partials(
         &self,
-    ) -> ClientResult<Vec<model::PlaylistPartial>> {
-        self.collect_paginated(
-            format!("{}/me/playlists", SPOTIFY_API_BASE_URL).as_ref(),
-            None,
-        )
-        .await
-        .map_err(|err| err.into())
+    ) -> ClientResult<Vec<model::TrackPartial>> {
+        #[derive(Debug, Deserialize)]
+        struct Wrapper {
+            track: model::TrackPartial,
+        }
+
+        Ok(self
+            .collect_paginated::<Wrapper>(
+                format!("{}/me/tracks", SPOTIFY_API_BASE_URL).as_ref(),
+                None,
+            )
+            .await?
+            .into_iter()
+            .map(|wrapper| wrapper.track)
+            .collect::<Vec<_>>())
     }
 
     pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[&str]) -> ClientResult<()> {
@@ -207,7 +218,7 @@ impl Client {
         Ok(())
     }
 
-    pub async fn playlist(
+    pub async fn playlist_partial(
         &self,
         PlaylistId(id): &PlaylistId,
     ) -> ClientResult<model::PlaylistPartial> {
@@ -234,14 +245,14 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
     ) -> ClientResult<Vec<TrackPartial>> {
-        #[derive(Deserialize)]
-        struct TrackPartialWrapper {
+        #[derive(Debug, Deserialize)]
+        struct Wrapper {
             is_local: bool,
             track: TrackPartial,
         }
 
         Ok(self
-            .collect_paginated::<TrackPartialWrapper>(
+            .collect_paginated::<Wrapper>(
                 format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id).as_ref(),
                 Some("items(is_local,track(id,uri,type))"),
             )
@@ -320,17 +331,17 @@ impl Client {
     /// Make the GET requests needed to paginate through all records given a URL
     async fn collect_paginated<T>(&self, url: &str, fields: Option<&str>) -> ClientResult<Vec<T>>
     where
-        T: serde::de::DeserializeOwned,
+        T: serde::de::DeserializeOwned + Debug,
     {
         let mut items = vec![];
         let mut next = Some(url.to_string());
-
         let mut query = vec![("limit", "50".to_string())];
 
+        // If we're scoping by fields, we want to make sure Spotify returns the pagination fields as well
         if let Some(fields) = fields {
             query.push((
                 "fields",
-                ["next,previous,limit,offset,total", fields].join(","),
+                ["href,next,previous,limit,offset,total", fields].join(","),
             ));
         }
 

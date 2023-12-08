@@ -1,3 +1,4 @@
+use self::error::SyncResult;
 use crate::{
     api::client,
     context::AppContext,
@@ -11,7 +12,7 @@ pub mod transfer;
 /// Interval to fetch watchers to see if any need to be run again
 const CHECK_INTERVAL_MINS: i64 = 1;
 
-pub async fn init(ctx: AppContext) -> crate::Result<()> {
+pub async fn init(ctx: AppContext) -> SyncResult<()> {
     loop {
         let now = Utc::now();
         let next_update = now
@@ -42,7 +43,7 @@ pub async fn init(ctx: AppContext) -> crate::Result<()> {
     }
 }
 
-async fn execute(ctx: AppContext) -> crate::Result<()> {
+async fn execute(ctx: AppContext) -> SyncResult<()> {
     let user_repo = UserRepo::new(ctx.clone());
     let watcher_repo = WatcherRepo::new(ctx.clone());
     let watchers = watcher_repo.get_all_watchers()?;

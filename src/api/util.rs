@@ -10,7 +10,7 @@ where
     let mut playlists = vec![];
 
     for id in ids {
-        playlists.push(client.playlist(id).await?);
+        playlists.push(client.playlist_partial(id).await?);
     }
 
     Ok(playlists)

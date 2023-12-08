@@ -15,5 +15,8 @@ pub enum SyncError {
     UnsupportedTransferError,
 
     #[error(transparent)]
+    DbError(#[from] crate::db::error::DbError),
+
+    #[error(transparent)]
     ClientError(#[from] crate::api::error::ClientError),
 }
