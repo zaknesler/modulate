@@ -3,7 +3,13 @@ use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use std::path::Path;
 
-pub fn init_db(file: &str) -> crate::Result<Pool<SqliteConnectionManager>> {
+use self::error::DbResult;
+
+pub mod error;
+pub mod model;
+pub mod repo;
+
+pub fn init(file: &str) -> DbResult<Pool<SqliteConnectionManager>> {
     let db_path = Path::new(CONFIG_DIR).join(file);
     let db_manager = SqliteConnectionManager::file(db_path);
     let db = Pool::new(db_manager)?;

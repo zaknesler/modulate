@@ -1,6 +1,5 @@
+use crate::{api::token::Token, db::error::DbResult};
 use rusqlite::params;
-
-use crate::api::token::Token;
 
 pub struct UserRepo {
     ctx: crate::context::AppContext,
@@ -12,7 +11,7 @@ impl UserRepo {
     }
 
     /// Create a new user record with a token or overwrite an existing user's token.
-    pub fn upsert_user_token(&self, user_uri: &str, token: &Token) -> crate::Result<()> {
+    pub fn upsert_user_token(&self, user_uri: &str, token: &Token) -> DbResult<()> {
         self.ctx
             .db
             .get()?
@@ -29,7 +28,7 @@ impl UserRepo {
     }
 
     /// Try to find a user's auth token.
-    pub fn get_token_by_user_uri(&self, user_uri: &str) -> crate::Result<Token> {
+    pub fn get_token_by_user_uri(&self, user_uri: &str) -> DbResult<Token> {
         let token_str: String = self
             .ctx
             .db
@@ -41,7 +40,7 @@ impl UserRepo {
     }
 
     /// Delete a user by ID.
-    pub fn delete_user_by_id(&self, user_uri: &str) -> crate::Result<()> {
+    pub fn delete_user_by_id(&self, user_uri: &str) -> DbResult<()> {
         self.ctx
             .db
             .get()?

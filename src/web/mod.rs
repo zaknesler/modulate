@@ -1,15 +1,18 @@
+use self::error::WebResult;
 use crate::{context::AppContext, CONFIG};
 use axum::http::{header, HeaderValue, Method};
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
+pub mod error;
 mod middleware;
 mod router;
 mod session;
+mod util;
 mod view;
 
-pub async fn serve(ctx: AppContext) -> crate::Result<()> {
+pub async fn serve(ctx: AppContext) -> WebResult<()> {
     tracing::info!(
         "Starting web server on {}:{}",
         CONFIG.web.host,

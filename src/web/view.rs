@@ -4,7 +4,7 @@ use crate::{
         model::{Image, PlaylistPartial},
         SPOTIFY_LIKED_TRACKS_URL,
     },
-    model::{playlist::PlaylistType, watcher::Watcher},
+    db::model::{playlist::PlaylistType, watcher::Watcher},
 };
 use askama::Template;
 

@@ -1,10 +1,10 @@
 use super::JWT_COOKIE;
 use crate::{
-    api::{self, id::PlaylistId},
+    api::{self, error::ClientError, id::PlaylistId},
     context::AppContext,
-    repo::{user::UserRepo, watcher::WatcherRepo},
-    util::cookie::unset_cookie,
-    web::{middleware::auth, session, view::DashboardTemplate},
+    db::repo::{user::UserRepo, watcher::WatcherRepo},
+    web::util::cookie::unset_cookie,
+    web::{error::WebResult, middleware::auth, session, view::DashboardTemplate},
 };
 use axum::{
     extract::State,
@@ -31,7 +31,7 @@ pub fn router(ctx: AppContext) -> Router {
 async fn get_current_user_dashboard(
     Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
-) -> crate::Result<impl IntoResponse> {
+) -> WebResult<impl IntoResponse> {
     let user = session.client.current_user().await?;
 
     let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.uri)?;
@@ -41,14 +41,14 @@ async fn get_current_user_dashboard(
     let user_playlist_ids = user_playlists
         .iter()
         .map(|playlist| PlaylistId::from_str(&playlist.id))
-        .collect::<crate::Result<HashSet<_>>>()?;
+        .collect::<Result<HashSet<_>, ClientError>>()?;
 
     // Fetch the details of the playlists that the user does not own
     let missing_playlist_ids = watchers
         .iter()
         .flat_map(|watcher| vec![&watcher.playlist_from, &watcher.playlist_to])
         .filter_map(|playlist| match playlist {
-            crate::model::playlist::PlaylistType::Id(id) => Some(id.to_owned()),
+            crate::db::model::playlist::PlaylistType::Id(id) => Some(id.to_owned()),
             _ => None,
         })
         .collect::<HashSet<_>>();
@@ -79,7 +79,7 @@ async fn delete_current_user(
     Extension(session): Extension<session::Session>,
     cookies: Cookies,
     State(ctx): State<AppContext>,
-) -> crate::Result<impl IntoResponse> {
+) -> WebResult<impl IntoResponse> {
     // Delete all user's watchers and then the user
     WatcherRepo::new(ctx.clone()).delete_all_watchers_by_user(&session.user_uri)?;
     UserRepo::new(ctx).delete_user_by_id(&session.user_uri)?;

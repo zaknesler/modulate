@@ -1,166 +1,206 @@
-{% extends "includes/base.html" %}
+{% extends "includes/base.html" %} {% macro header_section() %}
+<section>
+  <p>
+    You are signed in as <strong>{{ name }}</strong>. {% if watchers.is_empty()
+    %} You don't have any watchers configured for your account. {% else %} You
+    currently have <strong>{{ watchers.len() }}</strong> {% if watchers.len() ==
+    1 %}watcher{% else %}watchers{% endif %} configured. {% endif %}
+  </p>
 
-{% macro header_section() %}
-  <section>
-    <p>
-      You are signed in as <strong>{{ name }}</strong>.
-
-      {% if watchers.is_empty() %}
-        You don't have any watchers configured for your account.
-      {% else %}
-        You currently have <strong>{{ watchers.len() }}</strong> {% if watchers.len() == 1 %}watcher{% else %}watchers{% endif %} configured.
-      {% endif %}
-    </p>
-
-    {% if !crate::CONFIG.sync.enabled %}
-      <p>Syncing is currently disabled.</p>
-    {% endif %}
-  </section>
-{% endmacro %}
-
-{% macro create_section() %}
-  <section>
-    <h3>Create watcher</h3>
-    <form class="items" id="create">
-      <div class="item">
-        <label for="select-playlist-from">
-          <span>From playlist</span>
-          <button class="link sm" onclick="return togglePlaylistInput()" id="toggle-text">Manually enter URL</button>
-        </label>
-
-        <input autofocus type="text" id="input-playlist-from" oninput="onInputUpdate()" onkeydown="onInputUpdate()" onpaste="onInputUpdate()" class="hidden" placeholder="Enter playlist URL or URI...">
-
-        <select autofocus id="select-playlist-from" onchange="onInputUpdate()">
-          <option value="{{ crate::model::playlist::LIKED_PLAYLIST_VALUE }}" selected>
-            {{ crate::model::playlist::PlaylistType::Saved.to_string() }}
-          </option>
-
-          {% for playlist in user_playlists %}
-            {% match playlist.id %}
-              {% when Some with (id) %}
-              <option value="{{ id.uri() }}">{{ playlist.name }}</option>
-              {% else %}
-            {% endmatch %}
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="item">
-        <label for="select-playlist-to">To playlist</label>
-        <select id="select-playlist-to" onchange="onInputUpdate()">
-          <option value="" disabled selected hidden>Select a playlist...</option>
-
-          {% for playlist in user_playlists %}
-            {% match playlist.id %}
-              {% when Some with (id) %}
-              <option value="{{ id.uri() }}">{{ playlist.name }}</option>
-              {% else %}
-            {% endmatch %}
-          {% endfor %}
-        </select>
-      </div>
-
-      <div class="item">
-        <label for="input-sync-interval">Sync interval</label>
-        <select id="input-sync-interval">
-          <option value="{{ crate::model::watcher::SyncInterval::Hour.to_string() }}">Every hour</option>
-          <option value="{{ crate::model::watcher::SyncInterval::Day.to_string() }}">Every day</option>
-          <option value="{{ crate::model::watcher::SyncInterval::Week.to_string() }}">Every week</option>
-        </select>
-      </div>
-
-      <div class="item checkbox" id="checkbox-should-remove-wrapper">
-        <input type="checkbox" id="checkbox-should-remove" />
-        <label for="checkbox-should-remove">Remove tracks from original playlist after syncing</label>
-      </div>
-
-      <button id="submit" class="button" disabled>Create watcher</button>
-    </form>
-  </section>
-{% endmacro %}
-
-{% macro watchers_section() %}
-  <section>
-    <h3>Your watchers</h3>
-    <div class="watchers">
-      {% for watcher in watchers %}
-        {% let (from_data, to_data) = Self::get_mapped_display_data(self, watcher) %}
-        <div class="watcher">
-          <h4>
-            {% call playlist_item(from_data) %}
-            <small>&rarr;</small>
-            {% call playlist_item(to_data) %}
-          </h4>
-
-          <p>
-            <small>Syncs every {{ watcher.sync_interval }}. Original tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed.</small>
-          </p>
-
-          <div class="split">
-            <button class="button sm" {% if !crate::CONFIG.sync.enabled %}disabled{% endif %} onclick="syncWatcher('{{ watcher.id }}')">Sync now</button>
-            <button class="button sm" onclick="deleteWatcher('{{ watcher.id }}')">Remove watcher</button>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  </section>
-{% endmacro %}
-
-{% macro data_section() %}
-  <section class="left">
-    <h3>Your data</h3>
-    <p><small>Playlist and user data supplied by Spotify. This app is not affiliated with nor endorsed by Spotify in any way.</small></p>
-    <p><small>Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later.</small></p>
-    <button class="link sm" onclick="deleteUser()">Delete your data</button>
-  </section>
-{% endmacro %}
-
-{% macro playlist_item(playlist) %}
-  {% match playlist %}
-    {% when Some with (data) %}
-    <a href="{{ data.display.spotify_url }}" target="_blank" rel="noreferrer">
-      {% match data.display.image_url %}
-        {% when Some with (image_url) %}
-        <img src="{{ image_url }}" alt="{{ data.display.name }}" />
-
-        {% when None %}
-        {% match data.kind %}
-          {% when crate::model::playlist::PlaylistType::Saved %}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z" />
-          </svg>
-
-          {% else %}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M17.721 1.599a.75.75 0 01.279.584v11.29a2.25 2.25 0 01-1.774 2.198l-2.041.442a2.216 2.216 0 01-.938-4.333l2.662-.576a.75.75 0 00.591-.734V6.112l-8 1.73v7.684a2.25 2.25 0 01-1.774 2.2l-2.042.44a2.216 2.216 0 11-.935-4.33l2.659-.574A.75.75 0 007 12.53V4.237a.75.75 0 01.591-.733l9.5-2.054a.75.75 0 01.63.149z" clip-rule="evenodd" />
-          </svg>
-        {% endmatch %}
-      {% endmatch %}
-
-      {{ data.display.name }}
-    </a>
-
-    {% when None %}
-    (Unknown playlist)
-  {% endmatch %}
-{% endmacro %}
-
-{% block content %}
-  {% call header_section() %}
-
-  <section class="errors hidden" id="errors">
-    <p><strong>Error:</strong> <span id="errors-text"></span></p>
-  </section>
-
-  <div class="separator"></div>
-
-  {% call create_section() %}
-
-  {% if !watchers.is_empty() %}
-    <div class="separator"></div>
-    {% call watchers_section() %}
+  {% if !crate::CONFIG.sync.enabled %}
+  <p>Syncing is currently disabled.</p>
   {% endif %}
+</section>
+{% endmacro %} {% macro create_section() %}
+<section>
+  <h3>Create watcher</h3>
+  <form class="items" id="create">
+    <div class="item">
+      <label for="select-playlist-from">
+        <span>From playlist</span>
+        <button
+          class="link sm"
+          onclick="return togglePlaylistInput()"
+          id="toggle-text"
+        >
+          Manually enter URL
+        </button>
+      </label>
 
-  <div class="separator"></div>
-  {% call data_section() %}
-{% endblock content %}
+      <input
+        autofocus
+        type="text"
+        id="input-playlist-from"
+        oninput="onInputUpdate()"
+        onkeydown="onInputUpdate()"
+        onpaste="onInputUpdate()"
+        class="hidden"
+        placeholder="Enter playlist URL or URI..."
+      />
+
+      <select autofocus id="select-playlist-from" onchange="onInputUpdate()">
+        <option
+          value="{{ crate::db::model::playlist::LIKED_PLAYLIST_VALUE }}"
+          selected
+        >
+          {{ crate::db::model::playlist::PlaylistType::Saved.to_string() }}
+        </option>
+
+        {% for playlist in user_playlists %} {% match playlist.id %} {% when
+        Some with (id) %}
+        <option value="{{ id.uri() }}">{{ playlist.name }}</option>
+        {% else %} {% endmatch %} {% endfor %}
+      </select>
+    </div>
+
+    <div class="item">
+      <label for="select-playlist-to">To playlist</label>
+      <select id="select-playlist-to" onchange="onInputUpdate()">
+        <option value="" disabled selected hidden>Select a playlist...</option>
+
+        {% for playlist in user_playlists %} {% match playlist.id %} {% when
+        Some with (id) %}
+        <option value="{{ id.uri() }}">{{ playlist.name }}</option>
+        {% else %} {% endmatch %} {% endfor %}
+      </select>
+    </div>
+
+    <div class="item">
+      <label for="input-sync-interval">Sync interval</label>
+      <select id="input-sync-interval">
+        <option
+          value="{{ crate::db::model::watcher::SyncInterval::Hour.to_string() }}"
+        >
+          Every hour
+        </option>
+        <option
+          value="{{ crate::db::model::watcher::SyncInterval::Day.to_string() }}"
+        >
+          Every day
+        </option>
+        <option
+          value="{{ crate::db::model::watcher::SyncInterval::Week.to_string() }}"
+        >
+          Every week
+        </option>
+      </select>
+    </div>
+
+    <div class="item checkbox" id="checkbox-should-remove-wrapper">
+      <input type="checkbox" id="checkbox-should-remove" />
+      <label for="checkbox-should-remove"
+        >Remove tracks from original playlist after syncing</label
+      >
+    </div>
+
+    <button id="submit" class="button" disabled>Create watcher</button>
+  </form>
+</section>
+{% endmacro %} {% macro watchers_section() %}
+<section>
+  <h3>Your watchers</h3>
+  <div class="watchers">
+    {% for watcher in watchers %} {% let (from_data, to_data) =
+    Self::get_mapped_display_data(self, watcher) %}
+    <div class="watcher">
+      <h4>
+        {% call playlist_item(from_data) %}
+        <small>&rarr;</small>
+        {% call playlist_item(to_data) %}
+      </h4>
+
+      <p>
+        <small
+          >Syncs every {{ watcher.sync_interval }}. Original tracks will {% if
+          !watcher.should_remove %}<strong>not</strong>{% endif %} be
+          removed.</small
+        >
+      </p>
+
+      <div class="split">
+        <button
+          class="button sm"
+          {%
+          if
+          !crate::CONFIG.sync.enabled
+          %}disabled{%
+          endif
+          %}
+          onclick="syncWatcher('{{ watcher.id }}')"
+        >
+          Sync now
+        </button>
+        <button class="button sm" onclick="deleteWatcher('{{ watcher.id }}')">
+          Remove watcher
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endmacro %} {% macro data_section() %}
+<section class="left">
+  <h3>Your data</h3>
+  <p>
+    <small
+      >Playlist and user data supplied by Spotify. This app is not affiliated
+      with nor endorsed by Spotify in any way.</small
+    >
+  </p>
+  <p>
+    <small
+      >Click the link below to delete your connected data and watchers. Your
+      Spotify account will be untouched, and you can always reconnect
+      later.</small
+    >
+  </p>
+  <button class="link sm" onclick="deleteUser()">Delete your data</button>
+</section>
+{% endmacro %} {% macro playlist_item(playlist) %} {% match playlist %} {% when
+Some with (data) %}
+<a href="{{ data.display.spotify_url }}" target="_blank" rel="noreferrer">
+  {% match data.display.image_url %} {% when Some with (image_url) %}
+  <img src="{{ image_url }}" alt="{{ data.display.name }}" />
+
+  {% when None %} {% match data.kind %} {% when
+  crate::db::model::playlist::PlaylistType::Saved %}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+  >
+    <path
+      d="M9.653 16.915l-.005-.003-.019-.01a20.759 20.759 0 01-1.162-.682 22.045 22.045 0 01-2.582-1.9C4.045 12.733 2 10.352 2 7.5a4.5 4.5 0 018-2.828A4.5 4.5 0 0118 7.5c0 2.852-2.044 5.233-3.885 6.82a22.049 22.049 0 01-3.744 2.582l-.019.01-.005.003h-.002a.739.739 0 01-.69.001l-.002-.001z"
+    />
+  </svg>
+
+  {% else %}
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+  >
+    <path
+      fill-rule="evenodd"
+      d="M17.721 1.599a.75.75 0 01.279.584v11.29a2.25 2.25 0 01-1.774 2.198l-2.041.442a2.216 2.216 0 01-.938-4.333l2.662-.576a.75.75 0 00.591-.734V6.112l-8 1.73v7.684a2.25 2.25 0 01-1.774 2.2l-2.042.44a2.216 2.216 0 11-.935-4.33l2.659-.574A.75.75 0 007 12.53V4.237a.75.75 0 01.591-.733l9.5-2.054a.75.75 0 01.63.149z"
+      clip-rule="evenodd"
+    />
+  </svg>
+  {% endmatch %} {% endmatch %} {{ data.display.name }}
+</a>
+
+{% when None %} (Unknown playlist) {% endmatch %} {% endmacro %} {% block
+content %} {% call header_section() %}
+
+<section class="errors hidden" id="errors">
+  <p><strong>Error:</strong> <span id="errors-text"></span></p>
+</section>
+
+<div class="separator"></div>
+
+{% call create_section() %} {% if !watchers.is_empty() %}
+<div class="separator"></div>
+{% call watchers_section() %} {% endif %}
+
+<div class="separator"></div>
+{% call data_section() %} {% endblock content %}

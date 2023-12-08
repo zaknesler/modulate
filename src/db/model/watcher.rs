@@ -1,3 +1,5 @@
+use crate::db::error::DbError;
+
 use super::playlist::PlaylistType;
 use chrono::{DateTime, Utc};
 use rusqlite::Row;
@@ -20,7 +22,7 @@ pub struct Watcher {
 }
 
 impl TryFrom<&Row<'_>> for Watcher {
-    type Error = crate::error::Error;
+    type Error = DbError;
 
     fn try_from(row: &Row<'_>) -> Result<Self, Self::Error> {
         Ok(Self {
@@ -56,14 +58,14 @@ impl Display for SyncInterval {
 }
 
 impl FromStr for SyncInterval {
-    type Err = crate::error::Error;
+    type Err = DbError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
             "hour" => SyncInterval::Hour,
             "day" => SyncInterval::Day,
             "week" => SyncInterval::Week,
-            _ => return Err(crate::error::Error::InvalidSyncInterval(s.to_string())),
+            _ => return Err(DbError::InvalidSyncInterval(s.to_string())),
         })
     }
 }

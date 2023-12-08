@@ -1,6 +1,9 @@
 use serde::Deserialize;
 
+use self::error::ClientError;
+
 pub mod client;
+pub mod error;
 pub mod id;
 pub mod model;
 pub mod pagination;
@@ -33,9 +36,9 @@ pub struct SpotifyErrorResponse {
     message: String,
 }
 
-impl From<SpotifyErrorWrapper> for crate::error::Error {
+impl From<SpotifyErrorWrapper> for ClientError {
     fn from(value: SpotifyErrorWrapper) -> Self {
-        Self::SpotifyApiError {
+        Self::ApiError {
             status: value.error.status,
             message: value.error.message,
         }

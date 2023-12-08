@@ -1,4 +1,7 @@
-use crate::api::id::PlaylistId;
+use crate::{
+    api::id::PlaylistId,
+    db::error::{DbError, DbResult},
+};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
@@ -31,10 +34,10 @@ impl PlaylistType {
     }
 
     /// Convert from value string.
-    pub fn try_from_value(value: &str) -> crate::Result<Self> {
+    pub fn try_from_value(value: &str) -> DbResult<Self> {
         Ok(match value {
             LIKED_PLAYLIST_VALUE => Self::Saved,
-            _ => Self::Id(value.parse()?),
+            _ => Self::Id(value.parse().map_err(|_| DbError::InvalidId(value.to_string()))?),
         })
     }
 }

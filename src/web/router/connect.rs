@@ -2,14 +2,16 @@ use super::{CSRF_COOKIE, JWT_COOKIE};
 use crate::{
     api::client,
     context::AppContext,
-    repo::user::UserRepo,
-    util::{
-        cookie::unset_cookie,
-        jwt::{self, JWT_EXPIRATION_DAYS},
+    db::repo::user::UserRepo,
+    web::{
+        error::{WebError, WebResult},
+        util::{
+            cookie::unset_cookie,
+            jwt::{self, JWT_EXPIRATION_DAYS},
+        },
     },
     CONFIG,
 };
-use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
     response::{IntoResponse, Redirect},
@@ -39,12 +41,12 @@ async fn handle_callback(
     Query(params): Query<CallbackParams>,
     cookies: Cookies,
     State(ctx): State<AppContext>,
-) -> crate::Result<impl IntoResponse> {
-    let csrf = cookies.get(CSRF_COOKIE).ok_or_else(|| anyhow!("missing csrf cookie"))?;
+) -> WebResult<impl IntoResponse> {
+    let csrf = cookies.get(CSRF_COOKIE).ok_or_else(|| WebError::CsrfInvalidError)?;
 
     // Ensure the state we get back from the API key is the value we set before the user was redirected
     if csrf.value() != params.state {
-        return Err(anyhow!("invalid csrf token").into());
+        return Err(WebError::CsrfInvalidError);
     }
 
     // Remove the CSRF cookie now that we've validated the response

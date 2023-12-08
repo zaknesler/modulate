@@ -1,10 +1,11 @@
 use crate::{
     api::client,
     context::AppContext,
-    repo::{user::UserRepo, watcher::WatcherRepo},
+    db::repo::{user::UserRepo, watcher::WatcherRepo},
 };
 use chrono::{Timelike, Utc};
 
+pub mod error;
 pub mod transfer;
 
 /// Interval to fetch watchers to see if any need to be run again

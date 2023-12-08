@@ -1,10 +1,10 @@
+use super::error::{SyncError, SyncResult};
 use crate::{
     api::client::Client,
     context::AppContext,
-    model::{playlist::PlaylistType, watcher::Watcher},
+    db::model::{playlist::PlaylistType, watcher::Watcher},
     CONFIG,
 };
-use anyhow::anyhow;
 use std::collections::HashSet;
 
 #[allow(dead_code)]
@@ -19,7 +19,7 @@ impl PlaylistTransfer {
     }
 
     /// Using data from a watcher, attempt to transfer tracks from one playlist to another.
-    pub async fn try_transfer(&self, watcher: &Watcher) -> crate::Result<bool> {
+    pub async fn try_transfer(&self, watcher: &Watcher) -> SyncResult<bool> {
         if !CONFIG.sync.enabled {
             return Ok(false);
         }
@@ -72,7 +72,7 @@ impl PlaylistTransfer {
             }
             (PlaylistType::Id(playlist_from), PlaylistType::Id(playlist_to)) => {
                 if playlist_from == playlist_to {
-                    return Err(crate::error::Error::InvalidTransfer(
+                    return Err(SyncError::InvalidTransferError(
                         "cannot transfer to the same playlist".to_owned(),
                     ));
                 }
@@ -126,13 +126,13 @@ impl PlaylistTransfer {
                         .await?;
                 }
             }
-            _ => return Err(anyhow!("unsupported transfer type").into()),
+            _ => return Err(SyncError::UnsupportedTransferError),
         }
 
         Ok(true)
     }
 
-    async fn get_saved_track_ids(&self) -> crate::Result<HashSet<String>> {
+    async fn get_saved_track_ids(&self) -> SyncResult<HashSet<String>> {
         Ok(self
             .client
             .current_user_saved_track_partials()

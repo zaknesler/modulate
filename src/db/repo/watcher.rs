@@ -1,6 +1,9 @@
-use crate::model::{
-    playlist::PlaylistType,
-    watcher::{SyncInterval, Watcher, WATCHER_COLUMNS},
+use crate::db::{
+    error::DbResult,
+    model::{
+        playlist::PlaylistType,
+        watcher::{SyncInterval, Watcher, WATCHER_COLUMNS},
+    },
 };
 use chrono::Utc;
 use rusqlite::params;
@@ -15,17 +18,17 @@ impl WatcherRepo {
     }
 
     /// Get all configured watchers.
-    pub fn get_all_watchers(&self) -> crate::Result<Vec<Watcher>> {
+    pub fn get_all_watchers(&self) -> DbResult<Vec<Watcher>> {
         self.ctx
             .db
             .get()?
             .prepare(format!("SELECT {} FROM watchers", WATCHER_COLUMNS).as_ref())?
             .query_and_then([], |row| row.try_into())?
-            .collect::<crate::Result<Vec<_>>>()
+            .collect::<DbResult<Vec<_>>>()
     }
 
     /// Get all watchers for a specific playlist.
-    pub fn get_watchers_for_playlist(&self, from: &PlaylistType) -> crate::Result<Vec<Watcher>> {
+    pub fn get_watchers_for_playlist(&self, from: &PlaylistType) -> DbResult<Vec<Watcher>> {
         self.ctx
             .db
             .get()?
@@ -37,11 +40,11 @@ impl WatcherRepo {
                 .as_ref(),
             )?
             .query_and_then(params![from.to_value()], |row| row.try_into())?
-            .collect::<crate::Result<Vec<_>>>()
+            .collect::<DbResult<Vec<_>>>()
     }
 
     /// Get all watchers for a given user ID.
-    pub fn get_watchers_by_user(&self, user_uri: &str) -> crate::Result<Vec<Watcher>> {
+    pub fn get_watchers_by_user(&self, user_uri: &str) -> DbResult<Vec<Watcher>> {
         self.ctx
             .db
             .get()?
@@ -53,15 +56,11 @@ impl WatcherRepo {
                 .as_ref(),
             )?
             .query_and_then(params![user_uri], |row| row.try_into())?
-            .collect::<crate::Result<Vec<_>>>()
+            .collect::<DbResult<Vec<_>>>()
     }
 
     /// Get specific watcher for a given ID and user ID.
-    pub fn get_watcher_by_id_and_user(
-        &self,
-        id: i64,
-        user_uri: &str,
-    ) -> crate::Result<Option<Watcher>> {
+    pub fn get_watcher_by_id_and_user(&self, id: i64, user_uri: &str) -> DbResult<Option<Watcher>> {
         Ok(self
             .ctx
             .db
@@ -74,7 +73,7 @@ impl WatcherRepo {
                 .as_ref(),
             )?
             .query_and_then(params![id, user_uri], |row| Watcher::try_from(row))?
-            .collect::<crate::Result<Vec<_>>>()?
+            .collect::<DbResult<Vec<_>>>()?
             .first()
             .cloned())
     }
@@ -84,7 +83,7 @@ impl WatcherRepo {
         &self,
         id: i64,
         next_sync_at: chrono::DateTime<chrono::Utc>,
-    ) -> crate::Result<()> {
+    ) -> DbResult<()> {
         self.ctx
             .db
             .get()?
@@ -102,7 +101,7 @@ impl WatcherRepo {
         to: &PlaylistType,
         should_remove: bool,
         sync_interval: SyncInterval,
-    ) -> crate::Result<()> {
+    ) -> DbResult<()> {
         self.ctx
             .db
             .get()?
@@ -118,7 +117,7 @@ impl WatcherRepo {
         user_uri: &str,
         from: &PlaylistType,
         to: &PlaylistType,
-    ) -> crate::Result<()> {
+    ) -> DbResult<()> {
         self.ctx
             .db
             .get()?
@@ -129,7 +128,7 @@ impl WatcherRepo {
     }
 
     /// Delete all watchers given a user_uri.
-    pub fn delete_all_watchers_by_user(&self, user_uri: &str) -> crate::Result<()> {
+    pub fn delete_all_watchers_by_user(&self, user_uri: &str) -> DbResult<()> {
         self.ctx
             .db
             .get()?

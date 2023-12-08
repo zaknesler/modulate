@@ -1,3 +1,4 @@
+use super::error::ClientError;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -6,13 +7,13 @@ use std::str::FromStr;
 pub struct PlaylistId(pub String);
 
 impl FromStr for PlaylistId {
-    type Err = crate::error::Error;
+    type Err = ClientError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Regex::new(&r"(?:https?://open\.spotify\.com/playlist/|spotify:playlist:)?([a-zA-Z0-9]+)")?
             .captures(s)
             .and_then(|captures| Some(Self(captures.get(1)?.as_str().to_string())))
-            .ok_or_else(|| crate::error::Error::InvalidSpotifyId(s.to_owned()))
+            .ok_or_else(|| ClientError::InvalidId(s.to_owned()))
     }
 }
 

@@ -5,11 +5,9 @@ use lazy_static::lazy_static;
 mod api;
 mod config;
 mod context;
+mod db;
 mod error;
-mod model;
-mod repo;
 mod sync;
-mod util;
 mod web;
 
 lazy_static! {
@@ -23,7 +21,7 @@ async fn main() -> Result<()> {
     // Initialize tracing
     tracing_subscriber::fmt().with_max_level(CONFIG.log_level.clone()).init();
 
-    let db = util::db::init_db(CONFIG.db.file.as_ref())?;
+    let db = db::init(CONFIG.db.file.as_ref())?;
     let ctx = context::AppContext { db };
 
     // Run watcher and web server concurrently
@@ -34,7 +32,7 @@ async fn main() -> Result<()> {
 
     // Wait for either process to finish (i.e. return an error) and exit
     select! {
-        result = watcher => result,
-        result = web => result,
+        result = watcher => result.map_err(|err| err.into()),
+        result = web => result.map_err(|err| err.into()),
     }
 }

@@ -1,4 +1,5 @@
 use super::{
+    error::{ClientError, ClientResult},
     id::PlaylistId,
     model::{self, User},
     pagination::PaginatedResponse,
@@ -11,7 +12,7 @@ use crate::{
         SnapshotResponse,
     },
     context::AppContext,
-    repo::user::UserRepo,
+    db::repo::user::UserRepo,
     CONFIG,
 };
 use anyhow::anyhow;
@@ -44,7 +45,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new() -> crate::Result<Self> {
+    pub fn new() -> ClientResult<Self> {
         let oauth = BasicClient::new(
             ClientId::new(CONFIG.spotify.client_id.clone()),
             Some(ClientSecret::new(CONFIG.spotify.client_secret.clone())),
@@ -59,14 +60,14 @@ impl Client {
         })
     }
 
-    pub fn new_with_token(token: Token) -> crate::Result<Self> {
+    pub fn new_with_token(token: Token) -> ClientResult<Self> {
         let client = Self::new()?;
         client.set_token(token)?;
         Ok(client)
     }
 
-    pub fn set_token(&self, token: Token) -> crate::Result<&Self> {
-        *self.token.lock().map_err(|_| crate::error::Error::MutexLockError)? = Some(token);
+    pub fn set_token(&self, token: Token) -> ClientResult<&Self> {
+        *self.token.lock().map_err(|_| ClientError::MutexLockError)? = Some(token);
         Ok(self)
     }
 
@@ -77,7 +78,7 @@ impl Client {
             .url()
     }
 
-    pub async fn get_token_from_code(&self, code: String) -> crate::Result<Token> {
+    pub async fn get_token_from_code(&self, code: String) -> ClientResult<Token> {
         self.oauth
             .exchange_code(AuthorizationCode::new(code))
             .request_async(async_http_client)
@@ -91,13 +92,13 @@ impl Client {
         &self,
         ctx: AppContext,
         user_uri: &str,
-    ) -> crate::Result<&Self> {
+    ) -> ClientResult<&Self> {
         let token = self
             .token
             .lock()
-            .map_err(|_| crate::error::Error::MutexLockError)?
+            .map_err(|_| ClientError::MutexLockError)?
             .as_ref()
-            .ok_or_else(|| anyhow!("no token"))?
+            .ok_or_else(|| ClientError::MissingToken)?
             .clone();
 
         // If token is still valid, don't do anything
@@ -106,7 +107,7 @@ impl Client {
         }
 
         if token.refresh_token.is_none() {
-            return Err(anyhow!("missing refresh token").into());
+            return Err(ClientError::MissingRefreshToken);
         }
 
         let mut new_token: Token = self
@@ -128,13 +129,13 @@ impl Client {
         Ok(self)
     }
 
-    fn create_request(&self) -> crate::Result<reqwest::Client> {
+    fn create_request(&self) -> ClientResult<reqwest::Client> {
         let access_token = self
             .token
             .lock()
-            .map_err(|_| crate::error::Error::MutexLockError)?
+            .map_err(|_| ClientError::MutexLockError)?
             .as_ref()
-            .ok_or_else(|| anyhow!("no token"))?
+            .ok_or_else(|| ClientError::MissingAccessToken)?
             .access_token
             .clone();
 
@@ -150,7 +151,7 @@ impl Client {
             .map_err(|err| err.into())
     }
 
-    pub async fn current_user(&self) -> crate::Result<model::User> {
+    pub async fn current_user(&self) -> ClientResult<model::User> {
         let res = self
             .create_request()?
             .get(format!("{}/me", SPOTIFY_API_BASE_URL))
@@ -165,7 +166,7 @@ impl Client {
         })
     }
 
-    pub async fn current_user_playlists(&self) -> crate::Result<Vec<model::PlaylistPartial>> {
+    pub async fn current_user_playlists(&self) -> ClientResult<Vec<model::PlaylistPartial>> {
         self.collect_paginated(
             format!("{}/me/playlists", SPOTIFY_API_BASE_URL).as_ref(),
             None,
@@ -176,7 +177,7 @@ impl Client {
 
     pub async fn current_user_saved_track_partials(
         &self,
-    ) -> crate::Result<Vec<model::PlaylistPartial>> {
+    ) -> ClientResult<Vec<model::PlaylistPartial>> {
         self.collect_paginated(
             format!("{}/me/playlists", SPOTIFY_API_BASE_URL).as_ref(),
             None,
@@ -185,7 +186,7 @@ impl Client {
         .map_err(|err| err.into())
     }
 
-    pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[&str]) -> crate::Result<()> {
+    pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[&str]) -> ClientResult<()> {
         // Endpoint can only be sent a maximum of 50 IDs
         for ids in ids.chunks(50) {
             let res = self
@@ -209,7 +210,7 @@ impl Client {
     pub async fn playlist(
         &self,
         PlaylistId(id): &PlaylistId,
-    ) -> crate::Result<model::PlaylistPartial> {
+    ) -> ClientResult<model::PlaylistPartial> {
         let res = self
             .create_request()?
             .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
@@ -232,7 +233,7 @@ impl Client {
     pub async fn playlist_track_partials(
         &self,
         PlaylistId(id): &PlaylistId,
-    ) -> crate::Result<Vec<TrackPartial>> {
+    ) -> ClientResult<Vec<TrackPartial>> {
         #[derive(Deserialize)]
         struct TrackPartialWrapper {
             is_local: bool,
@@ -256,7 +257,7 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
         ids: &[&str],
-    ) -> crate::Result<Vec<String>> {
+    ) -> ClientResult<Vec<String>> {
         let mut snapshot_ids = vec![];
 
         // Map IDs to URIs
@@ -288,7 +289,7 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
         ids: &[&str],
-    ) -> crate::Result<Vec<String>> {
+    ) -> ClientResult<Vec<String>> {
         let mut snapshot_ids = vec![];
 
         // Map IDs to URIs
@@ -317,7 +318,7 @@ impl Client {
     }
 
     /// Make the GET requests needed to paginate through all records given a URL
-    async fn collect_paginated<T>(&self, url: &str, fields: Option<&str>) -> crate::Result<Vec<T>>
+    async fn collect_paginated<T>(&self, url: &str, fields: Option<&str>) -> ClientResult<Vec<T>>
     where
         T: serde::de::DeserializeOwned,
     {
