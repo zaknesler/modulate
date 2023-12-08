@@ -7,26 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- Removed `rspotify` in favor of using the standard `oauth2` crate directly
+  - i.e. now we're making request to Spotify manually with `reqwest`, for more control
+- Organized modules a bit better and split error enums
+- Spotify errors are now handled a bit better
 
 ## [0.10.1] - 2023-12-04
 
-## Fixed
+### Fixed
 
 - Input colors on dark mode
 
-## Changed
+### Changed
 
 - First input/select autofocuses
 - Input now re-focuses on mode change
 
 ## [0.10.0] - 2023-12-03
 
-## Added
+### Added
 
 - Watchers can now be created for any playlist (by manually entering URI/URL)
 
-## Changed
+### Changed
 
 - If tracks cannot be removed, a custom error is thrown
 
