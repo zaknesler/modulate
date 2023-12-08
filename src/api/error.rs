@@ -30,6 +30,9 @@ pub enum ClientError {
     RegexError(#[from] regex::Error),
 
     #[error(transparent)]
+    JsonError(#[from] serde_json::Error),
+
+    #[error(transparent)]
     HeaderValueError(#[from] reqwest::header::InvalidHeaderValue),
 
     #[error(transparent)]

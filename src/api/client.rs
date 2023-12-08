@@ -208,13 +208,17 @@ impl Client {
             let res = self
                 .create_request()?
                 .delete(format!("{}/me/tracks", SPOTIFY_API_BASE_URL))
-                .json(&json!({"ids": &ids.join(",")}))
+                .json(&json!({ "ids": ids }))
                 .send()
-                .await?
-                .json::<SpotifyResponse<()>>()
                 .await?;
 
-            match res {
+            // This endpoint returns nothing when successful, because of course it does
+            if res.status().is_success() {
+                return Ok(());
+            }
+
+            // Manually convert body to JSON if unsuccessful to get status and error
+            match serde_json::from_str::<SpotifyResponse<()>>(&res.text().await?)? {
                 SpotifyResponse::Error(err) => return Err(err.into()),
                 _ => {}
             }
