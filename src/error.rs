@@ -4,9 +4,6 @@ pub enum Error {
     ConfigError(#[from] config::ConfigError),
 
     #[error(transparent)]
-    RegexError(#[from] regex::Error),
-
-    #[error(transparent)]
     ClientError(#[from] crate::api::error::ClientError),
 
     #[error(transparent)]
