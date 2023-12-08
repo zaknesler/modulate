@@ -20,6 +20,12 @@ pub enum ClientError {
     #[error("mutex lock error")]
     MutexLockError,
 
+    #[error("spotify did not return scopes")]
+    SpotifyDidNotReturnScopes,
+
+    #[error("spotify did not return expires_in")]
+    SpotifyDidNotReturnExpiresIn,
+
     #[error(transparent)]
     ChronoOutOfRangeError(#[from] chrono::OutOfRangeError),
 

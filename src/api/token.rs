@@ -30,10 +30,12 @@ impl TryFrom<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>> for T
     fn try_from(
         res: StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
     ) -> Result<Self, Self::Error> {
-        let scopes = res.scopes().expect("spotify returns this").clone();
-
-        let expires_in =
-            chrono::Duration::from_std(res.expires_in().expect("spotify returns this"))?;
+        let scopes = res.scopes().ok_or_else(|| ClientError::SpotifyDidNotReturnScopes)?.clone();
+        let expires_in = chrono::Duration::from_std(
+            res.expires_in()
+                .ok_or_else(|| ClientError::SpotifyDidNotReturnExpiresIn)?
+                .clone(),
+        )?;
 
         // Set the expiration to 1 minute before the "expires_in" duration returned from Spotify
         let expires_at =

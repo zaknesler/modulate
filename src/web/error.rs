@@ -24,9 +24,6 @@ pub enum WebError {
     #[error("invalid jwt")]
     JwtInvalidError,
 
-    #[error("missing csrf")]
-    CsrfMissingError,
-
     #[error("invalid csrf")]
     CsrfInvalidError,
 

@@ -39,6 +39,7 @@ const SPOTIFY_OAUTH2_SCOPES: &[&str] = &[
 
 const SPOTIFY_API_BASE_URL: &str = "https://api.spotify.com/v1";
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Client {
     ctx: AppContext,
@@ -114,20 +115,18 @@ impl Client {
             return Ok(self);
         }
 
-        if token.refresh_token.is_none() {
-            return Err(ClientError::MissingRefreshToken);
-        }
+        let refresh_token = token.refresh_token.ok_or_else(|| ClientError::MissingRefreshToken)?;
 
         let mut new_token: Token = self
             .oauth
-            .exchange_refresh_token(&RefreshToken::new(token.refresh_token.clone().unwrap()))
+            .exchange_refresh_token(&RefreshToken::new(refresh_token.clone()))
             .request_async(async_http_client)
             .await
             .map_err(|err| anyhow!(err))?
             .try_into()?;
 
         // Since the auth flow does not return a refresh token, we must use the old one
-        new_token.refresh_token = Some(token.refresh_token.unwrap());
+        new_token.refresh_token = Some(refresh_token);
 
         self.set_token(new_token.clone())?;
 
