@@ -7,10 +7,7 @@ use super::{
     SpotifyResponse,
 };
 use crate::{
-    api::{
-        model::{TrackPartial, TrackType},
-        SnapshotResponse,
-    },
+    api::{model::TrackPartial, SnapshotResponse},
     context::AppContext,
     db::repo::user::UserRepo,
     CONFIG,
@@ -155,6 +152,8 @@ impl Client {
     }
 
     pub async fn current_user(&self) -> ClientResult<model::User> {
+        tracing::debug!("GET /me");
+
         let res = self
             .create_request()?
             .get(format!("{}/me", SPOTIFY_API_BASE_URL))
@@ -170,6 +169,8 @@ impl Client {
     }
 
     pub async fn current_user_playlists(&self) -> ClientResult<Vec<model::PlaylistPartial>> {
+        tracing::debug!("GET /me/playlists");
+
         self.collect_paginated(
             format!("{}/me/playlists", SPOTIFY_API_BASE_URL).as_ref(),
             None,
@@ -181,6 +182,8 @@ impl Client {
     pub async fn current_user_saved_track_partials(
         &self,
     ) -> ClientResult<Vec<model::TrackPartial>> {
+        tracing::debug!("GET /me/tracks");
+
         #[derive(Debug, Deserialize)]
         struct Wrapper {
             track: model::TrackPartial,
@@ -198,6 +201,8 @@ impl Client {
     }
 
     pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[&str]) -> ClientResult<()> {
+        tracing::debug!("DELETE /me/tracks");
+
         // Endpoint can only be sent a maximum of 50 IDs
         for ids in ids.chunks(50) {
             let res = self
@@ -222,6 +227,8 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
     ) -> ClientResult<model::PlaylistPartial> {
+        tracing::debug!("GET /playlists/{}", id);
+
         let res = self
             .create_request()?
             .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
@@ -245,10 +252,12 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
     ) -> ClientResult<Vec<TrackPartial>> {
+        tracing::debug!("GET /playlists/{}/tracks", id);
+
         #[derive(Debug, Deserialize)]
         struct Wrapper {
             is_local: bool,
-            track: TrackPartial,
+            track: Option<TrackPartial>,
         }
 
         Ok(self
@@ -258,8 +267,9 @@ impl Client {
             )
             .await?
             .into_iter()
-            .filter_map(|item| {
-                (!item.is_local && matches!(item.track.kind, TrackType::Track)).then(|| item.track)
+            .filter_map(|item| match (item.is_local, item.track) {
+                (false, Some(track)) => Some(track),
+                _ => None,
             })
             .collect::<Vec<_>>())
     }
@@ -269,6 +279,8 @@ impl Client {
         PlaylistId(id): &PlaylistId,
         ids: &[&str],
     ) -> ClientResult<Vec<String>> {
+        tracing::debug!("POST /playlists/{}/tracks", id);
+
         let mut snapshot_ids = vec![];
 
         // Map IDs to URIs
@@ -301,6 +313,8 @@ impl Client {
         PlaylistId(id): &PlaylistId,
         ids: &[&str],
     ) -> ClientResult<Vec<String>> {
+        tracing::debug!("DELETE /playlists/{}/tracks", id);
+
         let mut snapshot_ids = vec![];
 
         // Map IDs to URIs
