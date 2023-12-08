@@ -40,7 +40,7 @@ struct CreateWatcherParams {
     sync_interval: SyncInterval,
 }
 
-fn create_watcher(
+async fn create_watcher(
     Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
     Json(data): Json<CreateWatcherParams>,
