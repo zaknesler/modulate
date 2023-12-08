@@ -34,7 +34,7 @@ mod test {
 
     #[test]
     fn it_parses_uris_and_urls() {
-        let expected = PlaylistId("spotify:playlist:EX3J5Phq9j7KcpkZJskhRP".to_string());
+        let expected = PlaylistId("EX3J5Phq9j7KcpkZJskhRP".to_string());
 
         assert_eq!(
             PlaylistId::from_str("spotify:playlist:EX3J5Phq9j7KcpkZJskhRP").unwrap(),
