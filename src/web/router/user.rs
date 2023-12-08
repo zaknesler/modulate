@@ -1,6 +1,6 @@
 use super::JWT_COOKIE;
 use crate::{
-    api::{self, error::ClientError, id::PlaylistId},
+    api::{self, id::PlaylistId},
     context::AppContext,
     db::repo::{user::UserRepo, watcher::WatcherRepo},
     web::util::cookie::unset_cookie,
@@ -14,7 +14,7 @@ use axum::{
     Extension, Json, Router,
 };
 use serde_json::json;
-use std::{collections::HashSet, str::FromStr};
+use std::collections::HashSet;
 use tower_cookies::Cookies;
 
 pub fn router(ctx: AppContext) -> Router {
@@ -40,8 +40,8 @@ async fn get_current_user_dashboard(
     let user_playlists = session.client.current_user_playlists().await?;
     let user_playlist_ids = user_playlists
         .iter()
-        .map(|playlist| PlaylistId::from_str(&playlist.id))
-        .collect::<Result<HashSet<_>, ClientError>>()?;
+        .map(|playlist| PlaylistId(playlist.id.clone()))
+        .collect::<HashSet<_>>();
 
     // Fetch the details of the playlists that the user does not own
     let missing_playlist_ids = watchers
