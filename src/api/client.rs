@@ -12,7 +12,6 @@ use crate::{
     },
     context::AppContext,
     db::repo::user::UserRepo,
-    CONFIG,
 };
 use anyhow::anyhow;
 use oauth2::{
@@ -42,30 +41,32 @@ const SPOTIFY_API_BASE_URL: &str = "https://api.spotify.com/v1";
 
 #[derive(Debug, Clone)]
 pub struct Client {
+    ctx: AppContext,
     oauth: BasicClient,
     token: Arc<Mutex<Option<Token>>>,
 }
 
 impl Client {
     /// Initialize a client with our Spotify credentials
-    pub fn new() -> ClientResult<Self> {
+    pub fn new(ctx: AppContext) -> ClientResult<Self> {
         let oauth = BasicClient::new(
-            ClientId::new(CONFIG.spotify.client_id.clone()),
-            Some(ClientSecret::new(CONFIG.spotify.client_secret.clone())),
+            ClientId::new(ctx.config.spotify.client_id.clone()),
+            Some(ClientSecret::new(ctx.config.spotify.client_secret.clone())),
             AuthUrl::new(SPOTIFY_OAUTH2_AUTH_URL.to_string())?,
             Some(TokenUrl::new(SPOTIFY_OAUTH2_TOKEN_URL.to_string())?),
         )
-        .set_redirect_uri(RedirectUrl::new(CONFIG.spotify.callback_uri.clone())?);
+        .set_redirect_uri(RedirectUrl::new(ctx.config.spotify.callback_uri.clone())?);
 
         Ok(Self {
+            ctx,
             oauth,
             token: Arc::new(Mutex::new(None)),
         })
     }
 
     /// Create a client from an existing token
-    pub fn new_with_token(token: Token) -> ClientResult<Self> {
-        let client = Self::new()?;
+    pub fn new_with_token(ctx: AppContext, token: Token) -> ClientResult<Self> {
+        let client = Self::new(ctx)?;
         client.set_token(token)?;
         Ok(client)
     }

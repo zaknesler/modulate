@@ -7,7 +7,7 @@
     1 %}watcher{% else %}watchers{% endif %} configured. {% endif %}
   </p>
 
-  {% if !crate::CONFIG.sync.enabled %}
+  {% if !config.sync.enabled %}
   <p>Syncing is currently disabled.</p>
   {% endif %}
 </section>
@@ -122,7 +122,7 @@
           class="button sm"
           {%
           if
-          !crate::CONFIG.sync.enabled
+          !config.sync.enabled
           %}disabled{%
           endif
           %}

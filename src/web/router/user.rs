@@ -59,6 +59,7 @@ async fn get_current_user_dashboard(
     .await?;
 
     Ok(DashboardTemplate {
+        config: ctx.config,
         name: user.display_name,
         watchers,
         user_playlists: user_playlists

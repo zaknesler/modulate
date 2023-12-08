@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use std::path;
 
+use crate::error::BaseResult;
+
 pub const CONFIG_DIR: &str = ".config";
 const CONFIG_ENV_PREFIX: &str = "MODULATE";
 const CONFIG_FILE_PRECEDENCE: [&str; 2] = ["default.toml", "local.toml"];
@@ -50,7 +52,7 @@ pub struct SpotifyConfig {
 }
 
 impl Config {
-    pub fn try_parse() -> crate::Result<Config> {
+    pub fn try_parse() -> BaseResult<Config> {
         let dir = path::Path::new(CONFIG_DIR);
 
         Ok(CONFIG_FILE_PRECEDENCE

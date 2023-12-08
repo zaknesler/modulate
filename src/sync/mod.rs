@@ -66,7 +66,7 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
 
     for watcher in to_sync {
         let user_token = user_repo.get_token_by_user_uri(&watcher.user_uri)?;
-        let client = client::Client::new_with_token(user_token)?;
+        let client = client::Client::new_with_token(ctx.clone(), user_token)?;
 
         transfer::PlaylistTransfer::new(ctx.clone(), client)
             .try_transfer(&watcher)

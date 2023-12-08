@@ -1,8 +1,7 @@
+use super::error::ClientError;
 use oauth2::{basic::BasicTokenType, EmptyExtraTokenFields, StandardTokenResponse, TokenResponse};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-
-use super::error::ClientError;
 
 /// Number of seconds to subtract from expires_at to ensure we have enough time to check that an access_token is valid
 /// e.g. Spotify's access tokens are valid for 60 minutes, so settings this to 60 seconds makes them valid for 59 minutes

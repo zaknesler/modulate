@@ -1109,7 +1109,7 @@ dependencies = [
 
 [[package]]
 name = "modulate"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "anyhow",
  "askama",
@@ -1120,7 +1120,6 @@ dependencies = [
  "futures",
  "hmac",
  "jwt",
- "lazy_static",
  "oauth2",
  "r2d2",
  "r2d2_sqlite",

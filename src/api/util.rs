@@ -1,5 +1,6 @@
 use super::{client::Client, error::ClientResult, id::PlaylistId, model};
 
+/// Fetch all playlist partials from a list of playlist IDs
 pub async fn get_playlists_by_ids<'a, I>(
     client: Client,
     ids: I,

@@ -8,7 +8,6 @@ use crate::{
         router::JWT_COOKIE,
         session,
     },
-    CONFIG,
 };
 use axum::{
     body::Body,
@@ -27,7 +26,7 @@ pub async fn middleware(
 ) -> WebResult<impl IntoResponse> {
     let (user_uri, token) = match cookies
         .get(JWT_COOKIE)
-        .and_then(|cookie| jwt::verify_jwt(CONFIG.web.jwt_secret.as_ref(), cookie.value()).ok())
+        .and_then(|cookie| jwt::verify_jwt(ctx.config.web.jwt_secret.as_ref(), cookie.value()).ok())
         .and_then(|user_uri| {
             UserRepo::new(ctx.clone())
                 .get_token_by_user_uri(&user_uri)
@@ -57,7 +56,7 @@ async fn try_create_auth_session(
     token: Token,
     ctx: AppContext,
 ) -> WebResult<session::Session> {
-    let client = api::client::Client::new_with_token(token.clone())?;
+    let client = api::client::Client::new_with_token(ctx.clone(), token.clone())?;
 
     // Ensure access token is refreshed
     client.ensure_token_refreshed(ctx, user_uri).await?;

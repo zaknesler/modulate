@@ -10,7 +10,6 @@ use crate::{
             jwt::{self, JWT_EXPIRATION_DAYS},
         },
     },
-    CONFIG,
 };
 use axum::{
     extract::{Query, State},
@@ -52,7 +51,7 @@ async fn handle_callback(
     // Remove the CSRF cookie now that we've validated the response
     cookies.add(unset_cookie(CSRF_COOKIE));
 
-    let client = client::Client::new()?;
+    let client = client::Client::new(ctx.clone())?;
 
     let token = client.get_token_from_code(params.code).await?;
     client.set_token(token.clone())?;
@@ -61,7 +60,7 @@ async fn handle_callback(
 
     UserRepo::new(ctx.clone()).upsert_user_token(&user.uri, &token)?;
 
-    let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), &user.uri.to_string())?;
+    let jwt = jwt::sign_jwt(ctx.config.web.jwt_secret.as_ref(), &user.uri.to_string())?;
 
     cookies.add(
         CookieBuilder::new(JWT_COOKIE, jwt)

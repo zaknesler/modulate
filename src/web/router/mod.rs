@@ -1,6 +1,6 @@
 use super::{error::WebResult, middleware::guest, view::ConnectTemplate};
 use crate::{api::client, context::AppContext};
-use axum::{middleware, response::IntoResponse, routing::get, Router};
+use axum::{extract::State, middleware, response::IntoResponse, routing::get, Router};
 use tower_cookies::{
     cookie::{
         time::{Duration, OffsetDateTime},
@@ -26,8 +26,8 @@ pub fn router(ctx: AppContext) -> Router {
         .merge(user::router(ctx))
 }
 
-async fn root(cookies: Cookies) -> WebResult<impl IntoResponse> {
-    let (url, csrf) = client::Client::new()?.new_authorize_url();
+async fn root(State(ctx): State<AppContext>, cookies: Cookies) -> WebResult<impl IntoResponse> {
+    let (url, csrf) = client::Client::new(ctx)?.new_authorize_url();
 
     // Set CSRF cookie to verify once user is redirected back
     cookies.add(

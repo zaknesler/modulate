@@ -4,6 +4,7 @@ use crate::{
         model::{Image, PlaylistPartial},
         SPOTIFY_LIKED_TRACKS_URL,
     },
+    config::Config,
     db::model::{playlist::PlaylistType, watcher::Watcher},
 };
 use askama::Template;
@@ -17,6 +18,7 @@ pub struct ConnectTemplate {
 #[derive(Debug, Template)]
 #[template(path = "dashboard.html")]
 pub struct DashboardTemplate {
+    pub config: Config,
     pub name: String,
     pub watchers: Vec<Watcher>,
     pub all_playlists: Vec<DisplayPlaylist>,

@@ -3,7 +3,6 @@ use crate::{
     api::client::Client,
     context::AppContext,
     db::model::{playlist::PlaylistType, watcher::Watcher},
-    CONFIG,
 };
 use std::collections::HashSet;
 
@@ -20,7 +19,7 @@ impl PlaylistTransfer {
 
     /// Using data from a watcher, attempt to transfer tracks from one playlist to another.
     pub async fn try_transfer(&self, watcher: &Watcher) -> SyncResult<bool> {
-        if !CONFIG.sync.enabled {
+        if !self.ctx.config.sync.enabled {
             return Ok(false);
         }
 

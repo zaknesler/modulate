@@ -1,5 +1,10 @@
+pub type BaseResult<T> = Result<T, BaseError>;
+
 #[derive(thiserror::Error, Debug)]
-pub enum Error {
+pub enum BaseError {
+    #[error("could not set config")]
+    ConfigSetError,
+
     #[error(transparent)]
     ConfigError(#[from] config::ConfigError),
 
