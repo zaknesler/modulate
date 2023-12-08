@@ -15,9 +15,9 @@ Once you connect your Spotify account and configure a watcher, it'll stay runnin
 <details>
   <summary><strong>View screenshot</strong></summary>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/2cc9a319-6097-4e46-aeff-10c8a1d29abb">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/zaknesler/modulate/assets/7189795/59679f35-2e47-4e05-9f04-f61cd2871a2f">
-    <img src="https://github.com/zaknesler/modulate/assets/7189795/59679f35-2e47-4e05-9f04-f61cd2871a2f" alt="screenshot of app after configuring watchers" width="400">
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/40d1791a-9c0d-442b-bd98-8b88acaf6848">
+    <source media="(prefers-color-scheme: light)" srcset="https://github.com/zaknesler/modulate/assets/7189795/cef06d9b-70b6-4c18-9a64-b05c1db937fa">
+    <img src="https://github.com/zaknesler/modulate/assets/7189795/cef06d9b-70b6-4c18-9a64-b05c1db937fa" alt="screenshot of app after configuring watchers" width="400">
   </picture>
 </details>
 
@@ -38,7 +38,7 @@ If you'd like to run it for yourself:
 A few honorable mentions:
 
 - [axum](https://github.com/tokio-rs/axum) — to provide a web interface
-- [askama](https://github.com/djc/askama) — for HTML templating so we don't waste precious bytes with pointless JS
+- [oauth2](https://github.com/ramosbugs/oauth2-rs) — for authenticating with Spotify API
+- [askama](https://github.com/djc/askama) — for HTML templating
 - [rusqlite](https://github.com/rusqlite/rusqlite) — for easily storing tokens and watchers
 - [r2d2](https://github.com/sfackler/r2d2) — for managing the db connection
-- you — I love you, let's get married please
