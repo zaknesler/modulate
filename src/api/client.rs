@@ -388,6 +388,11 @@ impl Client {
                 .json::<SpotifyResponse<PaginatedResponse<T>>>()
                 .await?;
 
+            // Once we've made the first request, we can clear the query params so they don't get duplicated
+            if !query.is_empty() {
+                query.clear();
+            }
+
             match res {
                 SpotifyResponse::Success(mut res) => {
                     next = res.next;
