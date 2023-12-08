@@ -45,6 +45,7 @@ pub struct Client {
 }
 
 impl Client {
+    /// Initialize a client with our Spotify credentials
     pub fn new() -> ClientResult<Self> {
         let oauth = BasicClient::new(
             ClientId::new(CONFIG.spotify.client_id.clone()),
@@ -60,17 +61,20 @@ impl Client {
         })
     }
 
+    /// Create a client from an existing token
     pub fn new_with_token(token: Token) -> ClientResult<Self> {
         let client = Self::new()?;
         client.set_token(token)?;
         Ok(client)
     }
 
+    /// Set the token within the client to be used for subsequent requests
     pub fn set_token(&self, token: Token) -> ClientResult<&Self> {
         *self.token.lock().map_err(|_| ClientError::MutexLockError)? = Some(token);
         Ok(self)
     }
 
+    /// Generate a new URL to authorize a user, along with a CSRF token to be verified from Spotify's response
     pub fn new_authorize_url(&self) -> (Url, CsrfToken) {
         self.oauth
             .authorize_url(|| CsrfToken::new_random())
@@ -78,6 +82,7 @@ impl Client {
             .url()
     }
 
+    /// Using the code returned from Spotify during the OAuth2 process, fetch the token data
     pub async fn get_token_from_code(&self, code: String) -> ClientResult<Token> {
         self.oauth
             .exchange_code(AuthorizationCode::new(code))
@@ -129,6 +134,7 @@ impl Client {
         Ok(self)
     }
 
+    /// Create a request client with the appropriate authorization headers
     fn create_request(&self) -> ClientResult<reqwest::Client> {
         let access_token = self
             .token
@@ -151,6 +157,7 @@ impl Client {
             .map_err(|err| err.into())
     }
 
+    /// Fetch the current user
     pub async fn current_user(&self) -> ClientResult<model::User> {
         tracing::debug!("GET /me");
 
@@ -168,6 +175,7 @@ impl Client {
         })
     }
 
+    /// Get all playlists saved by the current user, returning only basic display data
     pub async fn current_user_playlists(&self) -> ClientResult<Vec<model::PlaylistPartial>> {
         tracing::debug!("GET /me/playlists");
 
@@ -179,6 +187,7 @@ impl Client {
         .map_err(|err| err.into())
     }
 
+    /// Get all tracks saved by the current user, returning only the ID/URI data
     pub async fn current_user_saved_track_partials(
         &self,
     ) -> ClientResult<Vec<model::TrackPartial>> {
@@ -200,6 +209,7 @@ impl Client {
             .collect::<Vec<_>>())
     }
 
+    /// Remove tracks from the current user's saved tracks by ID
     pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[&str]) -> ClientResult<()> {
         tracing::debug!("DELETE /me/tracks");
 
@@ -227,6 +237,7 @@ impl Client {
         Ok(())
     }
 
+    /// Get all a playlist by ID, returning only basic display data
     pub async fn playlist_partial(
         &self,
         PlaylistId(id): &PlaylistId,
@@ -251,7 +262,7 @@ impl Client {
         })
     }
 
-    /// Get a list of all track IDs in a playlist
+    /// Get all tracks in a playlist, returning only the ID/URI data
     pub async fn playlist_track_partials(
         &self,
         PlaylistId(id): &PlaylistId,
@@ -278,6 +289,7 @@ impl Client {
             .collect::<Vec<_>>())
     }
 
+    /// Add tracks to the specified playlist by ID
     pub async fn playlist_add_ids(
         &self,
         PlaylistId(id): &PlaylistId,
@@ -312,6 +324,7 @@ impl Client {
         Ok(snapshot_ids)
     }
 
+    /// Remove tracks from the specified playlist by ID
     pub async fn playlist_remove_ids(
         &self,
         PlaylistId(id): &PlaylistId,
