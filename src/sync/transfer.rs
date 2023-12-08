@@ -1,38 +1,31 @@
+use super::error::{SyncError, SyncResult};
 use crate::{
+    api::client::Client,
     context::AppContext,
-    model::{playlist::PlaylistType, watcher::Watcher},
+    db::model::{playlist::PlaylistType, watcher::Watcher},
     CONFIG,
-};
-use anyhow::anyhow;
-use futures::TryStreamExt;
-use rspotify::{
-    clients::{BaseClient, OAuthClient},
-    model::{PlayableId, PlaylistId, TrackId},
-    AuthCodeSpotify,
 };
 use std::collections::HashSet;
 
 #[allow(dead_code)]
 pub struct PlaylistTransfer {
     ctx: AppContext,
-    client: AuthCodeSpotify,
+    client: Client,
 }
 
 impl PlaylistTransfer {
-    pub fn new(ctx: AppContext, client: AuthCodeSpotify) -> Self {
+    pub fn new(ctx: AppContext, client: Client) -> Self {
         Self { ctx, client }
     }
 
     /// Using data from a watcher, attempt to transfer tracks from one playlist to another.
-    pub async fn try_transfer(&self, watcher: &Watcher) -> crate::Result<bool> {
+    pub async fn try_transfer(&self, watcher: &Watcher) -> SyncResult<bool> {
         if !CONFIG.sync.enabled {
             return Ok(false);
         }
 
         match (&watcher.playlist_from, &watcher.playlist_to) {
-            (PlaylistType::Saved, PlaylistType::Uri(to_id)) => {
-                let to_id = PlaylistId::from_id_or_uri(&to_id)?;
-
+            (PlaylistType::Saved, PlaylistType::Id(playlist_to)) => {
                 // Get all saved tracks
                 let saved_track_ids = self.get_saved_track_ids().await?;
 
@@ -42,12 +35,18 @@ impl PlaylistTransfer {
                 }
 
                 // Get IDs from current playlist and remove any from the saved tracks to prevent duplicates
-                let playlist_track_ids = self.get_playlist_track_ids(to_id.clone()).await?;
+                let playlist_track_ids = self
+                    .client
+                    .playlist_track_partials(playlist_to)
+                    .await?
+                    .into_iter()
+                    .map(|track| track.id)
+                    .collect::<HashSet<_>>();
 
                 // Get only the saved tracks that are not already in the playlist
                 let mut ids_to_insert = saved_track_ids
                     .difference(&playlist_track_ids)
-                    .map(|id| PlayableId::Track(id.clone()))
+                    .map(|val| val.as_ref())
                     .collect::<Vec<_>>();
 
                 // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
@@ -55,37 +54,54 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_items(to_id, ids_to_insert, None).await?;
+                    self.client.playlist_add_ids(playlist_to, ids_to_insert.as_slice()).await?;
                 }
 
                 // Remove all saved tracks
                 if watcher.should_remove {
-                    self.client.current_user_saved_tracks_delete(saved_track_ids).await?;
+                    self.client
+                        .current_user_saved_tracks_remove_ids(
+                            saved_track_ids
+                                .iter()
+                                .map(|id| id.as_ref())
+                                .collect::<Vec<_>>()
+                                .as_slice(),
+                        )
+                        .await?;
                 }
             }
-            (PlaylistType::Uri(from_id), PlaylistType::Uri(to_id)) => {
-                if from_id == to_id {
-                    return Err(crate::error::Error::InvalidTransfer(
+            (PlaylistType::Id(playlist_from), PlaylistType::Id(playlist_to)) => {
+                if playlist_from == playlist_to {
+                    return Err(SyncError::InvalidTransferError(
                         "cannot transfer to the same playlist".to_owned(),
                     ));
                 }
 
-                let from_id = PlaylistId::from_id_or_uri(&from_id)?;
-                let to_id = PlaylistId::from_id_or_uri(&to_id)?;
-
-                let from_track_ids = self.get_playlist_track_ids(from_id.clone()).await?;
+                let from_track_ids = self
+                    .client
+                    .playlist_track_partials(&playlist_from)
+                    .await?
+                    .into_iter()
+                    .map(|track| track.id)
+                    .collect::<HashSet<_>>();
 
                 // Don't do anything if there are no tracks in the playlist
                 if from_track_ids.is_empty() {
                     return Ok(false);
                 }
 
-                let to_track_ids = self.get_playlist_track_ids(to_id.clone()).await?;
+                let to_track_ids = self
+                    .client
+                    .playlist_track_partials(&playlist_to)
+                    .await?
+                    .into_iter()
+                    .map(|track| track.id)
+                    .collect::<HashSet<_>>();
 
                 // Get only the saved tracks that are not already in the playlist
                 let mut ids_to_insert = from_track_ids
                     .difference(&to_track_ids)
-                    .map(|id| PlayableId::Track(id.clone()))
+                    .map(|val| val.as_ref())
                     .collect::<Vec<_>>();
 
                 // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
@@ -93,65 +109,36 @@ impl PlaylistTransfer {
 
                 // Add all new tracks to playlist
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_items(to_id, ids_to_insert, None).await?;
+                    self.client.playlist_add_ids(playlist_to, ids_to_insert.as_slice()).await?;
                 }
 
                 // Remove all tracks from original playlist
                 if watcher.should_remove {
                     self.client
-                        .playlist_remove_all_occurrences_of_items(
-                            from_id.clone(),
-                            from_track_ids.iter().map(|id| PlayableId::Track(id.clone())),
-                            None,
+                        .playlist_remove_ids(
+                            playlist_from,
+                            from_track_ids
+                                .iter()
+                                .map(|id| id.as_ref())
+                                .collect::<Vec<_>>()
+                                .as_slice(),
                         )
-                        .await
-                        .map_err(|err| match &err {
-                            rspotify::ClientError::Http(inner_err) => match inner_err.as_ref() {
-                                rspotify::http::HttpError::StatusCode(res)
-                                    if res.status().as_u16() == 403 =>
-                                {
-                                    crate::error::Error::CouldNotRemoveTracks(from_id.to_string())
-                                }
-                                _ => err.into(),
-                            },
-                            _ => err.into(),
-                        })?;
+                        .await?;
                 }
             }
-            _ => return Err(anyhow!("unsupported transfer type").into()),
+            _ => return Err(SyncError::UnsupportedTransferError),
         }
 
         Ok(true)
     }
 
-    async fn get_saved_track_ids(&self) -> crate::Result<HashSet<TrackId<'_>>> {
+    async fn get_saved_track_ids(&self) -> SyncResult<HashSet<String>> {
         Ok(self
             .client
-            .current_user_saved_tracks(None)
-            .try_collect::<Vec<_>>()
+            .current_user_saved_track_partials()
             .await?
             .into_iter()
-            .filter_map(|track| track.track.id)
-            .collect::<HashSet<_>>())
-    }
-
-    async fn get_playlist_track_ids(
-        &self,
-        id: PlaylistId<'_>,
-    ) -> crate::Result<HashSet<TrackId<'_>>> {
-        Ok(self
-            .client
-            .playlist_items(id, None, None)
-            .try_collect::<Vec<_>>()
-            .await?
-            .into_iter()
-            .collect::<Vec<_>>()
-            .into_iter()
-            .filter_map(|item| item.track)
-            .filter_map(|track| match track {
-                rspotify::model::PlayableItem::Track(track) => track.id,
-                _ => None,
-            })
+            .map(|track| track.id)
             .collect::<HashSet<_>>())
     }
 }

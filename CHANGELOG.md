@@ -9,24 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.11.0] - 2023-12-08
+
+### Changed
+
+- Removed `rspotify` in favor of using the standard `oauth2` crate directly
+  - i.e. now we're making request to Spotify manually with `reqwest`, for more control
+- Organized modules a bit better and split error enums
+- Spotify errors are now handled a bit better
+- `playlist_from` is verified to exist when creating watcher
+- Renamed internal `user_id` to `user_uri` to be more accurate
+
 ## [0.10.1] - 2023-12-04
 
-## Fixed
+### Fixed
 
 - Input colors on dark mode
 
-## Changed
+### Changed
 
 - First input/select autofocuses
 - Input now re-focuses on mode change
 
 ## [0.10.0] - 2023-12-03
 
-## Added
+### Added
 
 - Watchers can now be created for any playlist (by manually entering URI/URL)
 
-## Changed
+### Changed
 
 - If tracks cannot be removed, a custom error is thrown
 
@@ -201,7 +212,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.10.1...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/zaknesler/modulate/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/zaknesler/modulate/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/zaknesler/modulate/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/zaknesler/modulate/compare/v0.8.0...v0.9.0

@@ -1,9 +1,13 @@
 use crate::{
     context::AppContext,
-    model::{playlist::PlaylistType, watcher::SyncInterval},
-    repo::watcher::WatcherRepo,
+    db::model::{playlist::PlaylistType, watcher::SyncInterval},
+    db::repo::watcher::WatcherRepo,
     sync::transfer,
-    web::{middleware::auth, session},
+    web::{
+        error::{WebError, WebResult},
+        middleware::auth,
+        session,
+    },
 };
 use axum::{
     extract::{Path, State},
@@ -40,16 +44,24 @@ async fn create_watcher(
     Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
     Json(data): Json<CreateWatcherParams>,
-) -> crate::Result<impl IntoResponse> {
+) -> WebResult<impl IntoResponse> {
     data.validate()?;
 
     let from = PlaylistType::try_from_value(&data.playlist_from)?;
     let to = PlaylistType::try_from_value(&data.playlist_to)?;
 
     if to == from {
-        return Err(crate::error::Error::InvalidFormData(
+        return Err(WebError::InvalidFormData(
             "Cannot create watcher that transfers between the same playlist.".into(),
         ));
+    }
+
+    if let PlaylistType::Id(id) = &from {
+        session.client.playlist_partial(id).await.map_err(|_| {
+            WebError::InvalidFormData(
+                "Cannot create watcher as the source playlist does not exist.".into(),
+            )
+        })?;
     }
 
     let repo = WatcherRepo::new(ctx.clone());
@@ -61,19 +73,19 @@ async fn create_watcher(
         .collect::<Vec<_>>();
 
     if !existing_mutable_watchers.is_empty() {
-        return Err(crate::error::Error::InvalidFormData(
+        return Err(WebError::InvalidFormData(
             "Cannot create watcher as one already exists for this playlist with track removal enabled.".into(),
         ));
     }
 
     if data.should_remove && !existing_watchers.is_empty() {
-        return Err(crate::error::Error::InvalidFormData(
+        return Err(WebError::InvalidFormData(
             "Cannot create watcher with track removal enabled as one already exists for this playlist.".into(),
         ));
     }
 
     repo.create_watcher(
-        &session.user_id,
+        &session.user_uri,
         &from,
         &to,
         data.should_remove,
@@ -92,16 +104,16 @@ async fn delete_watcher(
     Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
     Path(params): Path<ManageWatcherParams>,
-) -> crate::Result<impl IntoResponse> {
+) -> WebResult<impl IntoResponse> {
     let repo = WatcherRepo::new(ctx);
 
-    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user_id)? {
+    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user_uri)? {
         Some(val) => val,
-        None => return Err(crate::error::Error::NotFoundError),
+        None => return Err(WebError::NotFoundError),
     };
 
     repo.delete_watcher_by_user_and_playlists(
-        &session.user_id,
+        &session.user_uri,
         &watcher.playlist_from,
         &watcher.playlist_to,
     )?;
@@ -113,12 +125,12 @@ async fn sync_watcher(
     Extension(session): Extension<session::Session>,
     State(ctx): State<AppContext>,
     Path(params): Path<ManageWatcherParams>,
-) -> crate::Result<impl IntoResponse> {
+) -> WebResult<impl IntoResponse> {
     let repo = WatcherRepo::new(ctx.clone());
 
-    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user_id)? {
+    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user_uri)? {
         Some(val) => val,
-        None => return Err(crate::error::Error::NotFoundError),
+        None => return Err(WebError::NotFoundError),
     };
 
     transfer::PlaylistTransfer::new(ctx, session.client)

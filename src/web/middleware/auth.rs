@@ -1,9 +1,13 @@
 use crate::{
-    api,
+    api::{self, token::Token},
     context::AppContext,
-    repo::user::UserRepo,
-    util::jwt,
-    web::{router::JWT_COOKIE, session},
+    db::repo::user::UserRepo,
+    web::util::{cookie::unset_cookie, jwt},
+    web::{
+        error::{WebError, WebResult},
+        router::JWT_COOKIE,
+        session,
+    },
     CONFIG,
 };
 use axum::{
@@ -13,46 +17,35 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Redirect},
 };
-use tower_cookies::{
-    cookie::{
-        time::{ext::NumericalDuration, OffsetDateTime},
-        CookieBuilder,
-    },
-    Cookies,
-};
+use tower_cookies::Cookies;
 
 pub async fn middleware(
     cookies: Cookies,
     State(ctx): State<AppContext>,
     mut req: Request<Body>,
     next: Next,
-) -> crate::Result<impl IntoResponse> {
-    let (user_id, token) = match cookies
+) -> WebResult<impl IntoResponse> {
+    let (user_uri, token) = match cookies
         .get(JWT_COOKIE)
         .and_then(|cookie| jwt::verify_jwt(CONFIG.web.jwt_secret.as_ref(), cookie.value()).ok())
-        .and_then(|user_id| {
+        .and_then(|user_uri| {
             UserRepo::new(ctx.clone())
-                .get_token_by_user_id(&user_id)
+                .get_token_by_user_uri(&user_uri)
                 .ok()
-                .map(|token| (user_id, token))
+                .map(|token| (user_uri, token))
         }) {
         Some(value) => value,
         None => {
             // Unset the JWT cookie if it isn't valid
-            cookies.add(
-                CookieBuilder::new(JWT_COOKIE, "")
-                    .path("/")
-                    .expires(OffsetDateTime::now_utc().checked_sub(1.days()))
-                    .build(),
-            );
+            cookies.add(unset_cookie(JWT_COOKIE));
 
             return Ok(Redirect::to("/").into_response());
         }
     };
 
-    let session = try_create_auth_session(&user_id, &token, ctx)
+    let session = try_create_auth_session(&user_uri, token, ctx)
         .await
-        .map_err(|_| crate::error::Error::UnauthorizedError)?;
+        .map_err(|_| WebError::UnauthorizedError)?;
 
     req.extensions_mut().insert(session);
 
@@ -60,16 +53,17 @@ pub async fn middleware(
 }
 
 async fn try_create_auth_session(
-    user_id: &str,
-    token_str: &str,
+    user_uri: &str,
+    token: Token,
     ctx: AppContext,
-) -> crate::Result<session::Session> {
-    let (client, token) =
-        api::client::get_token_ensure_refreshed(user_id, &serde_json::from_str(token_str)?, ctx)
-            .await?;
+) -> WebResult<session::Session> {
+    let client = api::client::Client::new_with_token(token.clone())?;
+
+    // Ensure access token is refreshed
+    client.ensure_token_refreshed(ctx, user_uri).await?;
 
     Ok(session::Session {
-        user_id: user_id.to_string(),
+        user_uri: user_uri.to_string(),
         token,
         client,
     })

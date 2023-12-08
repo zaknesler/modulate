@@ -1,3 +1,5 @@
+use crate::db::error::DbError;
+
 use super::playlist::PlaylistType;
 use chrono::{DateTime, Utc};
 use rusqlite::Row;
@@ -5,12 +7,12 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 /// Columns to select from watchers table to map to a Watcher
-pub const WATCHER_COLUMNS: &str = "id, user_id, playlist_from, playlist_to, should_remove, sync_interval, next_sync_at, created_at";
+pub const WATCHER_COLUMNS: &str = "id, user_uri, playlist_from, playlist_to, should_remove, sync_interval, next_sync_at, created_at";
 
 #[derive(Debug, Clone)]
 pub struct Watcher {
     pub id: i64,
-    pub user_id: String,
+    pub user_uri: String,
     pub playlist_from: PlaylistType,
     pub playlist_to: PlaylistType,
     pub should_remove: bool,
@@ -20,12 +22,12 @@ pub struct Watcher {
 }
 
 impl TryFrom<&Row<'_>> for Watcher {
-    type Error = crate::error::Error;
+    type Error = DbError;
 
     fn try_from(row: &Row<'_>) -> Result<Self, Self::Error> {
         Ok(Self {
             id: row.get(0)?,
-            user_id: row.get(1)?,
+            user_uri: row.get(1)?,
             playlist_from: PlaylistType::try_from_value(&row.get::<_, String>(2)?)?,
             playlist_to: PlaylistType::try_from_value(&row.get::<_, String>(3)?)?,
             should_remove: row.get(4)?,
@@ -56,14 +58,14 @@ impl Display for SyncInterval {
 }
 
 impl FromStr for SyncInterval {
-    type Err = crate::error::Error;
+    type Err = DbError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
             "hour" => SyncInterval::Hour,
             "day" => SyncInterval::Day,
             "week" => SyncInterval::Week,
-            _ => return Err(crate::error::Error::InvalidSyncInterval(s.to_string())),
+            _ => return Err(DbError::InvalidSyncInterval(s.to_string())),
         })
     }
 }

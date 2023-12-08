@@ -3,7 +3,13 @@ use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use std::path::Path;
 
-pub fn init_db(file: &str) -> crate::Result<Pool<SqliteConnectionManager>> {
+use self::error::DbResult;
+
+pub mod error;
+pub mod model;
+pub mod repo;
+
+pub fn init(file: &str) -> DbResult<Pool<SqliteConnectionManager>> {
     let db_path = Path::new(CONFIG_DIR).join(file);
     let db_manager = SqliteConnectionManager::file(db_path);
     let db = Pool::new(db_manager)?;
@@ -13,7 +19,7 @@ pub fn init_db(file: &str) -> crate::Result<Pool<SqliteConnectionManager>> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS users (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id     TEXT    UNIQUE,
+            user_uri     TEXT    UNIQUE,
             token       TEXT    NOT NULL,
             created_at  TEXT    NOT NULL
         )",
@@ -22,7 +28,7 @@ pub fn init_db(file: &str) -> crate::Result<Pool<SqliteConnectionManager>> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS watchers (
             id              INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id         TEXT    NOT NULL,
+            user_uri         TEXT    NOT NULL,
             playlist_from   TEXT    NOT NULL,
             playlist_to     TEXT    NOT NULL,
             should_remove   BOOLEAN CHECK (should_remove IN (0, 1)),
@@ -30,7 +36,7 @@ pub fn init_db(file: &str) -> crate::Result<Pool<SqliteConnectionManager>> {
             next_sync_at    TEXT,
             created_at      TEXT    NOT NULL,
 
-            UNIQUE (user_id, playlist_from, playlist_to)
+            UNIQUE (user_uri, playlist_from, playlist_to)
         )",
         [],
     )?;

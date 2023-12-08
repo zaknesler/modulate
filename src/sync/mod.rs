@@ -1,16 +1,18 @@
+use self::error::SyncResult;
 use crate::{
     api::client,
     context::AppContext,
-    repo::{user::UserRepo, watcher::WatcherRepo},
+    db::repo::{user::UserRepo, watcher::WatcherRepo},
 };
 use chrono::{Timelike, Utc};
 
+pub mod error;
 pub mod transfer;
 
 /// Interval to fetch watchers to see if any need to be run again
 const CHECK_INTERVAL_MINS: i64 = 1;
 
-pub async fn init(ctx: AppContext) -> crate::Result<()> {
+pub async fn init(ctx: AppContext) -> SyncResult<()> {
     loop {
         let now = Utc::now();
         let next_update = now
@@ -41,7 +43,7 @@ pub async fn init(ctx: AppContext) -> crate::Result<()> {
     }
 }
 
-async fn execute(ctx: AppContext) -> crate::Result<()> {
+async fn execute(ctx: AppContext) -> SyncResult<()> {
     let user_repo = UserRepo::new(ctx.clone());
     let watcher_repo = WatcherRepo::new(ctx.clone());
     let watchers = watcher_repo.get_all_watchers()?;
@@ -63,10 +65,8 @@ async fn execute(ctx: AppContext) -> crate::Result<()> {
     let now = Utc::now().with_second(0).unwrap().with_nanosecond(0).unwrap();
 
     for watcher in to_sync {
-        let user_token: rspotify::Token =
-            serde_json::from_str(&user_repo.get_token_by_user_id(&watcher.user_id)?)?;
-        let (client, _) =
-            client::get_token_ensure_refreshed(&watcher.user_id, &user_token, ctx.clone()).await?;
+        let user_token = user_repo.get_token_by_user_uri(&watcher.user_uri)?;
+        let client = client::Client::new_with_token(user_token)?;
 
         transfer::PlaylistTransfer::new(ctx.clone(), client)
             .try_transfer(&watcher)

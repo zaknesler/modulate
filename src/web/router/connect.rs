@@ -1,19 +1,23 @@
-use super::JWT_COOKIE;
+use super::{CSRF_COOKIE, JWT_COOKIE};
 use crate::{
-    api::client::create_oauth_client,
+    api::client,
     context::AppContext,
-    repo::user::UserRepo,
-    util::jwt::{self, JWT_EXPIRATION_DAYS},
+    db::repo::user::UserRepo,
+    web::{
+        error::{WebError, WebResult},
+        util::{
+            cookie::unset_cookie,
+            jwt::{self, JWT_EXPIRATION_DAYS},
+        },
+    },
     CONFIG,
 };
-use anyhow::anyhow;
 use axum::{
     extract::{Query, State},
     response::{IntoResponse, Redirect},
     routing::get,
     Router,
 };
-use rspotify::clients::{BaseClient, OAuthClient};
 use serde::Deserialize;
 use tower_cookies::{
     cookie::{
@@ -30,35 +34,41 @@ pub fn router(ctx: AppContext) -> Router {
 #[derive(Debug, Deserialize)]
 struct CallbackParams {
     code: String,
+    state: String,
 }
 
 async fn handle_callback(
     Query(params): Query<CallbackParams>,
     cookies: Cookies,
     State(ctx): State<AppContext>,
-) -> crate::Result<impl IntoResponse> {
-    let client = create_oauth_client();
-    client.request_token(&params.code).await?;
+) -> WebResult<impl IntoResponse> {
+    let csrf = cookies.get(CSRF_COOKIE).ok_or_else(|| WebError::CsrfInvalidError)?;
 
-    let user_id = client.current_user().await?.id;
+    // Ensure the state we get back from the API key is the value we set before the user was redirected
+    if csrf.value() != params.state {
+        return Err(WebError::CsrfInvalidError);
+    }
 
-    let token = client
-        .get_token()
-        .lock()
-        .await
-        .unwrap()
-        .as_ref()
-        .and_then(|token| serde_json::to_string(token).ok())
-        .ok_or_else(|| anyhow!("no token"))?;
+    // Remove the CSRF cookie now that we've validated the response
+    cookies.add(unset_cookie(CSRF_COOKIE));
 
-    UserRepo::new(ctx.clone()).upsert_user_token(&user_id.to_string(), &token)?;
+    let client = client::Client::new()?;
 
-    let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), &user_id.to_string())?;
+    let token = client.get_token_from_code(params.code).await?;
+    client.set_token(token.clone())?;
+
+    let user = client.current_user().await?;
+
+    UserRepo::new(ctx.clone()).upsert_user_token(&user.uri, &token)?;
+
+    let jwt = jwt::sign_jwt(CONFIG.web.jwt_secret.as_ref(), &user.uri.to_string())?;
 
     cookies.add(
         CookieBuilder::new(JWT_COOKIE, jwt)
             .path("/")
             .expires(OffsetDateTime::now_utc().checked_add(JWT_EXPIRATION_DAYS.days()))
+            .http_only(true)
+            .same_site(tower_cookies::cookie::SameSite::Strict)
             .build(),
     );
 
