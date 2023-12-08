@@ -363,7 +363,6 @@ impl Client {
             ));
         }
 
-        // TODO: make requests concurrent
         while let Some(url) = next {
             let res = self
                 .create_request()?
