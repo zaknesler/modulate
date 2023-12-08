@@ -56,6 +56,14 @@ async fn create_watcher(
         ));
     }
 
+    if let PlaylistType::Id(id) = &from {
+        session.client.playlist_partial(id).await.map_err(|_| {
+            WebError::InvalidFormData(
+                "Cannot create watcher as the source playlist does not exist.".into(),
+            )
+        })?;
+    }
+
     let repo = WatcherRepo::new(ctx.clone());
 
     let existing_watchers = repo.get_watchers_for_playlist(&from)?;

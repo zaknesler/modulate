@@ -10,10 +10,12 @@ impl FromStr for PlaylistId {
     type Err = ClientError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Regex::new(&r"^(?:https?://open\.spotify\.com/playlist/|spotify:playlist:)?([a-zA-Z0-9]+)")?
-            .captures(s)
-            .and_then(|captures| Some(Self(captures.get(1)?.as_str().to_string())))
-            .ok_or_else(|| ClientError::InvalidId(s.to_owned()))
+        Regex::new(
+            &r"^(?:https?://open\.spotify\.com/playlist/|spotify:playlist:)?([a-zA-Z0-9]{22})",
+        )?
+        .captures(s)
+        .and_then(|captures| Some(Self(captures.get(1)?.as_str().to_string())))
+        .ok_or_else(|| ClientError::InvalidId(s.to_owned()))
     }
 }
 
@@ -32,6 +34,7 @@ mod test {
         let test = |id: &str| matches!(PlaylistId::from_str(id), Err(_));
 
         test("some bad id");
+        test("EX3J5Phq9j7KcpkZJskhR"); // 21 characters
     }
 
     #[test]

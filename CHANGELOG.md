@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - i.e. now we're making request to Spotify manually with `reqwest`, for more control
 - Organized modules a bit better and split error enums
 - Spotify errors are now handled a bit better
+- `playlist_from` is verified to exist when creating watcher
 
 ## [0.10.1] - 2023-12-04
 
