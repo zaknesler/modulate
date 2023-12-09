@@ -1,6 +1,6 @@
 use super::{
     error::{ClientError, ClientResult},
-    id::PlaylistId,
+    id::{PlaylistId, SnapshotId},
     model::{self, User},
     response::PaginatedResponse,
     token::Token,
@@ -294,7 +294,7 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
         ids: &[&str],
-    ) -> ClientResult<Vec<String>> {
+    ) -> ClientResult<Vec<SnapshotId>> {
         tracing::debug!("POST /playlists/{}/tracks", id);
 
         let mut snapshot_ids = vec![];
@@ -318,7 +318,7 @@ impl Client {
                     snapshot_ids.push(snapshot_id)
                 }
                 SpotifyResponse::Error(err) => return Err(err.into()),
-            }
+            };
         }
 
         Ok(snapshot_ids)
@@ -329,7 +329,7 @@ impl Client {
         &self,
         PlaylistId(id): &PlaylistId,
         ids: &[&str],
-    ) -> ClientResult<Vec<String>> {
+    ) -> ClientResult<Vec<SnapshotId>> {
         tracing::debug!("DELETE /playlists/{}/tracks", id);
 
         let mut snapshot_ids = vec![];
@@ -353,7 +353,7 @@ impl Client {
                     snapshot_ids.push(snapshot_id)
                 }
                 SpotifyResponse::Error(err) => return Err(err.into()),
-            }
+            };
         }
 
         Ok(snapshot_ids)
@@ -386,7 +386,7 @@ impl Client {
                 .json::<SpotifyResponse<PaginatedResponse<T>>>()
                 .await?;
 
-            // Once we've made the first request, we can clear the query params so they don't get duplicated
+            // Once we've made the first request, clear the query params so they don't get duplicated
             if !query.is_empty() {
                 query.clear();
             }

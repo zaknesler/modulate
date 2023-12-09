@@ -1,3 +1,4 @@
+use super::id::SnapshotId;
 use serde::Deserialize;
 use std::fmt::Debug;
 
@@ -30,7 +31,7 @@ impl From<SpotifyErrorWrapper> for super::error::ClientError {
 
 #[derive(Debug, Deserialize)]
 pub struct SnapshotResponse {
-    pub snapshot_id: String,
+    pub snapshot_id: SnapshotId,
 }
 
 #[derive(Debug, Deserialize)]
