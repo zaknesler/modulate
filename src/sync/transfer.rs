@@ -1,6 +1,6 @@
 use super::error::{SyncError, SyncResult};
 use crate::{
-    api::client::Client,
+    api::{client::Client, id::PlaylistId},
     context::AppContext,
     db::model::{playlist::PlaylistType, watcher::Watcher},
 };
@@ -25,33 +25,17 @@ impl PlaylistTransfer {
 
         match (&watcher.playlist_from, &watcher.playlist_to) {
             (PlaylistType::Saved, PlaylistType::Id(playlist_to)) => {
-                // Get all saved tracks
+                // Get all saved tracks and only continue if we have tracks to transfer
                 let saved_track_ids = self.get_saved_track_ids().await?;
-
-                // Don't do anything if there are no saved tracks
                 if saved_track_ids.is_empty() {
                     return Ok(false);
                 }
 
-                // Get IDs from current playlist and remove any from the saved tracks to prevent duplicates
-                let playlist_track_ids = self
-                    .client
-                    .playlist_track_partials(playlist_to)
-                    .await?
-                    .into_iter()
-                    .map(|track| track.id)
-                    .collect::<HashSet<_>>();
+                // Get the tracks already in the target playlist to prevent duplicates
+                let playlist_track_ids = self.get_playlist_track_ids(playlist_to).await?;
 
-                // Get only the saved tracks that are not already in the playlist
-                let mut ids_to_insert = saved_track_ids
-                    .difference(&playlist_track_ids)
-                    .map(|val| val.as_ref())
-                    .collect::<Vec<_>>();
-
-                // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
-                ids_to_insert.reverse();
-
-                // Add all new tracks to playlist
+                // Get only the saved tracks that are not already in the target playlist and add them
+                let ids_to_insert = self.get_ids_to_insert(&saved_track_ids, &playlist_track_ids);
                 if !ids_to_insert.is_empty() {
                     self.client.playlist_add_ids(playlist_to, ids_to_insert.as_slice()).await?;
                 }
@@ -70,43 +54,24 @@ impl PlaylistTransfer {
                 }
             }
             (PlaylistType::Id(playlist_from), PlaylistType::Id(playlist_to)) => {
+                // Verify that we aren't trying to transfer to the same playlist
                 if playlist_from == playlist_to {
                     return Err(SyncError::InvalidTransferError(
                         "cannot transfer to the same playlist".to_owned(),
                     ));
                 }
 
-                let from_track_ids = self
-                    .client
-                    .playlist_track_partials(&playlist_from)
-                    .await?
-                    .into_iter()
-                    .map(|track| track.id)
-                    .collect::<HashSet<_>>();
-
-                // Don't do anything if there are no tracks in the playlist
+                // Get all tracks in the source playlist and only continue if we have tracks to transfer
+                let from_track_ids = self.get_playlist_track_ids(playlist_from).await?;
                 if from_track_ids.is_empty() {
                     return Ok(false);
                 }
 
-                let to_track_ids = self
-                    .client
-                    .playlist_track_partials(&playlist_to)
-                    .await?
-                    .into_iter()
-                    .map(|track| track.id)
-                    .collect::<HashSet<_>>();
+                // Get the tracks already in the target playlist to prevent duplicates
+                let to_track_ids = self.get_playlist_track_ids(playlist_to).await?;
 
-                // Get only the saved tracks that are not already in the playlist
-                let mut ids_to_insert = from_track_ids
-                    .difference(&to_track_ids)
-                    .map(|val| val.as_ref())
-                    .collect::<Vec<_>>();
-
-                // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
-                ids_to_insert.reverse();
-
-                // Add all new tracks to playlist
+                // Get only the tracks that are not already in the target playlist and add them
+                let ids_to_insert = self.get_ids_to_insert(&from_track_ids, &to_track_ids);
                 if !ids_to_insert.is_empty() {
                     self.client.playlist_add_ids(playlist_to, ids_to_insert.as_slice()).await?;
                 }
@@ -131,6 +96,7 @@ impl PlaylistTransfer {
         Ok(true)
     }
 
+    /// Fetch the unique IDs in the user's saved tracks
     async fn get_saved_track_ids(&self) -> SyncResult<HashSet<String>> {
         Ok(self
             .client
@@ -139,5 +105,31 @@ impl PlaylistTransfer {
             .into_iter()
             .map(|track| track.id)
             .collect::<HashSet<_>>())
+    }
+
+    /// Fetch the unique IDs in the specified playlist
+    async fn get_playlist_track_ids(&self, playlist: &PlaylistId) -> SyncResult<HashSet<String>> {
+        Ok(self
+            .client
+            .playlist_track_partials(playlist)
+            .await?
+            .into_iter()
+            .map(|track| track.id)
+            .collect::<HashSet<_>>())
+    }
+
+    /// Find the IDs that are not in the target playlist, and return them reversed so they may be inserted in the correct order
+    fn get_ids_to_insert<'a>(
+        &self,
+        from: &'a HashSet<String>,
+        to: &'a HashSet<String>,
+    ) -> Vec<&'a str> {
+        let mut ids_to_insert =
+            from.difference(&to).map(|track| track.as_ref()).collect::<Vec<_>>();
+
+        // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
+        ids_to_insert.reverse();
+
+        ids_to_insert
     }
 }
