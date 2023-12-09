@@ -7,6 +7,7 @@ use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 pub mod error;
 mod middleware;
+mod response;
 mod router;
 mod session;
 mod util;
