@@ -5,9 +5,6 @@ pub enum SyncError {
     #[error("invalid transfer: {0}")]
     InvalidTransferError(String),
 
-    #[error("unsupported transfer")]
-    UnsupportedTransferError,
-
     #[error(transparent)]
     DbError(#[from] crate::db::error::DbError),
 
