@@ -56,10 +56,10 @@ async fn try_create_auth_session(
     token: Token,
     ctx: AppContext,
 ) -> WebResult<session::Session> {
-    let client = api::client::Client::new_with_token(ctx.clone(), token.clone())?;
+    let client = api::client::Client::new_with_token(ctx, token.clone())?;
 
     // Ensure access token is refreshed
-    client.ensure_token_refreshed(ctx, user_uri).await?;
+    client.ensure_token_refreshed(user_uri).await?;
 
     Ok(session::Session {
         user_uri: user_uri.to_string(),

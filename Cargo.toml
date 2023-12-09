@@ -15,7 +15,8 @@ askama = { version = "0.12", features = ["with-axum"] }
 askama_axum = "0.4"
 axum = { version = "0.7", features = ["form"] }
 chrono = { version = "0.4", features = ["serde"] }
-config = "0.13"
+dotenvy = "0.15"
+figment = { version = "0.10", features = ["env"] }
 futures = "0.3"
 hmac = "0.12"
 jwt = "0.16"

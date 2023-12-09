@@ -27,9 +27,9 @@ If you'd like to run it for yourself:
 
 1. Create a [Spotify developer application](https://developer.spotify.com/dashboard)
 1. Clone this repo
-1. `cp .config/default.toml .config/local.toml`
-1. Add Spotify creds to `.config/local.toml`
-1. `touch .config/modulate.db`
+1. `cp .env.example .env`
+1. Add Spotify creds to `.env`
+1. `touch .data/modulate.db`
 1. `cargo run`
 1. Go to [`localhost:4000`](http://localhost:4000), sign in, and configure
 

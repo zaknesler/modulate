@@ -1,15 +1,12 @@
 use self::error::DbResult;
-use crate::config::CONFIG_DIR;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
-use std::path::Path;
 
 pub mod error;
 pub mod model;
 pub mod repo;
 
-pub fn init(file: &str) -> DbResult<Pool<SqliteConnectionManager>> {
-    let db_path = Path::new(CONFIG_DIR).join(file);
+pub fn init(db_path: &str) -> DbResult<Pool<SqliteConnectionManager>> {
     let db_manager = SqliteConnectionManager::file(db_path);
     let db = Pool::new(db_manager)?;
 

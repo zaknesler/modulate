@@ -97,11 +97,7 @@ impl Client {
     }
 
     /// Fetch a new access token if the current one is expired, and update the user's token in the DB
-    pub async fn ensure_token_refreshed(
-        &self,
-        ctx: AppContext,
-        user_uri: &str,
-    ) -> ClientResult<&Self> {
+    pub async fn ensure_token_refreshed(&self, user_uri: &str) -> ClientResult<&Self> {
         let token = self
             .token
             .lock()
@@ -130,8 +126,10 @@ impl Client {
 
         self.set_token(new_token.clone())?;
 
+        tracing::info!("Refreshed token for user {}", user_uri);
+
         // Update user
-        UserRepo::new(ctx).upsert_user_token(user_uri, &new_token)?;
+        UserRepo::new(self.ctx.clone()).upsert_user_token(user_uri, &new_token)?;
 
         Ok(self)
     }

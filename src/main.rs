@@ -12,23 +12,24 @@ mod web;
 
 #[tokio::main]
 async fn main() -> BaseResult<()> {
+    dotenvy::dotenv()?;
     let config = Config::try_parse()?;
 
     // Initialize tracing
-    tracing_subscriber::fmt().with_max_level(config.log_level.clone()).init();
+    tracing_subscriber::fmt().with_max_level(config.log.level.clone()).init();
 
-    let db = db::init(config.db.file.as_ref())?;
+    let db = db::init(config.database.url.as_ref())?;
     let ctx = context::AppContext { db, config };
 
-    // Run watcher and web server concurrently
-    let watcher = crate::sync::init(ctx.clone()).fuse();
+    // Run sync task and web server concurrently
+    let sync = crate::sync::init(ctx.clone()).fuse();
     let web = crate::web::serve(ctx).fuse();
 
-    pin_mut!(watcher, web);
+    pin_mut!(sync, web);
 
     // Wait for either process to finish (i.e. return an error) and exit
-    select! {
-        result = watcher => result.map_err(|err| err.into()),
-        result = web => result.map_err(|err| err.into()),
-    }
+    Ok(select! {
+        result = sync => result?,
+        result = web => result?,
+    })
 }

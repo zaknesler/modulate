@@ -1,29 +1,19 @@
-use serde::Deserialize;
-use std::path;
-
 use crate::error::BaseResult;
-
-pub const CONFIG_DIR: &str = ".config";
-const CONFIG_ENV_PREFIX: &str = "MODULATE";
-const CONFIG_FILE_PRECEDENCE: [&str; 2] = ["default.toml", "local.toml"];
+use figment::{providers::Env, Figment};
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
-    pub log_level: LogLevel,
+    pub log: LogConfig,
     pub sync: SyncConfig,
-    pub db: DbConfig,
+    pub database: DbConfig,
     pub web: WebConfig,
     pub spotify: SpotifyConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum LogLevel {
-    Trace,
-    Debug,
-    Info,
-    Warn,
-    Error,
+pub struct LogConfig {
+    pub level: LogLevel,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -33,7 +23,7 @@ pub struct SyncConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct DbConfig {
-    pub file: String,
+    pub url: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -53,22 +43,22 @@ pub struct SpotifyConfig {
 
 impl Config {
     pub fn try_parse() -> BaseResult<Config> {
-        let dir = path::Path::new(CONFIG_DIR);
+        let config = Figment::new()
+            .merge(Env::raw().map(|key| key.as_str().to_lowercase().replacen("_", ".", 1).into()))
+            .extract()?;
 
-        Ok(CONFIG_FILE_PRECEDENCE
-            .iter()
-            .fold(::config::Config::builder(), |config, file| {
-                config.add_source(::config::File::with_name(dir.join(file).to_str().unwrap()))
-            })
-            .add_source(
-                ::config::Environment::with_prefix(CONFIG_ENV_PREFIX)
-                    .try_parsing(true)
-                    .separator("_")
-                    .list_separator(" "),
-            )
-            .build()?
-            .try_deserialize()?)
+        Ok(config)
     }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum LogLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
 }
 
 impl From<LogLevel> for tracing::metadata::LevelFilter {

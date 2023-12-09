@@ -10,10 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Removed `lazy_static` in favor of keeping config in the context (like it was before)
+- Switched configuration parsing crate from `config` to `figment`
+- Moved from .toml configuration files to `.env`
 
 ### Fixed
 
 - Don't duplicate query params when making paginated requests
+- Access tokens not refreshing on sync thread
 
 ## [0.11.0] - 2023-12-08
 
