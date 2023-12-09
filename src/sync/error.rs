@@ -5,6 +5,9 @@ pub enum SyncError {
     #[error("invalid transfer: {0}")]
     InvalidTransferError(String),
 
+    #[error("could not find user: {0}")]
+    UserNotFoundError(String),
+
     #[error(transparent)]
     DbError(#[from] crate::db::error::DbError),
 

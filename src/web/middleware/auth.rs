@@ -24,15 +24,12 @@ pub async fn middleware(
     mut req: Request<Body>,
     next: Next,
 ) -> WebResult<impl IntoResponse> {
-    let (user_uri, token) = match cookies
+    let user = match cookies
         .get(JWT_COOKIE)
         .and_then(|cookie| jwt::verify_jwt(ctx.config.web.jwt_secret.as_ref(), cookie.value()).ok())
-        .and_then(|user_uri| {
-            UserRepo::new(ctx.clone())
-                .get_token_by_user_uri(&user_uri)
-                .ok()
-                .map(|token| (user_uri, token))
-        }) {
+        .and_then(|user_uri| UserRepo::new(ctx.clone()).find_user_by_uri(&user_uri).ok())
+        .flatten()
+    {
         Some(value) => value,
         None => {
             // Unset the JWT cookie if it isn't valid
@@ -42,7 +39,7 @@ pub async fn middleware(
         }
     };
 
-    let session = try_create_auth_session(&user_uri, token, ctx)
+    let session = try_create_auth_session(&user.user_uri, user.token, ctx)
         .await
         .map_err(|_| WebError::UnauthorizedError)?;
 

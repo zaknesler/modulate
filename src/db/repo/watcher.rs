@@ -2,7 +2,7 @@ use crate::db::{
     error::DbResult,
     model::{
         playlist::PlaylistType,
-        watcher::{SyncInterval, Watcher, WATCHER_COLUMNS},
+        watcher::{SyncInterval, Watcher, COLUMNS},
     },
 };
 use chrono::Utc;
@@ -22,7 +22,7 @@ impl WatcherRepo {
         self.ctx
             .db
             .get()?
-            .prepare(format!("SELECT {} FROM watchers", WATCHER_COLUMNS).as_ref())?
+            .prepare(format!("SELECT {} FROM watchers", COLUMNS).as_ref())?
             .query_and_then([], |row| row.try_into())?
             .collect::<DbResult<Vec<_>>>()
     }
@@ -35,7 +35,7 @@ impl WatcherRepo {
             .prepare(
                 format!(
                     "SELECT {} FROM watchers WHERE watchers.playlist_from = ?1",
-                    WATCHER_COLUMNS
+                    COLUMNS
                 )
                 .as_ref(),
             )?
@@ -51,7 +51,7 @@ impl WatcherRepo {
             .prepare(
                 format!(
                     "SELECT {} FROM watchers WHERE watchers.user_uri = ?1",
-                    WATCHER_COLUMNS
+                    COLUMNS
                 )
                 .as_ref(),
             )?
@@ -68,7 +68,7 @@ impl WatcherRepo {
             .prepare(
                 format!(
                     "SELECT {} FROM watchers WHERE watchers.id = ?1 AND watchers.user_uri = ?2",
-                    WATCHER_COLUMNS
+                    COLUMNS
                 )
                 .as_ref(),
             )?

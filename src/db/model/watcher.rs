@@ -5,7 +5,7 @@ use rusqlite::Row;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
-pub const WATCHER_COLUMNS: &str = "id, user_uri, playlist_from, playlist_to, should_remove, sync_interval, next_sync_at, created_at";
+pub const COLUMNS: &str = "id, user_uri, playlist_from, playlist_to, should_remove, sync_interval, next_sync_at, created_at";
 
 #[derive(Debug, Clone)]
 pub struct Watcher {

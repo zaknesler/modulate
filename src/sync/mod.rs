@@ -3,6 +3,7 @@ use crate::{
     api::client,
     context::AppContext,
     db::repo::{user::UserRepo, watcher::WatcherRepo},
+    sync::error::SyncError,
 };
 use chrono::{Timelike, Utc};
 
@@ -65,8 +66,11 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
     let now = Utc::now().with_second(0).unwrap().with_nanosecond(0).unwrap();
 
     for watcher in to_sync {
-        let user_token = user_repo.get_token_by_user_uri(&watcher.user_uri)?;
-        let client = client::Client::new_with_token(ctx.clone(), user_token)?;
+        let user = user_repo
+            .find_user_by_uri(&watcher.user_uri)?
+            .ok_or_else(|| SyncError::UserNotFoundError(watcher.user_uri.clone()))?;
+
+        let client = client::Client::new_with_token(ctx.clone(), user.token)?;
         client.ensure_token_refreshed(&watcher.user_uri).await?;
 
         transfer::PlaylistTransfer::new(ctx.clone(), client)

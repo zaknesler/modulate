@@ -1,4 +1,10 @@
-use crate::{api::token::Token, db::error::DbResult};
+use crate::{
+    api::token::Token,
+    db::{
+        error::DbResult,
+        model::user::{User, COLUMNS},
+    },
+};
 use rusqlite::params;
 
 pub struct UserRepo {
@@ -28,19 +34,20 @@ impl UserRepo {
     }
 
     /// Try to find a user's auth token.
-    pub fn get_token_by_user_uri(&self, user_uri: &str) -> DbResult<Token> {
-        let token_str: String = self
+    pub fn find_user_by_uri(&self, user_uri: &str) -> DbResult<Option<User>> {
+        Ok(self
             .ctx
             .db
             .get()?
-            .prepare("SELECT token FROM users WHERE user_uri = ?1 LIMIT 1")?
-            .query_row(params![user_uri], |row| Ok(row.get(0)?))?;
-
-        serde_json::from_str(&token_str).map_err(|err| err.into())
+            .prepare(format!("SELECT {} FROM users WHERE user_uri = ?1 LIMIT 1", COLUMNS).as_ref())?
+            .query_and_then(params![user_uri], |row| User::try_from(row))?
+            .collect::<DbResult<Vec<_>>>()?
+            .first()
+            .cloned())
     }
 
-    /// Delete a user by ID.
-    pub fn delete_user_by_id(&self, user_uri: &str) -> DbResult<()> {
+    /// Delete a user by their Spotify URI
+    pub fn delete_user_by_uri(&self, user_uri: &str) -> DbResult<()> {
         self.ctx
             .db
             .get()?

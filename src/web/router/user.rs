@@ -83,7 +83,7 @@ async fn delete_current_user(
 ) -> WebResult<impl IntoResponse> {
     // Delete all user's watchers and then the user
     WatcherRepo::new(ctx.clone()).delete_all_watchers_by_user(&session.user_uri)?;
-    UserRepo::new(ctx).delete_user_by_id(&session.user_uri)?;
+    UserRepo::new(ctx).delete_user_by_uri(&session.user_uri)?;
 
     // Unset the JWT cookie
     cookies.add(unset_cookie(JWT_COOKIE));
