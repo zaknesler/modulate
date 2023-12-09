@@ -1,7 +1,6 @@
 <p>
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/1c5f53fc-d014-4e7b-8c61-7122dedb7445">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/zaknesler/modulate/assets/7189795/1e6e73b4-2be5-40cb-9a59-d1983c4d5448">
     <img src="https://github.com/zaknesler/modulate/assets/7189795/1e6e73b4-2be5-40cb-9a59-d1983c4d5448" alt="modulate logo" width="150">
   </picture>
 </p>
@@ -15,9 +14,8 @@ Once you connect your Spotify account and configure a watcher, it'll stay runnin
 <details>
   <summary><strong>View screenshot</strong></summary>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/532a6511-b159-4f29-9deb-789102d4902c">
-    <source media="(prefers-color-scheme: light)" srcset="https://github.com/zaknesler/modulate/assets/7189795/849a30db-3bd3-4e84-92c1-58e10d05a88e">
-    <img src="https://github.com/zaknesler/modulate/assets/7189795/849a30db-3bd3-4e84-92c1-58e10d05a88e" alt="screenshot of app after configuring watchers" width="400">
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/3bfa1607-94ab-47f8-b2c5-4f9908ed310c">
+    <img src="https://github.com/zaknesler/modulate/assets/7189795/d81a6024-b856-46e7-9bef-6e13f73cfbd5" alt="screenshot of app after configuring watchers" width="400">
   </picture>
 </details>
 
