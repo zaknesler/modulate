@@ -11,8 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: crate-ci/typos@master
-      - run: cp .config/default.toml .config/local.toml
-      - run: touch .config/modulate.db
+      - run: cp .env.example .env
+      - run: touch .data/modulate.db
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Run tests
