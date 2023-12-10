@@ -22,6 +22,7 @@ Nothing yet.
 - Refactored transfer logic to make it more *modular*
 - Callback URL/CORS origin are now unified into one `WEB_PUBLIC_URL` env variable
 - Web error responses are handled a bit more nicely
+- Input font size is now `1rem` (16px) on mobile to prevent auto-zooming on focus
 
 ### Fixed
 
