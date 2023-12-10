@@ -99,6 +99,7 @@ async fn sync_watcher(
         .try_transfer(&watcher)
         .await?;
 
+    watcher_repo.update_watcher_last_sync_at(watcher.id, now)?;
     watcher_repo.update_watcher_next_sync_at(
         watcher.id,
         now.checked_add_signed(watcher.sync_interval.clone().into()).unwrap(),

@@ -85,6 +85,21 @@ impl WatcherRepo {
         })
     }
 
+    /// Update the last_sync_at date of a watcher by ID.
+    pub fn update_watcher_last_sync_at(
+        &self,
+        id: i64,
+        last_sync_at: chrono::DateTime<chrono::Utc>,
+    ) -> DbResult<()> {
+        self.ctx
+            .db
+            .get()?
+            .prepare("UPDATE watchers SET last_sync_at = ?1 WHERE watchers.id = ?2")?
+            .execute(params![last_sync_at.to_rfc3339(), id])?;
+
+        Ok(())
+    }
+
     /// Update the next_sync_at date of a watcher by ID.
     pub fn update_watcher_next_sync_at(
         &self,

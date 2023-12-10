@@ -16,6 +16,7 @@ use axum::{
     routing::{delete, post},
     Extension, Json, Router,
 };
+use chrono::Utc;
 use serde::Deserialize;
 use serde_json::json;
 use validator::Validate;
@@ -136,6 +137,8 @@ async fn sync_watcher(
     transfer::PlaylistTransfer::new(ctx, session.client)
         .try_transfer(&watcher)
         .await?;
+
+    repo.update_watcher_last_sync_at(params.id, Utc::now())?;
 
     Ok(Json(json!({ "success": true })))
 }

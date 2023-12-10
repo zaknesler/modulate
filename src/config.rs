@@ -48,6 +48,7 @@ pub struct SentryConfig {
 
 impl Config {
     pub fn try_parse() -> BaseResult<Config> {
+        // Split at the first underscore to use the first word as the section identifier
         let config = Figment::new()
             .merge(Env::raw().map(|key| key.as_str().to_lowercase().replacen("_", ".", 1).into()))
             .extract()?;

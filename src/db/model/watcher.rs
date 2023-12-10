@@ -5,7 +5,7 @@ use rusqlite::Row;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
-pub const COLUMNS: &str = "id, user_uri, playlist_from, playlist_to, should_remove, sync_interval, next_sync_at, created_at";
+pub const COLUMNS: &str = "id, user_uri, playlist_from, playlist_to, should_remove, sync_interval, last_sync_at, next_sync_at, created_at";
 
 #[derive(Debug, Clone)]
 pub struct Watcher {
@@ -15,6 +15,7 @@ pub struct Watcher {
     pub playlist_to: PlaylistType,
     pub should_remove: bool,
     pub sync_interval: SyncInterval,
+    pub last_sync_at: Option<DateTime<Utc>>,
     pub next_sync_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
 }
@@ -30,8 +31,9 @@ impl TryFrom<&Row<'_>> for Watcher {
             playlist_to: PlaylistType::try_from_value(&row.get::<_, String>(3)?)?,
             should_remove: row.get(4)?,
             sync_interval: row.get::<_, String>(5)?.parse()?,
-            next_sync_at: row.get::<_, Option<String>>(6)?.map(|val| val.parse().ok()).flatten(),
-            created_at: row.get::<_, String>(7)?.parse()?,
+            last_sync_at: row.get::<_, Option<String>>(6)?.map(|val| val.parse().ok()).flatten(),
+            next_sync_at: row.get::<_, Option<String>>(7)?.map(|val| val.parse().ok()).flatten(),
+            created_at: row.get::<_, String>(8)?.parse()?,
         })
     }
 }

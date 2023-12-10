@@ -30,6 +30,7 @@ pub fn init(db_path: &str) -> DbResult<Pool<SqliteConnectionManager>> {
             playlist_to     TEXT    NOT NULL,
             should_remove   BOOLEAN CHECK (should_remove IN (0, 1)),
             sync_interval   TEXT    NOT NULL,
+            last_sync_at    TEXT,
             next_sync_at    TEXT,
             created_at      TEXT    NOT NULL,
 
