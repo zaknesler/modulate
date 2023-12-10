@@ -15,22 +15,16 @@ mod view;
 
 pub async fn serve(ctx: AppContext) -> WebResult<()> {
     tracing::info!(
-        "Starting web server on {}:{}",
+        "Starting web server on {}:{} (Spotify redirect URI: {}/callback)",
         ctx.config.web.host,
-        ctx.config.web.port
+        ctx.config.web.port,
+        ctx.config.web.public_url
     );
 
     let cors = CorsLayer::new()
         .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE])
         .allow_headers([header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE])
-        .allow_origin(
-            ctx.config
-                .web
-                .allowed_origins
-                .iter()
-                .map(|origin| origin.parse::<HeaderValue>())
-                .collect::<Result<Vec<_>, _>>()?,
-        )
+        .allow_origin(ctx.config.web.public_url.parse::<HeaderValue>()?)
         .allow_credentials(true);
 
     let app = crate::web::router::router(ctx.clone())

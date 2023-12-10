@@ -31,7 +31,7 @@ pub struct DbConfig {
 pub struct WebConfig {
     pub host: String,
     pub port: u16,
-    pub allowed_origins: Vec<String>,
+    pub public_url: String,
     pub jwt_secret: String,
 }
 
@@ -39,7 +39,6 @@ pub struct WebConfig {
 pub struct SpotifyConfig {
     pub client_id: String,
     pub client_secret: String,
-    pub callback_uri: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

@@ -41,10 +41,8 @@ async fn handle_callback(
     cookies: Cookies,
     State(ctx): State<AppContext>,
 ) -> WebResult<impl IntoResponse> {
-    let csrf = cookies.get(CSRF_COOKIE).ok_or_else(|| WebError::CsrfInvalidError)?;
-
     // Ensure the state we get back from the API key is the value we set before the user was redirected
-    if csrf.value() != params.state {
+    if !cookies.get(CSRF_COOKIE).is_some_and(|cookie| cookie.value() == params.state) {
         return Err(WebError::CsrfInvalidError);
     }
 

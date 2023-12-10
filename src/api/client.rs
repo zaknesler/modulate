@@ -50,13 +50,14 @@ pub struct Client {
 impl Client {
     /// Initialize a client with our Spotify credentials
     pub fn new(ctx: AppContext) -> ClientResult<Self> {
+        let redirect_url = RedirectUrl::new(format!("{}/callback", ctx.config.web.public_url))?;
         let oauth = BasicClient::new(
             ClientId::new(ctx.config.spotify.client_id.clone()),
             Some(ClientSecret::new(ctx.config.spotify.client_secret.clone())),
             AuthUrl::new(SPOTIFY_OAUTH2_AUTH_URL.to_string())?,
             Some(TokenUrl::new(SPOTIFY_OAUTH2_TOKEN_URL.to_string())?),
         )
-        .set_redirect_uri(RedirectUrl::new(ctx.config.spotify.callback_uri.clone())?);
+        .set_redirect_uri(redirect_url);
 
         Ok(Self {
             ctx,
