@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `User` model to improve readability of user repo results
 - `last_sync_at` date to `Watcher` model
+- (Optional) logging to `Sentry`
+
+### Changed
+
+- Refactored transfer logic to make it more *modular*
+- Callback URL/CORS origin are now unified into one `WEB_PUBLIC_URL` env variable
+- Web error responses are handled a bit more nicely
+
+### Fixed
+
+- `dashboard.html` template formatting (accidentally mutilated by prettier)
 
 ## [0.12.0] - 2023-12-09
 
