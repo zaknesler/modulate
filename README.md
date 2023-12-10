@@ -14,8 +14,8 @@ Once you connect your Spotify account and configure a watcher, it'll stay runnin
 <details>
   <summary><strong>View screenshot</strong></summary>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/2b4e691a-95cb-4974-9d22-e7be954bc1f8">
-    <img src="https://github.com/zaknesler/modulate/assets/7189795/3d1ae6c5-934f-48a2-b7d9-86ff74332970" alt="screenshot of app after configuring watchers" width="400">
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/3778e6ef-b946-4fbe-ab63-dc3072400a3e">
+    <img src="https://github.com/zaknesler/modulate/assets/7189795/be06cbb9-2479-4fc2-abe0-6a4be8482246" alt="screenshot of app after configuring watchers" width="400">
   </picture>
 </details>
 
