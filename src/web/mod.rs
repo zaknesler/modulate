@@ -36,7 +36,9 @@ pub async fn serve(ctx: AppContext) -> WebResult<()> {
     let app = crate::web::router::router(ctx.clone())
         .layer(TraceLayer::new_for_http())
         .layer(cors)
-        .layer(CookieManagerLayer::new());
+        .layer(CookieManagerLayer::new())
+        .layer(sentry::integrations::tower::NewSentryLayer::new_from_top())
+        .layer(sentry::integrations::tower::SentryHttpLayer::with_transaction());
 
     axum::serve(
         TcpListener::bind(format!("{}:{}", ctx.config.web.host, ctx.config.web.port)).await?,

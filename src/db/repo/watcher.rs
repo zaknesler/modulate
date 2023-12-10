@@ -1,5 +1,5 @@
 use crate::db::{
-    error::DbResult,
+    error::{DbError, DbResult},
     model::{
         playlist::PlaylistType,
         watcher::{SyncInterval, Watcher, COLUMNS},
@@ -43,7 +43,7 @@ impl WatcherRepo {
             .collect::<DbResult<Vec<_>>>()
     }
 
-    /// Get all watchers for a given user ID.
+    /// Get all watchers for a given user URI.
     pub fn get_watchers_by_user(&self, user_uri: &str) -> DbResult<Vec<Watcher>> {
         self.ctx
             .db
@@ -59,9 +59,9 @@ impl WatcherRepo {
             .collect::<DbResult<Vec<_>>>()
     }
 
-    /// Get specific watcher for a given ID and user ID.
+    /// Get specific watcher for a given ID and user URI.
     pub fn get_watcher_by_id_and_user(&self, id: i64, user_uri: &str) -> DbResult<Option<Watcher>> {
-        Ok(self
+        let rows = self
             .ctx
             .db
             .get()?
@@ -73,9 +73,16 @@ impl WatcherRepo {
                 .as_ref(),
             )?
             .query_and_then(params![id, user_uri], |row| Watcher::try_from(row))?
-            .collect::<DbResult<Vec<_>>>()?
-            .first()
-            .cloned())
+            .collect::<DbResult<Vec<_>>>();
+
+        Ok(match rows {
+            Ok(rows) => rows.first().cloned(),
+            Err(
+                ref
+                _outer @ DbError::SQLiteError(ref _inner @ rusqlite::Error::QueryReturnedNoRows),
+            ) => None,
+            Err(err) => return Err(err),
+        })
     }
 
     /// Update the next_sync_at date of a watcher by ID.
@@ -111,7 +118,7 @@ impl WatcherRepo {
         Ok(())
     }
 
-    /// Delete a watcher given user and playlist IDs.
+    /// Delete a watcher given user UID and playlist IDs.
     pub fn delete_watcher_by_user_and_playlists(
         &self,
         user_uri: &str,

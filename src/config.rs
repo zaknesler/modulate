@@ -9,6 +9,7 @@ pub struct Config {
     pub database: DbConfig,
     pub web: WebConfig,
     pub spotify: SpotifyConfig,
+    pub sentry: SentryConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -39,6 +40,11 @@ pub struct SpotifyConfig {
     pub client_id: String,
     pub client_secret: String,
     pub callback_uri: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct SentryConfig {
+    pub dsn: String,
 }
 
 impl Config {

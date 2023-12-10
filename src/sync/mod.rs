@@ -2,10 +2,13 @@ use self::error::SyncResult;
 use crate::{
     api::client,
     context::AppContext,
-    db::repo::{user::UserRepo, watcher::WatcherRepo},
+    db::{
+        model::watcher::Watcher,
+        repo::{user::UserRepo, watcher::WatcherRepo},
+    },
     sync::error::SyncError,
 };
-use chrono::{Timelike, Utc};
+use chrono::{DateTime, Timelike, Utc};
 
 pub mod error;
 pub mod transfer;
@@ -38,9 +41,8 @@ pub async fn init(ctx: AppContext) -> SyncResult<()> {
         )
         .await;
 
-        if let Err(err) = execute(ctx.clone()).await {
-            return Err(err);
-        }
+        // Kill thread if worker task errored
+        execute(ctx.clone()).await?;
     }
 }
 
@@ -66,24 +68,41 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
     let now = Utc::now().with_second(0).unwrap().with_nanosecond(0).unwrap();
 
     for watcher in to_sync {
-        let user = user_repo
-            .find_user_by_uri(&watcher.user_uri)?
-            .ok_or_else(|| SyncError::UserNotFoundError(watcher.user_uri.clone()))?;
-
-        let client = client::Client::new_with_token(ctx.clone(), user.token)?;
-        client.ensure_token_refreshed(&watcher.user_uri).await?;
-
-        transfer::PlaylistTransfer::new(ctx.clone(), client)
-            .try_transfer(&watcher)
-            .await?;
-
-        watcher_repo.update_watcher_next_sync_at(
-            watcher.id,
-            now.checked_add_signed(watcher.sync_interval.into()).unwrap(),
-        )?;
+        if let Err(err) = sync_watcher(ctx.clone(), &user_repo, &watcher_repo, &watcher, now).await
+        {
+            // Don't kill worker thread if an individual sync task errored
+            tracing::error!("Error when syncing watcher: {}", err);
+            sentry::capture_error(&err);
+        }
     }
 
     tracing::info!("Synced");
+
+    Ok(())
+}
+
+async fn sync_watcher(
+    ctx: AppContext,
+    user_repo: &UserRepo,
+    watcher_repo: &WatcherRepo,
+    watcher: &Watcher,
+    now: DateTime<Utc>,
+) -> SyncResult<()> {
+    let user = user_repo
+        .find_user_by_uri(&watcher.user_uri)?
+        .ok_or_else(|| SyncError::UserNotFoundError(watcher.user_uri.clone()))?;
+
+    let client = client::Client::new_with_token(ctx.clone(), user.token)?;
+    client.ensure_token_refreshed(&watcher.user_uri).await?;
+
+    transfer::PlaylistTransfer::new(ctx.clone(), client)
+        .try_transfer(&watcher)
+        .await?;
+
+    watcher_repo.update_watcher_next_sync_at(
+        watcher.id,
+        now.checked_add_signed(watcher.sync_interval.clone().into()).unwrap(),
+    )?;
 
     Ok(())
 }

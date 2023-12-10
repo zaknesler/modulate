@@ -179,7 +179,7 @@ input[type="checkbox"]:checked::before {
 select,
 input {
   appearance: none;
-  font-size: var(--fs-sm);
+  font-size: var(--fs-base);
   padding: 0.75rem;
   border-radius: 0.5rem;
   border: 1px solid var(--color-border);
@@ -196,8 +196,9 @@ input:focus {
 select {
   background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="%23888"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>')
     no-repeat;
-  background-position: center right 0.25rem;
+  background-position: center right 0.5rem;
   background-size: 20px;
+  padding-right: 2.25rem;
 }
 
 a {
@@ -374,6 +375,11 @@ a:hover {
 
   main {
     max-width: 375px;
+  }
+
+  select,
+  input {
+    font-size: var(--fs-sm);
   }
 }
 

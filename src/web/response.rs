@@ -8,13 +8,20 @@ use serde_json::{json, Value};
 
 impl IntoResponse for WebError {
     fn into_response(self) -> Response {
-        // If we have a specific status and error message to respond with, use it, otherwise just return a generic 500
-        let (status, error) = handle_error_response(&self).unwrap_or_else(|| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Value::String(self.to_string()),
-            )
-        });
+        let (status, error) = match maybe_get_response(&self) {
+            Some(res) => res,
+            None => {
+                // Log any errors for which we cannot return a useful response to the user
+                tracing::error!("{}", self);
+                sentry::capture_error(&self);
+
+                // Send a generic 500 response
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Value::String(self.to_string()),
+                )
+            }
+        };
 
         let data = Json(json!({ "status": status.as_u16(), "error": error }));
         (status, data).into_response()
@@ -22,7 +29,7 @@ impl IntoResponse for WebError {
 }
 
 /// Create a response for a specific error type
-fn handle_error_response(error: &WebError) -> Option<(StatusCode, Value)> {
+fn maybe_get_response(error: &WebError) -> Option<(StatusCode, Value)> {
     Some(match error {
         WebError::NotFoundError => (StatusCode::NOT_FOUND, Value::String(error.to_string())),
         WebError::DbError(outer) => match outer {
