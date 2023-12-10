@@ -1,5 +1,3 @@
-use core::panic;
-
 use crate::config::Config;
 use error::BaseResult;
 use futures::{future::FutureExt, pin_mut, select};
