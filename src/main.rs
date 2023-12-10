@@ -44,15 +44,15 @@ async fn run(config: Config) -> BaseResult<()> {
     let db = db::init(config.database.url.as_ref())?;
     let ctx = context::AppContext { db, config };
 
-    // Run sync task and web server concurrently
-    let sync = crate::sync::init(ctx.clone()).fuse();
-    let web = crate::web::serve(ctx).fuse();
+    // Run web server and sync tasks concurrently
+    let web = crate::web::serve(ctx.clone()).fuse();
+    let sync = crate::sync::init(ctx).fuse();
 
-    pin_mut!(sync, web);
+    pin_mut!(web, sync);
 
     // Wait for either process to finish (i.e. return an error) and exit
     Ok(select! {
-        result = sync => result?,
         result = web => result?,
+        result = sync => result?,
     })
 }
