@@ -101,10 +101,8 @@
             {% call playlist_item(to_data) %}
           </h4>
 
-          <p>
-            <small>
-              Syncs every {{ watcher.sync_interval }}. Original tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed.
-            </small>
+          <p class="sm">
+            Syncs every {{ watcher.sync_interval }}. Original tracks will {% if !watcher.should_remove %}<strong>not</strong>{% endif %} be removed.
           </p>
 
           <div class="split">
@@ -120,12 +118,8 @@
 {% macro data_section() %}
   <section class="left">
     <h3>Your data</h3>
-    <p>
-      <small>Playlist and user data supplied by Spotify. This app is not affiliated with nor endorsed by Spotify in any way.</small>
-    </p>
-    <p>
-      <small>Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later.</small>
-    </p>
+    <p class="sm">Playlist and user data supplied by Spotify. This app is not affiliated with nor endorsed by Spotify in any way.</p>
+    <p class="sm">Click the link below to delete your connected data and watchers. Your Spotify account will be untouched, and you can always reconnect later.</p>
     <button class="link sm" onclick="deleteUser()">Delete your data</button>
   </section>
 {% endmacro %}
