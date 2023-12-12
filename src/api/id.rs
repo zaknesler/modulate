@@ -2,7 +2,7 @@ use super::error::{ClientError, ClientResult};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-/// Regex to parse a Spotify playlist ID from a playist URL or Spotify URI
+/// Regex to parse a Spotify playlist ID from a playlist URL or Spotify URI
 const PLAYLIST_URL_RE: &str =
     r"^(?:https?://open\.spotify\.com/playlist/|spotify:playlist:)?([a-zA-Z0-9]{22})";
 
