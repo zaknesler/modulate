@@ -1,6 +1,6 @@
 use super::{
     error::{ClientError, ClientResult},
-    id::{PlaylistId, SnapshotId},
+    id::{PlaylistId, SnapshotId, TrackId},
     model::{self, User},
     response::PaginatedResponse,
     token::Token,
@@ -211,7 +211,10 @@ impl Client {
     }
 
     /// Remove tracks from the current user's saved tracks by ID
-    pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[&str]) -> ClientResult<()> {
+    pub async fn current_user_saved_tracks_remove_ids(
+        &self,
+        ids: &Vec<TrackId>,
+    ) -> ClientResult<()> {
         tracing::debug!("DELETE /me/tracks");
 
         // Endpoint can only be sent a maximum of 50 IDs
@@ -250,7 +253,7 @@ impl Client {
             .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
             .query(&[(
                 "fields",
-                "id,uri,name,images,snapshot_id,external_urls(spotify)",
+                "id,name,images,snapshot_id,external_urls(spotify)",
             )])
             .send()
             .await?
@@ -279,7 +282,7 @@ impl Client {
         Ok(self
             .collect_paginated::<Wrapper>(
                 format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id).as_ref(),
-                Some("items(is_local,track(id,uri,type))"),
+                Some("items(is_local,track(id,type))"),
             )
             .await?
             .into_iter()
@@ -294,14 +297,14 @@ impl Client {
     pub async fn playlist_add_ids(
         &self,
         PlaylistId(id): &PlaylistId,
-        ids: &[&str],
+        ids: &Vec<TrackId>,
     ) -> ClientResult<Vec<SnapshotId>> {
         tracing::debug!("POST /playlists/{}/tracks", id);
 
         let mut snapshot_ids = vec![];
 
         // Map IDs to URIs
-        let uris = ids.iter().map(|id| format!("spotify:track:{}", id)).collect::<Vec<_>>();
+        let uris = ids.iter().map(|id| id.uri()).collect::<Vec<_>>();
 
         // Endpoint can only be sent a maximum of 100 objects
         for uris in uris.chunks(100) {
@@ -329,14 +332,14 @@ impl Client {
     pub async fn playlist_remove_ids(
         &self,
         PlaylistId(id): &PlaylistId,
-        ids: &[&str],
+        ids: &Vec<TrackId>,
     ) -> ClientResult<Vec<SnapshotId>> {
         tracing::debug!("DELETE /playlists/{}/tracks", id);
 
         let mut snapshot_ids = vec![];
 
         // Map IDs to URIs
-        let uris = ids.iter().map(|id| format!("spotify:track:{}", id)).collect::<Vec<_>>();
+        let uris = ids.iter().map(|id| id.uri()).collect::<Vec<_>>();
 
         // Endpoint can only be sent a maximum of 100 objects
         for uris in uris.chunks(100) {

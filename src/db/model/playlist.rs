@@ -37,7 +37,10 @@ impl PlaylistType {
     pub fn try_from_value(value: &str) -> DbResult<Self> {
         Ok(match value {
             LIKED_PLAYLIST_VALUE => Self::Saved,
-            _ => Self::Id(value.parse().map_err(|_| DbError::InvalidId(value.to_string()))?),
+            _ => Self::Id(
+                PlaylistId::try_from_input(value)
+                    .map_err(|_| DbError::InvalidId(value.to_string()))?,
+            ),
         })
     }
 }

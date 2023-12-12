@@ -91,7 +91,17 @@ async fn create_watcher(
         &to,
         data.should_remove,
         data.sync_interval,
-    )?;
+    )
+    .map_err(|err| match err {
+        crate::db::error::DbError::SQLiteError(
+            ref _inner @ rusqlite::Error::SqliteFailure(ref err_code, _),
+        ) if err_code.code == rusqlite::ErrorCode::ConstraintViolation => {
+            WebError::InvalidFormData(
+                "Cannot create watcher as one already exist for these playlists.".into(),
+            )
+        }
+        _ => err.into(),
+    })?;
 
     Ok(Json(json!({ "success": true })))
 }

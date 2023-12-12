@@ -56,9 +56,12 @@ async fn handle_callback(
 
     let user = client.current_user().await?;
 
-    UserRepo::new(ctx.clone()).upsert_user_token(&user.uri, &token)?;
+    UserRepo::new(ctx.clone()).upsert_user_token(&user.id.uri(), &token)?;
 
-    let jwt = jwt::sign_jwt(ctx.config.web.jwt_secret.as_ref(), &user.uri.to_string())?;
+    let jwt = jwt::sign_jwt(
+        ctx.config.web.jwt_secret.as_ref(),
+        &user.id.uri().to_string(),
+    )?;
 
     cookies.add(
         CookieBuilder::new(JWT_COOKIE, jwt)

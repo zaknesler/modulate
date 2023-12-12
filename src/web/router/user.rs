@@ -1,6 +1,6 @@
 use super::JWT_COOKIE;
 use crate::{
-    api::{self, id::PlaylistId},
+    api::{self},
     context::AppContext,
     db::repo::{user::UserRepo, watcher::WatcherRepo},
     web::util::cookie::unset_cookie,
@@ -34,13 +34,13 @@ async fn get_current_user_dashboard(
 ) -> WebResult<impl IntoResponse> {
     let user = session.client.current_user().await?;
 
-    let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.uri)?;
+    let watchers = WatcherRepo::new(ctx.clone()).get_watchers_by_user(&user.id.uri())?;
 
     // Get all playlists that belong to the user
     let user_playlists = session.client.current_user_playlists().await?;
     let user_playlist_ids = user_playlists
         .iter()
-        .map(|playlist| PlaylistId(playlist.id.clone()))
+        .map(|playlist| playlist.id.clone())
         .collect::<HashSet<_>>();
 
     // Fetch the details of the playlists that the user does not own

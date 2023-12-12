@@ -1,6 +1,9 @@
 use super::error::{SyncError, SyncResult};
 use crate::{
-    api::{client::Client, id::PlaylistId},
+    api::{
+        client::Client,
+        id::{PlaylistId, TrackId},
+    },
     context::AppContext,
     db::model::{playlist::PlaylistType, watcher::Watcher},
 };
@@ -40,8 +43,8 @@ impl PlaylistTransfer {
 
         // Remove all original tracks from source playlist
         if watcher.should_remove {
-            self.remove_tracks_from_playlist(&watcher.playlist_from, &ids_to_transfer)
-                .await?;
+            let ids_to_remove = ids_to_transfer.into_iter().collect::<Vec<_>>();
+            self.remove_tracks_from_playlist(&watcher.playlist_from, &ids_to_remove).await?;
         }
 
         Ok(true)
@@ -51,7 +54,7 @@ impl PlaylistTransfer {
     async fn get_track_ids_to_transfer(
         &self,
         playlist_from: &PlaylistType,
-    ) -> SyncResult<HashSet<String>> {
+    ) -> SyncResult<HashSet<TrackId>> {
         let ids = match playlist_from {
             PlaylistType::Saved => self.client.current_user_saved_track_partials().await?,
             PlaylistType::Id(id) => self.client.playlist_track_partials(id).await?,
@@ -64,18 +67,14 @@ impl PlaylistTransfer {
     async fn remove_tracks_from_playlist(
         &self,
         playlist_from: &PlaylistType,
-        ids_to_remove: &HashSet<String>,
+        ids_to_remove: &Vec<TrackId>,
     ) -> SyncResult<()> {
-        let ids_to_remove = ids_to_remove.iter().map(|id| id.as_ref()).collect::<Vec<_>>();
-
         match playlist_from {
             PlaylistType::Saved => {
-                self.client
-                    .current_user_saved_tracks_remove_ids(ids_to_remove.as_slice())
-                    .await?;
+                self.client.current_user_saved_tracks_remove_ids(ids_to_remove).await?;
             }
             PlaylistType::Id(id) => {
-                self.client.playlist_remove_ids(id, ids_to_remove.as_slice()).await?;
+                self.client.playlist_remove_ids(id, ids_to_remove).await?;
             }
         };
 
@@ -86,7 +85,7 @@ impl PlaylistTransfer {
     async fn maybe_transfer_tracks(
         &self,
         playlist_to: &PlaylistType,
-        ids_to_transfer: &HashSet<String>,
+        ids_to_transfer: &HashSet<TrackId>,
     ) -> SyncResult<()> {
         match playlist_to {
             PlaylistType::Id(to_id) => {
@@ -96,7 +95,7 @@ impl PlaylistTransfer {
                 // Get only the saved tracks that are not already in the target playlist and add them
                 let ids_to_insert = self.get_ids_to_insert(&ids_to_transfer, &playlist_track_ids);
                 if !ids_to_insert.is_empty() {
-                    self.client.playlist_add_ids(to_id, ids_to_insert.as_slice()).await?;
+                    self.client.playlist_add_ids(to_id, &ids_to_insert).await?;
                 }
             }
             PlaylistType::Saved => {
@@ -111,7 +110,7 @@ impl PlaylistTransfer {
     }
 
     /// Fetch the unique IDs in the specified playlist
-    async fn get_playlist_track_ids(&self, playlist: &PlaylistId) -> SyncResult<HashSet<String>> {
+    async fn get_playlist_track_ids(&self, playlist: &PlaylistId) -> SyncResult<HashSet<TrackId>> {
         Ok(self
             .client
             .playlist_track_partials(playlist)
@@ -122,13 +121,8 @@ impl PlaylistTransfer {
     }
 
     /// Find the IDs that are not in the target playlist, and return them reversed so they may be inserted in the correct order
-    fn get_ids_to_insert<'a>(
-        &self,
-        from: &'a HashSet<String>,
-        to: &'a HashSet<String>,
-    ) -> Vec<&'a str> {
-        let mut ids_to_insert =
-            from.difference(&to).map(|track| track.as_ref()).collect::<Vec<_>>();
+    fn get_ids_to_insert(&self, from: &HashSet<TrackId>, to: &HashSet<TrackId>) -> Vec<TrackId> {
+        let mut ids_to_insert = from.difference(&to).map(|track| track.clone()).collect::<Vec<_>>();
 
         // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
         ids_to_insert.reverse();

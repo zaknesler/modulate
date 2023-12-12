@@ -76,7 +76,7 @@ impl DashboardTemplate {
 impl From<PlaylistPartial> for DisplayPlaylist {
     fn from(data: PlaylistPartial) -> Self {
         Self {
-            id: data.id.parse().ok(),
+            id: Some(data.id),
             name: data.name,
             image_url: get_display_image(data.images),
             spotify_url: data.external_urls.spotify,

@@ -1,10 +1,10 @@
+use super::id::{PlaylistId, SnapshotId, TrackId, UserId};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
-    pub id: String,
-    pub uri: String,
+    pub id: UserId,
     pub display_name: String,
     pub images: Vec<Image>,
     pub external_urls: ExternalUrls,
@@ -12,8 +12,7 @@ pub struct User {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrackPartial {
-    pub id: String,
-    pub uri: String,
+    pub id: TrackId,
     #[serde(rename = "type")]
     pub kind: TrackType,
 }
@@ -27,10 +26,9 @@ pub enum TrackType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlaylistPartial {
-    pub id: String,
-    pub uri: String,
+    pub id: PlaylistId,
     pub name: String,
-    pub snapshot_id: String,
+    pub snapshot_id: SnapshotId,
     pub images: Vec<Image>,
     pub external_urls: ExternalUrls,
 }
