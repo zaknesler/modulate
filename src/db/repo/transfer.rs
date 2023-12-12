@@ -46,7 +46,7 @@ impl TransferRepo {
             .ctx
             .db
             .get()?
-            .prepare(format!("SELECT {} FROM transfers WHERE transfers.id = ?1", COLUMNS).as_ref())?
+            .prepare(format!("SELECT {COLUMNS} FROM transfers WHERE transfers.id = ?1").as_ref())?
             .query_and_then(params![id], |row| Transfer::try_from(row))?
             .collect::<DbResult<Vec<_>>>()?)
     }

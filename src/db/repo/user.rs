@@ -39,7 +39,7 @@ impl UserRepo {
             .ctx
             .db
             .get()?
-            .prepare(format!("SELECT {} FROM users WHERE user_uri = ?1 LIMIT 1", COLUMNS).as_ref())?
+            .prepare(format!("SELECT {COLUMNS} FROM users WHERE user_uri = ?1 LIMIT 1").as_ref())?
             .query_and_then(params![user_uri], |row| User::try_from(row))?
             .collect::<DbResult<Vec<_>>>()?
             .first()

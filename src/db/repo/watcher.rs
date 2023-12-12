@@ -33,11 +33,8 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(
-                format!(
-                    "SELECT {} FROM watchers WHERE watchers.playlist_from = ?1",
-                    COLUMNS
-                )
-                .as_ref(),
+                format!("SELECT {COLUMNS} FROM watchers WHERE watchers.playlist_from = ?1")
+                    .as_ref(),
             )?
             .query_and_then(params![from.to_value()], |row| row.try_into())?
             .collect::<DbResult<Vec<_>>>()
@@ -49,11 +46,7 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(
-                format!(
-                    "SELECT {} FROM watchers WHERE watchers.user_uri = ?1",
-                    COLUMNS
-                )
-                .as_ref(),
+                format!("SELECT {COLUMNS} FROM watchers WHERE watchers.user_uri = ?1").as_ref(),
             )?
             .query_and_then(params![user_uri], |row| row.try_into())?
             .collect::<DbResult<Vec<_>>>()
@@ -66,10 +59,7 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(
-                format!(
-                    "SELECT {} FROM watchers WHERE watchers.id = ?1 AND watchers.user_uri = ?2",
-                    COLUMNS
-                )
+                format!("SELECT {COLUMNS} FROM watchers WHERE watchers.id = ?1 AND watchers.user_uri = ?2")
                 .as_ref(),
             )?
             .query_and_then(params![id, user_uri], |row| Watcher::try_from(row))?
