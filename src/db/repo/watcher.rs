@@ -60,7 +60,7 @@ impl WatcherRepo {
     }
 
     /// Get specific watcher for a given ID and user URI.
-    pub fn get_watcher_by_id_and_user(&self, id: i64, user_uri: &str) -> DbResult<Option<Watcher>> {
+    pub fn get_watcher_by_id_and_user(&self, id: u32, user_uri: &str) -> DbResult<Option<Watcher>> {
         let rows = self
             .ctx
             .db
@@ -88,7 +88,7 @@ impl WatcherRepo {
     /// Update the last_sync_at date of a watcher by ID.
     pub fn update_watcher_last_sync_at(
         &self,
-        id: i64,
+        id: u32,
         last_sync_at: chrono::DateTime<chrono::Utc>,
     ) -> DbResult<()> {
         self.ctx
@@ -103,7 +103,7 @@ impl WatcherRepo {
     /// Update the next_sync_at date of a watcher by ID.
     pub fn update_watcher_next_sync_at(
         &self,
-        id: i64,
+        id: u32,
         next_sync_at: chrono::DateTime<chrono::Utc>,
     ) -> DbResult<()> {
         self.ctx

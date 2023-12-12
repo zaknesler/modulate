@@ -9,7 +9,7 @@ pub const COLUMNS: &str = "id, user_uri, playlist_from, playlist_to, should_remo
 
 #[derive(Debug, Clone)]
 pub struct Watcher {
-    pub id: i64,
+    pub id: u32,
     pub user_uri: String,
     pub playlist_from: PlaylistType,
     pub playlist_to: PlaylistType,

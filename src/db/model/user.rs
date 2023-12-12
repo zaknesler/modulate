@@ -6,9 +6,10 @@ pub const COLUMNS: &str = "id, user_uri, token, created_at";
 
 #[derive(Debug, Clone)]
 pub struct User {
-    pub id: i64,
+    pub id: u32,
     pub user_uri: String,
     pub token: Token,
+    pub synced_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -20,6 +21,7 @@ impl TryFrom<&Row<'_>> for User {
             id: row.get(0)?,
             user_uri: row.get(1)?,
             token: serde_json::from_str(&row.get::<_, String>(2)?)?,
+            synced_at: row.get::<_, String>(3)?.parse()?,
             created_at: row.get::<_, String>(3)?.parse()?,
         })
     }

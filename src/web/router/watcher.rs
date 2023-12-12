@@ -108,7 +108,7 @@ async fn create_watcher(
 
 #[derive(Deserialize)]
 struct ManageWatcherParams {
-    id: i64,
+    id: u32,
 }
 
 async fn delete_watcher(

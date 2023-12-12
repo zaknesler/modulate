@@ -4,7 +4,7 @@ use crate::{
     context::AppContext,
     db::{
         model::watcher::Watcher,
-        repo::{user::UserRepo, watcher::WatcherRepo},
+        repo::{transfer::TransferRepo, user::UserRepo, watcher::WatcherRepo},
     },
     sync::error::SyncError,
 };
@@ -88,6 +88,28 @@ async fn sync_watcher(
     watcher: &Watcher,
     now: DateTime<Utc>,
 ) -> SyncResult<()> {
+    let err = sync_watcher_inner(ctx.clone(), user_repo, watcher_repo, watcher, &now)
+        .await
+        .err();
+
+    // Save a new transfer in the database
+    TransferRepo::new(ctx).create_transfer(watcher.id, err.as_ref(), now)?;
+
+    // Now that we've saved the error, we can pass it back to the caller
+    if let Some(err) = err {
+        return Err(err);
+    }
+
+    Ok(())
+}
+
+async fn sync_watcher_inner(
+    ctx: AppContext,
+    user_repo: &UserRepo,
+    watcher_repo: &WatcherRepo,
+    watcher: &Watcher,
+    now: &DateTime<Utc>,
+) -> SyncResult<()> {
     let user = user_repo
         .find_user_by_uri(&watcher.user_uri)?
         .ok_or_else(|| SyncError::UserNotFoundError(watcher.user_uri.clone()))?;
@@ -99,7 +121,7 @@ async fn sync_watcher(
         .try_transfer(&watcher)
         .await?;
 
-    watcher_repo.update_watcher_last_sync_at(watcher.id, now)?;
+    watcher_repo.update_watcher_last_sync_at(watcher.id, *now)?;
     watcher_repo.update_watcher_next_sync_at(
         watcher.id,
         now.checked_add_signed(watcher.sync_interval.clone().into()).unwrap(),
