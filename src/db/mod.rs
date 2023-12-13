@@ -41,11 +41,12 @@ pub fn init(db_path: &str) -> DbResult<Pool<SqliteConnectionManager>> {
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS transfers (
-            id          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            watcher_id  INTEGER NOT NULL,
-            error       TEXT    NOT NULL,
-            synced_at   TEXT    NOT NULL,
-            created_at  TEXT    NOT NULL
+            id                      INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            watcher_id              INTEGER NOT NULL,
+            num_tracks_transferred  INTEGER NOT NULL,
+            error                   TEXT    NOT NULL,
+            synced_at               TEXT    NOT NULL,
+            created_at              TEXT    NOT NULL
         )",
         [],
     )?;

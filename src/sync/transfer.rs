@@ -21,9 +21,9 @@ impl PlaylistTransfer {
     }
 
     /// Using data from a watcher, attempt to transfer tracks from one playlist to another.
-    pub async fn try_transfer(&self, watcher: &Watcher) -> SyncResult<bool> {
+    pub async fn try_transfer(&self, watcher: &Watcher) -> SyncResult<u32> {
         if !self.ctx.config.sync.enabled {
-            return Ok(false);
+            return Ok(0);
         }
 
         if watcher.playlist_from == watcher.playlist_to {
@@ -35,11 +35,12 @@ impl PlaylistTransfer {
         // Get all tracks in source playlist and only continue if we have tracks to transfer
         let ids_to_transfer = self.get_track_ids_to_transfer(&watcher.playlist_from).await?;
         if ids_to_transfer.is_empty() {
-            return Ok(false);
+            return Ok(0);
         }
 
         // Transfer all tracks not already in target playlist
-        self.maybe_transfer_tracks(&watcher.playlist_to, &ids_to_transfer).await?;
+        let num_transferred =
+            self.maybe_transfer_tracks(&watcher.playlist_to, &ids_to_transfer).await?;
 
         // Remove all original tracks from source playlist
         if watcher.should_remove {
@@ -47,7 +48,7 @@ impl PlaylistTransfer {
             self.remove_tracks_from_playlist(&watcher.playlist_from, &ids_to_remove).await?;
         }
 
-        Ok(true)
+        Ok(num_transferred)
     }
 
     /// Get the tracks IDs in the source playlist
@@ -86,7 +87,7 @@ impl PlaylistTransfer {
         &self,
         playlist_to: &PlaylistType,
         ids_to_transfer: &HashSet<TrackId>,
-    ) -> SyncResult<()> {
+    ) -> SyncResult<u32> {
         match playlist_to {
             PlaylistType::Id(to_id) => {
                 // Get the tracks already in the target playlist to prevent duplicates
@@ -97,6 +98,11 @@ impl PlaylistTransfer {
                 if !ids_to_insert.is_empty() {
                     self.client.playlist_add_ids(to_id, &ids_to_insert).await?;
                 }
+
+                return Ok(ids_to_insert
+                    .len()
+                    .try_into()
+                    .expect("size cant possibly be bigger than u32"));
             }
             PlaylistType::Saved => {
                 // We don't want to support transferring to saved tracks (for now; I just don't see the point)
@@ -105,8 +111,6 @@ impl PlaylistTransfer {
                 ));
             }
         };
-
-        Ok(())
     }
 
     /// Fetch the unique IDs in the specified playlist

@@ -18,20 +18,22 @@ impl TransferRepo {
     }
 
     /// Create a transfer record with a list of errors
-    pub fn create_transfer(
+    pub fn log_transfer(
         &self,
         watcher_id: u32,
-        error: Option<&SyncError>,
+        num_tracks_transferred: &u32,
+        error: &Option<&SyncError>,
         synced_at: DateTime<Utc>,
     ) -> DbResult<()> {
         self.ctx
             .db
             .get()?
             .prepare(
-                "INSERT INTO transfers (watcher_id, error, synced_at, created_at) VALUES (?1, ?2, ?3, ?4)",
+                "INSERT INTO transfers (watcher_id, num_tracks_transferred, error, synced_at, created_at) VALUES (?1, ?2, ?3, ?4, ?5)",
             )?
             .execute(params![
                 watcher_id,
+                num_tracks_transferred,
                 error.map(|err| err.to_string()).unwrap_or_default(),
                 synced_at.to_rfc3339(),
                 chrono::Utc::now().to_rfc3339()
