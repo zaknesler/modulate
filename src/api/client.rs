@@ -19,7 +19,7 @@ use oauth2::{
     ClientSecret, CsrfToken, RedirectUrl, RefreshToken, Scope, TokenUrl,
 };
 use reqwest::{header, Url};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::{
     fmt::Debug,
@@ -338,15 +338,20 @@ impl Client {
 
         let mut snapshot_ids = vec![];
 
-        // Map IDs to URIs
-        let uris = ids.iter().map(|id| id.uri()).collect::<Vec<_>>();
+        #[derive(Serialize)]
+        struct TrackUri {
+            uri: String,
+        }
+
+        // Map IDs to track URI objects
+        let tracks = ids.iter().map(|id| TrackUri { uri: id.uri() }).collect::<Vec<_>>();
 
         // Endpoint can only be sent a maximum of 100 objects
-        for uris in uris.chunks(100) {
+        for tracks in tracks.chunks(100) {
             let res = self
                 .create_request()?
                 .delete(format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id))
-                .json(&json!({"uris": &uris.join(",")}))
+                .json(&json!({"tracks": &tracks}))
                 .send()
                 .await?
                 .json::<SpotifyResponse<SnapshotResponse>>()
