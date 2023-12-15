@@ -26,6 +26,9 @@ pub enum ClientError {
     #[error("spotify did not return expires_in")]
     SpotifyDidNotReturnExpiresIn,
 
+    #[error("too many requests")]
+    TooManyRequests,
+
     #[error(transparent)]
     ChronoOutOfRangeError(#[from] chrono::OutOfRangeError),
 

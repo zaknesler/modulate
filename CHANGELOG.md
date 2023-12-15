@@ -18,6 +18,8 @@ Nothing yet.
 ### Changed
 
 - Add config option for check interval, and changed default to 5 minutes
+- Handle Spotify errors more gracefully
+- Handle `429 Too Many Requests` response that doesn't return JSON
 
 ### Fixed
 

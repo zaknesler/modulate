@@ -1,7 +1,7 @@
 use super::{
     error::{ClientError, ClientResult},
     id::{PlaylistId, SnapshotId, TrackId},
-    model::{self, User},
+    model::{self},
     response::PaginatedResponse,
     token::Token,
 };
@@ -18,8 +18,8 @@ use oauth2::{
     basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
     ClientSecret, CsrfToken, RedirectUrl, RefreshToken, Scope, TokenUrl,
 };
-use reqwest::{header, Url};
-use serde::{Deserialize, Serialize};
+use reqwest::{header, StatusCode, Url};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::json;
 use std::{
     fmt::Debug,
@@ -163,18 +163,13 @@ impl Client {
     pub async fn current_user(&self) -> ClientResult<model::User> {
         tracing::debug!("GET /me");
 
-        let res = self
-            .create_request()?
-            .get(format!("{}/me", SPOTIFY_API_BASE_URL))
-            .send()
-            .await?
-            .json::<SpotifyResponse<User>>()
-            .await?;
-
-        Ok(match res {
-            SpotifyResponse::Success(res) => res,
-            SpotifyResponse::Error(err) => return Err(err.into()),
-        })
+        self.map_response(
+            self.create_request()?
+                .get(format!("{}/me", SPOTIFY_API_BASE_URL))
+                .send()
+                .await?,
+        )
+        .await
     }
 
     /// Get all playlists saved by the current user, returning only basic display data
@@ -249,22 +244,17 @@ impl Client {
     ) -> ClientResult<model::PlaylistPartial> {
         tracing::debug!("GET /playlists/{}", id);
 
-        let res = self
-            .create_request()?
-            .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
-            .query(&[(
-                "fields",
-                "id,name,images,snapshot_id,external_urls(spotify)",
-            )])
-            .send()
-            .await?
-            .json::<SpotifyResponse<model::PlaylistPartial>>()
-            .await?;
-
-        Ok(match res {
-            SpotifyResponse::Success(res) => res,
-            SpotifyResponse::Error(err) => return Err(err.into()),
-        })
+        self.map_response(
+            self.create_request()?
+                .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
+                .query(&[(
+                    "fields",
+                    "id,name,images,snapshot_id,external_urls(spotify)",
+                )])
+                .send()
+                .await?,
+        )
+        .await
     }
 
     /// Get all tracks in a playlist, returning only the ID/URI data
@@ -309,21 +299,17 @@ impl Client {
 
         // Endpoint can only be sent a maximum of 100 objects
         for uris in uris.chunks(100) {
-            let res = self
-                .create_request()?
-                .post(format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id))
-                .json(&json!({"uris": &uris}))
-                .send()
-                .await?
-                .json::<SpotifyResponse<SnapshotResponse>>()
+            let SnapshotResponse { snapshot_id } = self
+                .map_response(
+                    self.create_request()?
+                        .post(format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id))
+                        .json(&json!({"uris": &uris}))
+                        .send()
+                        .await?,
+                )
                 .await?;
 
-            match res {
-                SpotifyResponse::Success(SnapshotResponse { snapshot_id }) => {
-                    snapshot_ids.push(snapshot_id)
-                }
-                SpotifyResponse::Error(err) => return Err(err.into()),
-            };
+            snapshot_ids.push(snapshot_id);
         }
 
         Ok(snapshot_ids)
@@ -349,21 +335,17 @@ impl Client {
 
         // Endpoint can only be sent a maximum of 100 objects
         for tracks in tracks.chunks(100) {
-            let res = self
-                .create_request()?
-                .delete(format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id))
-                .json(&json!({"tracks": &tracks}))
-                .send()
-                .await?
-                .json::<SpotifyResponse<SnapshotResponse>>()
+            let SnapshotResponse { snapshot_id } = self
+                .map_response(
+                    self.create_request()?
+                        .delete(format!("{}/playlists/{}/tracks", SPOTIFY_API_BASE_URL, id))
+                        .json(&json!({"tracks": &tracks}))
+                        .send()
+                        .await?,
+                )
                 .await?;
 
-            match res {
-                SpotifyResponse::Success(SnapshotResponse { snapshot_id }) => {
-                    snapshot_ids.push(snapshot_id)
-                }
-                SpotifyResponse::Error(err) => return Err(err.into()),
-            };
+            snapshot_ids.push(snapshot_id);
         }
 
         Ok(snapshot_ids)
@@ -387,29 +369,40 @@ impl Client {
         }
 
         while let Some(url) = next {
-            let res = self
-                .create_request()?
-                .get(url)
-                .query(&query)
-                .send()
-                .await?
-                .json::<SpotifyResponse<PaginatedResponse<T>>>()
+            let mut res = self
+                .map_response::<PaginatedResponse<T>>(
+                    self.create_request()?.get(url).query(&query).send().await?,
+                )
                 .await?;
+
+            next = res.next;
+            items.append(&mut res.items);
 
             // Once we've made the first request, clear the query params so they don't get duplicated
             if !query.is_empty() {
                 query.clear();
             }
-
-            match res {
-                SpotifyResponse::Success(mut res) => {
-                    next = res.next;
-                    items.append(&mut res.items);
-                }
-                SpotifyResponse::Error(err) => return Err(err.into()),
-            };
         }
 
         Ok(items)
+    }
+
+    /// Map a Spotify response to a generic type and handle any errors.
+    async fn map_response<T>(&self, res: reqwest::Response) -> ClientResult<T>
+    where
+        T: DeserializeOwned,
+    {
+        // Spotify doesn't return uniform 429 errors, so handle the status code explicitly
+        if res.status() == StatusCode::TOO_MANY_REQUESTS {
+            return Err(ClientError::TooManyRequests);
+        }
+
+        let body = res.text().await?;
+
+        // Attempt to map to structured response
+        match serde_json::from_str::<SpotifyResponse<T>>(&body)? {
+            SpotifyResponse::Success(res) => Ok(res),
+            SpotifyResponse::Error(err) => Err(err.into()),
+        }
     }
 }

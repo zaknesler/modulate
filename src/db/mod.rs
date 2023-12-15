@@ -1,12 +1,18 @@
 use self::error::DbResult;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
+use std::{fs::File, path};
 
 pub mod error;
 pub mod model;
 pub mod repo;
 
 pub fn init(db_path: &str) -> DbResult<Pool<SqliteConnectionManager>> {
+    // Create database file if it doesn't already exist
+    if !path::Path::new(db_path).try_exists()? {
+        File::create(db_path)?;
+    }
+
     let db_manager = SqliteConnectionManager::file(db_path);
     let db = Pool::new(db_manager)?;
 
