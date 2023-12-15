@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing yet.
 
+## [0.14.0] - 2023-12-14
+
+### Added
+
+- Store transfer results in `transfers` table
+
+### Changed
+
+- Add config option for check interval, and changed default to 5 minutes
+- Handle Spotify errors more gracefully
+- Handle `429 Too Many Requests` response that doesn't return JSON
+
+### Fixed
+
+- Playlist track remove endpoint passing incorrect body
+
 ## [0.13.0] - 2023-12-10
 
 ### Added
@@ -244,7 +260,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/zaknesler/modulate/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/zaknesler/modulate/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/zaknesler/modulate/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/zaknesler/modulate/compare/v0.10.1...v0.11.0

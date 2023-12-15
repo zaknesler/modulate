@@ -2,7 +2,6 @@ use crate::{
     context::AppContext,
     db::model::{playlist::PlaylistType, watcher::SyncInterval},
     db::repo::watcher::WatcherRepo,
-    sync::transfer,
     web::{
         error::{WebError, WebResult},
         middleware::auth,
@@ -108,7 +107,7 @@ async fn create_watcher(
 
 #[derive(Deserialize)]
 struct ManageWatcherParams {
-    id: i64,
+    id: u32,
 }
 
 async fn delete_watcher(
@@ -137,18 +136,18 @@ async fn sync_watcher(
     State(ctx): State<AppContext>,
     Path(params): Path<ManageWatcherParams>,
 ) -> WebResult<impl IntoResponse> {
-    let repo = WatcherRepo::new(ctx.clone());
+    let watcher_repo = WatcherRepo::new(ctx.clone());
 
-    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user_uri)? {
+    let watcher = match watcher_repo.get_watcher_by_id_and_user(params.id, &session.user_uri)? {
         Some(val) => val,
         None => return Err(WebError::NotFoundError),
     };
 
-    transfer::PlaylistTransfer::new(ctx, session.client)
-        .try_transfer(&watcher)
-        .await?;
+    let count =
+        crate::sync::sync_watcher(ctx, session.client, &watcher_repo, &watcher, Utc::now()).await?;
 
-    repo.update_watcher_last_sync_at(params.id, Utc::now())?;
-
-    Ok(Json(json!({ "success": true })))
+    Ok(Json(json!({
+        "success": true,
+        "num_tracks_transferred": count
+    })))
 }

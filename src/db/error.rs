@@ -9,6 +9,9 @@ pub enum DbError {
     InvalidSyncInterval(String),
 
     #[error(transparent)]
+    IOError(#[from] std::io::Error),
+
+    #[error(transparent)]
     DateParseError(#[from] chrono::ParseError),
 
     #[error(transparent)]

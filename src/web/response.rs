@@ -48,6 +48,10 @@ fn maybe_get_response(error: &WebError) -> Option<(StatusCode, Value)> {
                     .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
                 Value::String(message.clone()),
             ),
+            crate::api::error::ClientError::TooManyRequests => (
+                StatusCode::TOO_MANY_REQUESTS,
+                Value::String(error.to_string()),
+            ),
             _ => return None,
         },
         WebError::UnauthorizedError | WebError::JwtExpiredError | WebError::JwtInvalidError => {

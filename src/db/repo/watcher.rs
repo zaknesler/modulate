@@ -33,11 +33,8 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(
-                format!(
-                    "SELECT {} FROM watchers WHERE watchers.playlist_from = ?1",
-                    COLUMNS
-                )
-                .as_ref(),
+                format!("SELECT {COLUMNS} FROM watchers WHERE watchers.playlist_from = ?1")
+                    .as_ref(),
             )?
             .query_and_then(params![from.to_value()], |row| row.try_into())?
             .collect::<DbResult<Vec<_>>>()
@@ -49,27 +46,20 @@ impl WatcherRepo {
             .db
             .get()?
             .prepare(
-                format!(
-                    "SELECT {} FROM watchers WHERE watchers.user_uri = ?1",
-                    COLUMNS
-                )
-                .as_ref(),
+                format!("SELECT {COLUMNS} FROM watchers WHERE watchers.user_uri = ?1").as_ref(),
             )?
             .query_and_then(params![user_uri], |row| row.try_into())?
             .collect::<DbResult<Vec<_>>>()
     }
 
     /// Get specific watcher for a given ID and user URI.
-    pub fn get_watcher_by_id_and_user(&self, id: i64, user_uri: &str) -> DbResult<Option<Watcher>> {
+    pub fn get_watcher_by_id_and_user(&self, id: u32, user_uri: &str) -> DbResult<Option<Watcher>> {
         let rows = self
             .ctx
             .db
             .get()?
             .prepare(
-                format!(
-                    "SELECT {} FROM watchers WHERE watchers.id = ?1 AND watchers.user_uri = ?2",
-                    COLUMNS
-                )
+                format!("SELECT {COLUMNS} FROM watchers WHERE watchers.id = ?1 AND watchers.user_uri = ?2")
                 .as_ref(),
             )?
             .query_and_then(params![id, user_uri], |row| Watcher::try_from(row))?
@@ -88,7 +78,7 @@ impl WatcherRepo {
     /// Update the last_sync_at date of a watcher by ID.
     pub fn update_watcher_last_sync_at(
         &self,
-        id: i64,
+        id: u32,
         last_sync_at: chrono::DateTime<chrono::Utc>,
     ) -> DbResult<()> {
         self.ctx
@@ -103,7 +93,7 @@ impl WatcherRepo {
     /// Update the next_sync_at date of a watcher by ID.
     pub fn update_watcher_next_sync_at(
         &self,
-        id: i64,
+        id: u32,
         next_sync_at: chrono::DateTime<chrono::Utc>,
     ) -> DbResult<()> {
         self.ctx
