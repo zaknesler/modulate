@@ -20,6 +20,7 @@ pub struct LogConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct SyncConfig {
     pub enabled: bool,
+    pub check_interval_mins: u32,
 }
 
 #[derive(Debug, Deserialize, Clone)]

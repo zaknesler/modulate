@@ -154,6 +154,7 @@ impl Client {
 
         reqwest::Client::builder()
             .default_headers(headers)
+            .connection_verbose(true)
             .build()
             .map_err(|err| err.into())
     }

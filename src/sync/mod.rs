@@ -13,9 +13,6 @@ use chrono::{DateTime, Timelike, Utc};
 pub mod error;
 pub mod transfer;
 
-/// Interval to fetch watchers to see if any need to be run again
-const CHECK_INTERVAL_MINS: i64 = 1;
-
 pub async fn init(ctx: AppContext) -> SyncResult<()> {
     loop {
         let now = Utc::now();
@@ -24,7 +21,9 @@ pub async fn init(ctx: AppContext) -> SyncResult<()> {
             .unwrap()
             .with_nanosecond(0)
             .unwrap()
-            .checked_add_signed(chrono::Duration::minutes(CHECK_INTERVAL_MINS))
+            .checked_add_signed(chrono::Duration::minutes(
+                ctx.config.sync.check_interval_mins.into(),
+            ))
             .unwrap();
 
         let time_until_next_update = tokio::time::Duration::from_millis(
@@ -33,7 +32,7 @@ pub async fn init(ctx: AppContext) -> SyncResult<()> {
 
         tracing::info!(
             "{:.0}s until next check",
-            time_until_next_update.as_secs_f64()
+            time_until_next_update.as_secs_f64(),
         );
 
         tokio::time::sleep_until(
@@ -75,9 +74,9 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
         let client = client::Client::new_with_token(ctx.clone(), user.token)?;
         client.ensure_token_refreshed(&watcher.user_uri).await?;
 
-        // Perform the sync for this user and watcher and log any errors
         match sync_watcher(ctx.clone(), client, &watcher_repo, &watcher, now).await {
             Ok(_) => {
+                // Set the next interval
                 watcher_repo.update_watcher_next_sync_at(
                     watcher.id,
                     now.checked_add_signed(watcher.sync_interval.clone().into()).unwrap(),
@@ -106,7 +105,7 @@ pub async fn sync_watcher(
 ) -> SyncResult<u32> {
     let res = sync_watcher_inner(ctx.clone(), client, &watcher_repo, watcher, &now).await;
 
-    // Save a new transfer in the database
+    // Save transfer result
     TransferRepo::new(ctx.clone()).log_transfer(
         watcher.id,
         res.as_ref().unwrap_or(&0),
