@@ -10,6 +10,7 @@ use crate::{
         model::TrackPartial,
         response::{SnapshotResponse, SpotifyResponse},
     },
+    config::Config,
     context::AppContext,
     db::repo::user::UserRepo,
 };
@@ -39,48 +40,69 @@ const SPOTIFY_OAUTH2_SCOPES: &[&str] = &[
 
 const SPOTIFY_API_BASE_URL: &str = "https://api.spotify.com/v1";
 
+/// Client configured without token
+#[derive(Debug, Clone)]
+pub struct WithoutToken;
+
+/// Client configured with token to be used for Spotify API requests
+#[derive(Debug, Clone)]
+pub struct WithToken(Arc<Mutex<Token>>);
+
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
-pub struct Client {
+pub struct Client<Token> {
     ctx: AppContext,
     oauth: BasicClient,
-    token: Arc<Mutex<Option<Token>>>,
+    token: Token,
 }
 
-impl Client {
-    /// Initialize a client with our Spotify credentials
-    pub fn new(ctx: AppContext) -> ClientResult<Self> {
-        let redirect_url = RedirectUrl::new(format!("{}/callback", ctx.config.web.public_url))?;
+// Methods to be used when we don't yet have an access token
+impl Client<WithoutToken> {
+    /// Initialize Spotify OAuth2 client with credentials
+    fn init_oauth(config: &Config) -> ClientResult<BasicClient> {
+        let redirect_url = RedirectUrl::new(format!("{}/callback", config.web.public_url))?;
         let oauth = BasicClient::new(
-            ClientId::new(ctx.config.spotify.client_id.clone()),
-            Some(ClientSecret::new(ctx.config.spotify.client_secret.clone())),
+            ClientId::new(config.spotify.client_id.clone()),
+            Some(ClientSecret::new(config.spotify.client_secret.clone())),
             AuthUrl::new(SPOTIFY_OAUTH2_AUTH_URL.to_string())?,
             Some(TokenUrl::new(SPOTIFY_OAUTH2_TOKEN_URL.to_string())?),
         )
         .set_redirect_uri(redirect_url);
 
-        Ok(Self {
+        Ok(oauth)
+    }
+
+    /// Create an anonymous client
+    pub fn new(ctx: AppContext) -> ClientResult<Client<WithoutToken>> {
+        let oauth = Self::init_oauth(&ctx.config)?;
+
+        Ok(Client {
             ctx,
             oauth,
-            token: Arc::new(Mutex::new(None)),
+            token: WithoutToken,
         })
     }
 
     /// Create a client from an existing token
-    pub fn new_with_token(ctx: AppContext, token: Token) -> ClientResult<Self> {
-        let client = Self::new(ctx)?;
-        client.set_token(token)?;
-        Ok(client)
+    pub fn new_with_token(ctx: AppContext, token: Token) -> ClientResult<Client<WithToken>> {
+        let oauth = Self::init_oauth(&ctx.config)?;
+
+        Ok(Client {
+            ctx,
+            oauth,
+            token: WithToken(Arc::new(Mutex::new(token))),
+        })
     }
 
     /// Create a client from an existing token and ensure it's refreshed
     pub async fn from_user_ensure_refreshed(
         ctx: AppContext,
         user: crate::db::model::user::User,
-    ) -> ClientResult<(Self, crate::db::model::user::User)> {
+    ) -> ClientResult<(Client<WithToken>, crate::db::model::user::User)> {
+        // Create a client with the existing token
         let client = Self::new_with_token(ctx.clone(), user.token.clone())?;
 
-        // If token is still valid, don't do anything
+        // If the token is still valid, keep using it along with the current user
         if !user.token.is_expired() {
             return Ok((client, user));
         }
@@ -99,18 +121,13 @@ impl Client {
         // Since the auth flow does not return a refresh token, we must use the old one
         new_token.refresh_token = Some(refresh_token);
 
+        // Update user with new token and save it to the client
+        let user = UserRepo::new(ctx).upsert_user_token(&user.user_uri, &new_token)?;
+        *client.token.0.lock().map_err(|_| ClientError::MutexLockError)? = new_token;
+
         tracing::info!("Refreshed token for user {}", user.user_uri);
 
-        // Update user with new token
-        let user = UserRepo::new(ctx).upsert_user_token(&user.user_uri, &new_token)?;
-
         Ok((client, user))
-    }
-
-    /// Set the token within the client to be used for subsequent requests
-    pub fn set_token(&self, token: Token) -> ClientResult<&Self> {
-        *self.token.lock().map_err(|_| ClientError::MutexLockError)? = Some(token);
-        Ok(self)
     }
 
     /// Generate a new URL to authorize a user, along with a CSRF token to be verified from Spotify's response
@@ -130,15 +147,17 @@ impl Client {
             .map_err(|err| anyhow!(err))?
             .try_into()
     }
+}
 
+// Methods to be used once we have a client with a valid token
+impl Client<WithToken> {
     /// Create a request client with the appropriate authorization headers
     fn create_request(&self) -> ClientResult<reqwest::Client> {
         let access_token = self
             .token
+            .0
             .lock()
             .map_err(|_| ClientError::MutexLockError)?
-            .as_ref()
-            .ok_or_else(|| ClientError::MissingAccessToken)?
             .access_token
             .clone();
 

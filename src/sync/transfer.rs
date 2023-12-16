@@ -1,7 +1,7 @@
 use super::error::{SyncError, SyncResult};
 use crate::{
     api::{
-        client::Client,
+        client::{Client, WithToken},
         id::{PlaylistId, TrackId},
     },
     context::AppContext,
@@ -9,14 +9,13 @@ use crate::{
 };
 use std::collections::HashSet;
 
-#[allow(dead_code)]
 pub struct PlaylistTransfer {
     ctx: AppContext,
-    client: Client,
+    client: Client<WithToken>,
 }
 
 impl PlaylistTransfer {
-    pub fn new(ctx: AppContext, client: Client) -> Self {
+    pub fn new(ctx: AppContext, client: Client<WithToken>) -> Self {
         Self { ctx, client }
     }
 

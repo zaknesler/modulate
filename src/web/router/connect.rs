@@ -1,6 +1,6 @@
 use super::{CSRF_COOKIE, JWT_COOKIE};
 use crate::{
-    api::client,
+    api::client::{self, Client},
     context::AppContext,
     db::repo::user::UserRepo,
     web::{
@@ -49,10 +49,8 @@ async fn handle_callback(
     // Remove the CSRF cookie now that we've validated the response
     cookies.add(unset_cookie(CSRF_COOKIE));
 
-    let client = client::Client::new(ctx.clone())?;
-
-    let token = client.get_token_from_code(params.code).await?;
-    client.set_token(token.clone())?;
+    let token = Client::new(ctx.clone())?.get_token_from_code(params.code).await?;
+    let client = Client::new_with_token(ctx.clone(), token.clone())?;
 
     let user = client.current_user().await?;
 

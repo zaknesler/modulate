@@ -1,8 +1,13 @@
-use super::{client::Client, error::ClientResult, id::PlaylistId, model};
+use super::{
+    client::{Client, WithToken},
+    error::ClientResult,
+    id::PlaylistId,
+    model,
+};
 
 /// Fetch all playlist partials from a list of playlist IDs
 pub async fn get_playlists_by_ids<'a, I>(
-    client: Client,
+    client: Client<WithToken>,
     ids: I,
 ) -> ClientResult<Vec<model::PlaylistPartial>>
 where

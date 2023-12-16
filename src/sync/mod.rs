@@ -1,6 +1,6 @@
 use self::error::SyncResult;
 use crate::{
-    api::client::{self, Client},
+    api::client::{self, Client, WithToken},
     context::AppContext,
     db::{
         model::watcher::Watcher,
@@ -97,7 +97,7 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
 /// Sync a watcher and save the results to the transfer table.
 pub async fn sync_watcher(
     ctx: AppContext,
-    client: Client,
+    client: Client<WithToken>,
     watcher_repo: &WatcherRepo,
     watcher: &Watcher,
     now: DateTime<Utc>,
@@ -118,7 +118,7 @@ pub async fn sync_watcher(
 /// Sync a watcher and update the `last_sync_at` date
 async fn sync_watcher_inner(
     ctx: AppContext,
-    client: Client,
+    client: Client<WithToken>,
     watcher_repo: &WatcherRepo,
     watcher: &Watcher,
     now: &DateTime<Utc>,
