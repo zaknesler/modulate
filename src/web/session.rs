@@ -1,8 +1,7 @@
-use crate::api::{client::Client, token::Token};
+use crate::{api::client::Client, db::model::user::User};
 
 #[derive(Debug, Clone)]
 pub struct Session {
-    pub user_uri: String,
-    pub token: Token,
     pub client: Client,
+    pub user: User,
 }

@@ -1,7 +1,7 @@
 use crate::{
     api::token::Token,
     db::{
-        error::DbResult,
+        error::{DbError, DbResult},
         model::user::{User, COLUMNS},
     },
 };
@@ -17,20 +17,25 @@ impl UserRepo {
     }
 
     /// Create a new user record with a token or overwrite an existing user's token.
-    pub fn upsert_user_token(&self, user_uri: &str, token: &Token) -> DbResult<()> {
+    pub fn upsert_user_token(&self, user_uri: &str, token: &Token) -> DbResult<User> {
         self.ctx
             .db
             .get()?
             .prepare(
-                "INSERT OR REPLACE INTO users (user_uri, token, created_at) VALUES (?1, ?2, ?3)",
+                &format!("INSERT OR REPLACE INTO users (user_uri, token, created_at) VALUES (?1, ?2, ?3) RETURNING {COLUMNS}"),
             )?
-            .execute(params![
-                user_uri,
-                serde_json::to_string(token)?,
-                chrono::Utc::now().to_rfc3339()
-            ])?;
-
-        Ok(())
+            .query_and_then(
+                params![
+                    user_uri,
+                    serde_json::to_string(token)?,
+                    chrono::Utc::now().to_rfc3339()
+                ],
+                |row| User::try_from(row)
+            )?
+            .collect::<DbResult<Vec<_>>>()?
+            .first()
+            .cloned()
+            .ok_or_else(|| DbError::SQLiteError(rusqlite::Error::QueryReturnedNoRows))
     }
 
     /// Try to find a user's auth token.

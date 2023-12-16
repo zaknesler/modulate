@@ -73,6 +73,40 @@ impl Client {
         Ok(client)
     }
 
+    /// Create a client from an existing token and ensure it's refreshed
+    pub async fn from_user_ensure_refreshed(
+        ctx: AppContext,
+        user: crate::db::model::user::User,
+    ) -> ClientResult<(Self, crate::db::model::user::User)> {
+        let client = Self::new_with_token(ctx.clone(), user.token.clone())?;
+
+        // If token is still valid, don't do anything
+        if !user.token.is_expired() {
+            return Ok((client, user));
+        }
+
+        let refresh_token =
+            user.token.refresh_token.ok_or_else(|| ClientError::MissingRefreshToken)?;
+
+        let mut new_token: Token = client
+            .oauth
+            .exchange_refresh_token(&RefreshToken::new(refresh_token.clone()))
+            .request_async(async_http_client)
+            .await
+            .map_err(|err| anyhow!(err))?
+            .try_into()?;
+
+        // Since the auth flow does not return a refresh token, we must use the old one
+        new_token.refresh_token = Some(refresh_token);
+
+        tracing::info!("Refreshed token for user {}", user.user_uri);
+
+        // Update user with new token
+        let user = UserRepo::new(ctx).upsert_user_token(&user.user_uri, &new_token)?;
+
+        Ok((client, user))
+    }
+
     /// Set the token within the client to be used for subsequent requests
     pub fn set_token(&self, token: Token) -> ClientResult<&Self> {
         *self.token.lock().map_err(|_| ClientError::MutexLockError)? = Some(token);
@@ -95,44 +129,6 @@ impl Client {
             .await
             .map_err(|err| anyhow!(err))?
             .try_into()
-    }
-
-    /// Fetch a new access token if the current one is expired, and update the user's token in the DB
-    pub async fn ensure_token_refreshed(&self, user_uri: &str) -> ClientResult<&Self> {
-        let token = self
-            .token
-            .lock()
-            .map_err(|_| ClientError::MutexLockError)?
-            .as_ref()
-            .ok_or_else(|| ClientError::MissingToken)?
-            .clone();
-
-        // If token is still valid, don't do anything
-        if !token.is_expired() {
-            return Ok(self);
-        }
-
-        let refresh_token = token.refresh_token.ok_or_else(|| ClientError::MissingRefreshToken)?;
-
-        let mut new_token: Token = self
-            .oauth
-            .exchange_refresh_token(&RefreshToken::new(refresh_token.clone()))
-            .request_async(async_http_client)
-            .await
-            .map_err(|err| anyhow!(err))?
-            .try_into()?;
-
-        // Since the auth flow does not return a refresh token, we must use the old one
-        new_token.refresh_token = Some(refresh_token);
-
-        self.set_token(new_token.clone())?;
-
-        tracing::info!("Refreshed token for user {}", user_uri);
-
-        // Update user
-        UserRepo::new(self.ctx.clone()).upsert_user_token(user_uri, &new_token)?;
-
-        Ok(self)
     }
 
     /// Create a request client with the appropriate authorization headers

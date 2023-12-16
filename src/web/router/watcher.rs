@@ -85,7 +85,7 @@ async fn create_watcher(
     }
 
     repo.create_watcher(
-        &session.user_uri,
+        &session.user.user_uri,
         &from,
         &to,
         data.should_remove,
@@ -117,13 +117,13 @@ async fn delete_watcher(
 ) -> WebResult<impl IntoResponse> {
     let repo = WatcherRepo::new(ctx);
 
-    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user_uri)? {
+    let watcher = match repo.get_watcher_by_id_and_user(params.id, &session.user.user_uri)? {
         Some(val) => val,
         None => return Err(WebError::NotFoundError),
     };
 
     repo.delete_watcher_by_user_and_playlists(
-        &session.user_uri,
+        &session.user.user_uri,
         &watcher.playlist_from,
         &watcher.playlist_to,
     )?;
@@ -138,10 +138,11 @@ async fn sync_watcher(
 ) -> WebResult<impl IntoResponse> {
     let watcher_repo = WatcherRepo::new(ctx.clone());
 
-    let watcher = match watcher_repo.get_watcher_by_id_and_user(params.id, &session.user_uri)? {
-        Some(val) => val,
-        None => return Err(WebError::NotFoundError),
-    };
+    let watcher =
+        match watcher_repo.get_watcher_by_id_and_user(params.id, &session.user.user_uri)? {
+            Some(val) => val,
+            None => return Err(WebError::NotFoundError),
+        };
 
     let count =
         crate::sync::sync_watcher(ctx, session.client, &watcher_repo, &watcher, Utc::now()).await?;

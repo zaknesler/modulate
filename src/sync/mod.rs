@@ -71,8 +71,7 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
             .find_user_by_uri(&watcher.user_uri)?
             .ok_or_else(|| SyncError::UserNotFoundError(watcher.user_uri.clone()))?;
 
-        let client = client::Client::new_with_token(ctx.clone(), user.token)?;
-        client.ensure_token_refreshed(&watcher.user_uri).await?;
+        let (client, _) = client::Client::from_user_ensure_refreshed(ctx.clone(), user).await?;
 
         match sync_watcher(ctx.clone(), client, &watcher_repo, &watcher, now).await {
             Ok(_) => {

@@ -1,7 +1,7 @@
 use crate::{
-    api::{self, token::Token},
+    api,
     context::AppContext,
-    db::repo::user::UserRepo,
+    db::{model::user::User, repo::user::UserRepo},
     web::util::{cookie::unset_cookie, jwt},
     web::{
         error::{WebError, WebResult},
@@ -39,7 +39,7 @@ pub async fn middleware(
         }
     };
 
-    let session = try_create_auth_session(&user.user_uri, user.token, ctx)
+    let session = try_create_auth_session(ctx, user)
         .await
         .map_err(|_| WebError::UnauthorizedError)?;
 
@@ -48,19 +48,8 @@ pub async fn middleware(
     Ok(next.run(req).await)
 }
 
-async fn try_create_auth_session(
-    user_uri: &str,
-    token: Token,
-    ctx: AppContext,
-) -> WebResult<session::Session> {
-    let client = api::client::Client::new_with_token(ctx, token.clone())?;
+async fn try_create_auth_session(ctx: AppContext, user: User) -> WebResult<session::Session> {
+    let (client, user) = api::client::Client::from_user_ensure_refreshed(ctx, user.clone()).await?;
 
-    // Ensure access token is refreshed
-    client.ensure_token_refreshed(user_uri).await?;
-
-    Ok(session::Session {
-        user_uri: user_uri.to_string(),
-        token,
-        client,
-    })
+    Ok(session::Session { client, user })
 }
