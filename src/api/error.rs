@@ -8,14 +8,8 @@ pub enum ClientError {
     #[error("spotify {status} error: {message}")]
     ApiError { status: u16, message: String },
 
-    #[error("missing access token")]
-    MissingAccessToken,
-
     #[error("missing refresh token")]
     MissingRefreshToken,
-
-    #[error("missing token")]
-    MissingToken,
 
     #[error("mutex lock error")]
     MutexLockError,
