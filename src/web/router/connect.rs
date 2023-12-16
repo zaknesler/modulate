@@ -1,6 +1,6 @@
 use super::{CSRF_COOKIE, JWT_COOKIE};
 use crate::{
-    api::client::{self, Client},
+    api::client::Client,
     context::AppContext,
     db::repo::user::UserRepo,
     web::{
@@ -49,18 +49,23 @@ async fn handle_callback(
     // Remove the CSRF cookie now that we've validated the response
     cookies.add(unset_cookie(CSRF_COOKIE));
 
+    // Use the code we got from Spotify to create a valid token
     let token = Client::new(ctx.clone())?.get_token_from_code(params.code).await?;
+
+    // Initialize a new client to be able to send authenticated API requests
     let client = Client::new_with_token(ctx.clone(), token.clone())?;
 
+    // Fetch the user and save the user/token to the database
     let user = client.current_user().await?;
-
     UserRepo::new(ctx.clone()).upsert_user_token(&user.id.uri(), &token)?;
 
+    // Create a JWT to allow the user to authenticate
     let jwt = jwt::sign_jwt(
         ctx.config.web.jwt_secret.as_ref(),
         &user.id.uri().to_string(),
     )?;
 
+    // Set JWT cookie
     cookies.add(
         CookieBuilder::new(JWT_COOKIE, jwt)
             .path("/")
