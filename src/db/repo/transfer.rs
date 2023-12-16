@@ -43,6 +43,7 @@ impl TransferRepo {
     }
 
     /// Fetch all transfers for a watcher by ID.
+    #[allow(dead_code)]
     pub fn get_transfers_for_watcher(&self, id: u32) -> DbResult<Vec<Transfer>> {
         Ok(self
             .ctx
