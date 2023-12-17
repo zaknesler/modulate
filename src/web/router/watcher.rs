@@ -1,4 +1,5 @@
 use crate::{
+    api::{self, id::UserId},
     context::AppContext,
     db::model::{playlist::PlaylistType, watcher::SyncInterval},
     db::repo::watcher::WatcherRepo,
@@ -56,14 +57,6 @@ async fn create_watcher(
         ));
     }
 
-    if let PlaylistType::Id(id) = &from {
-        session.client.playlist_partial(id).await.map_err(|_| {
-            WebError::InvalidFormData(
-                "Cannot create watcher as the source playlist does not exist.".into(),
-            )
-        })?;
-    }
-
     let repo = WatcherRepo::new(ctx.clone());
 
     let existing_watchers = repo.get_watchers_for_playlist(&from)?;
@@ -74,14 +67,28 @@ async fn create_watcher(
 
     if !existing_mutable_watchers.is_empty() {
         return Err(WebError::InvalidFormData(
-            "Cannot create watcher as one already exists for this playlist with track removal enabled.".into(),
+            "A watcher with track removal enabled already exists for this playlist.".into(),
         ));
     }
 
     if data.should_remove && !existing_watchers.is_empty() {
         return Err(WebError::InvalidFormData(
-            "Cannot create watcher with track removal enabled as one already exists for this playlist.".into(),
+            "A watcher already exists for this playlist. Disable track removal or remove the other watcher.".into(),
         ));
+    }
+
+    if let PlaylistType::Id(id) = &from {
+        let user_id = UserId::parse_from_input(&session.user.user_uri)?;
+        match api::util::check_playlist_editable(&session.client, &id, &user_id).await {
+            Ok(false) if data.should_remove => return Err(WebError::InvalidFormData(
+                "You do not have permission to edit the source playlist. You must disable track removal.".into(),
+            )),
+            Ok(_) => {}
+            Err(err) => {
+                dbg!(&err);
+                return Err(WebError::InvalidFormData("Source playlist does not exist.".into()))
+            },
+        };
     }
 
     repo.create_watcher(
@@ -95,9 +102,7 @@ async fn create_watcher(
         crate::db::error::DbError::SQLiteError(
             ref _inner @ rusqlite::Error::SqliteFailure(ref err_code, _),
         ) if err_code.code == rusqlite::ErrorCode::ConstraintViolation => {
-            WebError::InvalidFormData(
-                "Cannot create watcher as one already exist for these playlists.".into(),
-            )
+            WebError::InvalidFormData("Watcher already exists for these playlists.".into())
         }
         _ => err.into(),
     })?;

@@ -5,8 +5,8 @@ use std::fmt::Debug;
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum SpotifyResponse<T> {
-    Success(T),
     Error(SpotifyErrorWrapper),
+    Success(T),
 }
 
 #[derive(Debug, Deserialize)]

@@ -30,7 +30,13 @@ pub struct PlaylistPartial {
     pub name: String,
     pub snapshot_id: SnapshotId,
     pub images: Vec<Image>,
+    pub owner: Owner,
     pub external_urls: ExternalUrls,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Owner {
+    pub id: UserId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

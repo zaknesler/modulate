@@ -2,10 +2,6 @@ use super::error::{ClientError, ClientResult};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-/// Regex to parse a Spotify playlist ID from a playlist URL or Spotify URI
-const PLAYLIST_URL_RE: &str =
-    r"^(?:https?://open\.spotify\.com/playlist/|spotify:playlist:)?([a-zA-Z0-9]{22})";
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct PlaylistId(pub String);
 
@@ -25,11 +21,13 @@ impl PlaylistId {
     }
 
     /// Attempt to parse a playlist ID from a valid Spotify URL or URI
-    pub fn try_from_input(input: &str) -> ClientResult<Self> {
-        Regex::new(&PLAYLIST_URL_RE)?
-            .captures(input)
-            .and_then(|captures| Some(Self(captures.get(1)?.as_str().to_string())))
-            .ok_or_else(|| ClientError::InvalidId(input.to_owned()))
+    pub fn parse_from_input(input: &str) -> ClientResult<Self> {
+        Regex::new(
+            r"^(?:https?://open\.spotify\.com/playlist/|spotify:playlist:)?([a-zA-Z0-9]{22})",
+        )?
+        .captures(input)
+        .and_then(|captures| Some(Self(captures.get(1)?.as_str().to_string())))
+        .ok_or_else(|| ClientError::InvalidId(input.to_owned()))
     }
 }
 
@@ -45,6 +43,14 @@ impl UserId {
     pub fn uri(&self) -> String {
         format!("spotify:user:{}", self.0)
     }
+
+    /// Attempt to parse a user ID from a valid URI
+    pub fn parse_from_input(input: &str) -> ClientResult<Self> {
+        Regex::new(r"^(?:spotify:user:)?(.+)")?
+            .captures(input)
+            .and_then(|captures| Some(Self(captures.get(1)?.as_str().to_string())))
+            .ok_or_else(|| ClientError::InvalidId(input.to_owned()))
+    }
 }
 
 #[cfg(test)]
@@ -54,7 +60,7 @@ mod test {
     #[test]
     fn it_parses_valid_playlist_uris_and_urls() {
         let expected = PlaylistId("EX3J5Phq9j7KcpkZJskhRP".to_string());
-        let test = |id: &str| assert_eq!(PlaylistId::try_from_input(id).unwrap(), expected);
+        let test = |id: &str| assert_eq!(PlaylistId::parse_from_input(id).unwrap(), expected);
 
         test("EX3J5Phq9j7KcpkZJskhRP");
         test("spotify:playlist:EX3J5Phq9j7KcpkZJskhRP");
@@ -64,7 +70,7 @@ mod test {
 
     #[test]
     fn it_fails_for_bad_playlist_ids() {
-        let test = |id: &str| matches!(PlaylistId::try_from_input(id), Err(_));
+        let test = |id: &str| matches!(PlaylistId::parse_from_input(id), Err(_));
 
         test("some bad id");
         test("EX3J5Phq9j7KcpkZJskhR"); // 21 characters
