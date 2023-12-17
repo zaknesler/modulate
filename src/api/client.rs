@@ -231,22 +231,21 @@ impl Client<WithToken> {
         // Endpoint can only be sent a maximum of 50 IDs
         for ids in ids.chunks(50) {
             let res = self
-                .create_request()?
-                .delete(format!("{}/me/tracks", SPOTIFY_API_BASE_URL))
-                .json(&json!({ "ids": ids }))
-                .send()
-                .await?;
+                .map_response::<()>(
+                    self.create_request()?
+                        .delete(format!("{}/me/tracks", SPOTIFY_API_BASE_URL))
+                        .json(&json!({ "ids": ids }))
+                        .send()
+                        .await?,
+                )
+                .await;
 
-            // This endpoint returns nothing when successful, because of course it does
-            if res.status().is_success() {
-                return Ok(());
-            }
-
-            // Manually convert body to JSON if unsuccessful to get status and error
-            match serde_json::from_str::<SpotifyResponse<()>>(&res.text().await?)? {
-                SpotifyResponse::Error(err) => return Err(err.into()),
-                _ => {}
-            }
+            // An empty response means success
+            match res {
+                Ok(_) => {}
+                Err(_err @ ClientError::EmptyResponse) => {}
+                Err(err) => return Err(err),
+            };
         }
 
         Ok(())
@@ -264,12 +263,43 @@ impl Client<WithToken> {
                 .get(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
                 .query(&[(
                     "fields",
-                    "id,name,images,snapshot_id,external_urls(spotify)",
+                    "id,name,images,snapshot_id,external_urls(spotify),owner(id)",
                 )])
                 .send()
                 .await?,
         )
         .await
+    }
+
+    /// Update a playlist's name
+    pub async fn playlist_update_name(
+        &self,
+        PlaylistId(id): &PlaylistId,
+        name: &str,
+    ) -> ClientResult<()> {
+        tracing::debug!("PUT /playlists/{}", id);
+
+        #[derive(Debug, Serialize)]
+        struct UpdateBody<'a> {
+            name: &'a str,
+        }
+
+        let res = self
+            .map_response::<()>(
+                self.create_request()?
+                    .put(format!("{}/playlists/{}", SPOTIFY_API_BASE_URL, id))
+                    .json(&UpdateBody { name })
+                    .send()
+                    .await?,
+            )
+            .await;
+
+        // An empty response means success
+        Ok(match res {
+            Ok(_) => (),
+            Err(_err @ ClientError::EmptyResponse) => (),
+            Err(err) => return Err(err),
+        })
     }
 
     /// Get all tracks in a playlist, returning only the ID/URI data
@@ -413,6 +443,11 @@ impl Client<WithToken> {
         }
 
         let body = res.text().await?;
+
+        // Check that the response is not empty
+        if body.is_empty() {
+            return Err(ClientError::EmptyResponse);
+        }
 
         // Attempt to map to structured response
         match serde_json::from_str::<SpotifyResponse<T>>(&body)? {

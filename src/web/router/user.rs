@@ -1,6 +1,6 @@
 use super::JWT_COOKIE;
 use crate::{
-    api::{self},
+    api,
     context::AppContext,
     db::repo::{user::UserRepo, watcher::WatcherRepo},
     web::util::cookie::unset_cookie,
@@ -53,7 +53,7 @@ async fn get_current_user_dashboard(
         })
         .collect::<HashSet<_>>();
     let missing_playlists = api::util::get_playlists_by_ids(
-        session.client,
+        &session.client,
         missing_playlist_ids.difference(&user_playlist_ids),
     )
     .await?;

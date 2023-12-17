@@ -38,7 +38,7 @@ impl PlaylistType {
         Ok(match value {
             LIKED_PLAYLIST_VALUE => Self::Saved,
             _ => Self::Id(
-                PlaylistId::try_from_input(value)
+                PlaylistId::parse_from_input(value)
                     .map_err(|_| DbError::InvalidId(value.to_string()))?,
             ),
         })

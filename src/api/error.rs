@@ -23,6 +23,9 @@ pub enum ClientError {
     #[error("too many requests")]
     TooManyRequests,
 
+    #[error("spotify returned an empty response")]
+    EmptyResponse,
+
     #[error(transparent)]
     ChronoOutOfRangeError(#[from] chrono::OutOfRangeError),
 

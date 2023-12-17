@@ -78,7 +78,7 @@ impl From<PlaylistPartial> for DisplayPlaylist {
         Self {
             id: Some(data.id),
             name: data.name,
-            image_url: get_display_image(data.images),
+            image_url: get_display_image(data.images.unwrap_or_default()),
             spotify_url: data.external_urls.spotify,
         }
     }
