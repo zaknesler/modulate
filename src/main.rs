@@ -10,9 +10,9 @@ mod error;
 mod sync;
 mod web;
 
-fn main() {
-    dotenvy::dotenv().expect("missing .env file");
-    let config = Config::try_parse().expect("could not parse config");
+fn main() -> BaseResult<()> {
+    dotenvy::dotenv()?;
+    let config = Config::try_parse()?;
 
     // Initialize Sentry if we have a DSN
     let _sentry = sentry::init((
@@ -29,13 +29,14 @@ fn main() {
     // Start thread to run web and sync tasks
     if let Err(err) = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
-        .build()
-        .unwrap()
+        .build()?
         .block_on(async { run(config).await })
     {
         tracing::error!("{}", err);
         sentry::capture_error(&err);
-    }
+    };
+
+    Ok(())
 }
 
 async fn run(config: Config) -> BaseResult<()> {

@@ -6,6 +6,12 @@ pub enum BaseError {
     ConfigError(#[from] figment::Error),
 
     #[error(transparent)]
+    DotEnvError(#[from] dotenvy::Error),
+
+    #[error(transparent)]
+    IOError(#[from] std::io::Error),
+
+    #[error(transparent)]
     ClientError(#[from] crate::api::error::ClientError),
 
     #[error(transparent)]
