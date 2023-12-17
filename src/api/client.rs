@@ -134,6 +134,7 @@ impl Client<WithoutToken> {
     pub fn new_authorize_url(&self) -> (Url, CsrfToken) {
         self.oauth
             .authorize_url(|| CsrfToken::new_random())
+            .add_extra_param("show_dialog", "true")
             .add_scopes(SPOTIFY_OAUTH2_SCOPES.iter().map(|scope| Scope::new(scope.to_string())))
             .url()
     }

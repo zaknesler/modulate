@@ -35,7 +35,7 @@ async fn root(State(ctx): State<AppContext>, cookies: Cookies) -> WebResult<impl
             .path("/")
             .expires(OffsetDateTime::now_utc().checked_add(Duration::hours(1)))
             .http_only(true)
-            .same_site(tower_cookies::cookie::SameSite::Strict)
+            .same_site(tower_cookies::cookie::SameSite::Lax)
             .build(),
     );
 

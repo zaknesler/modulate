@@ -71,7 +71,7 @@ async fn handle_callback(
             .path("/")
             .expires(OffsetDateTime::now_utc().checked_add(JWT_EXPIRATION_DAYS.days()))
             .http_only(true)
-            .same_site(tower_cookies::cookie::SameSite::Strict)
+            .same_site(tower_cookies::cookie::SameSite::Lax)
             .build(),
     );
 
