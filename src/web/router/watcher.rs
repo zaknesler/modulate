@@ -17,6 +17,7 @@ use axum::{
     Extension, Json, Router,
 };
 use chrono::Utc;
+use reqwest::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
 use validator::Validate;
@@ -84,10 +85,11 @@ async fn create_watcher(
                 "You do not have permission to edit the source playlist. You must disable track removal.".into(),
             )),
             Ok(_) => {}
-            Err(err) => {
-                dbg!(&err);
+            Err(ref _err @ api::error::ClientError::ApiError { status, message: _ }) if status == StatusCode::BAD_GATEWAY => {
+                // Spotify returns a 502 Bad Gateway error if the playlist could not be found
                 return Err(WebError::InvalidFormData("Source playlist does not exist.".into()))
             },
+            Err(err) => return Err(err.into()),
         };
     }
 

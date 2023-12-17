@@ -6,7 +6,7 @@ use std::collections::HashMap;
 pub struct User {
     pub id: UserId,
     pub display_name: String,
-    pub images: Vec<Image>,
+    pub images: Option<Vec<Image>>,
     pub external_urls: ExternalUrls,
 }
 
@@ -29,7 +29,7 @@ pub struct PlaylistPartial {
     pub id: PlaylistId,
     pub name: String,
     pub snapshot_id: SnapshotId,
-    pub images: Vec<Image>,
+    pub images: Option<Vec<Image>>,
     pub owner: Owner,
     pub external_urls: ExternalUrls,
 }
