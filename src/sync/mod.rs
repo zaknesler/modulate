@@ -1,3 +1,5 @@
+use core::num;
+
 use self::error::SyncResult;
 use crate::{
     api::client::{self, Client, WithToken},
@@ -103,6 +105,13 @@ pub async fn sync_watcher(
     now: DateTime<Utc>,
 ) -> SyncResult<u32> {
     let res = sync_watcher_inner(ctx.clone(), client, &watcher_repo, watcher, &now).await;
+
+    let num_tracks = res.as_ref().unwrap_or(&0).clone();
+
+    // Only log if we've actually transferred tracks
+    if num_tracks == 0 {
+        return Ok(0);
+    }
 
     // Save transfer result
     TransferRepo::new(ctx.clone()).log_transfer(
