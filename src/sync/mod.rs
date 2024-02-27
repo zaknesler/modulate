@@ -1,5 +1,3 @@
-use core::num;
-
 use self::error::SyncResult;
 use crate::{
     api::client::{self, Client, WithToken},
