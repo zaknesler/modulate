@@ -291,7 +291,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.14.3...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.14.4...HEAD
+[0.14.4]: https://github.com/zaknesler/modulate/compare/v0.14.3...v0.14.4
 [0.14.3]: https://github.com/zaknesler/modulate/compare/v0.14.2...v0.14.3
 [0.14.2]: https://github.com/zaknesler/modulate/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/zaknesler/modulate/compare/v0.14.0...v0.14.1
