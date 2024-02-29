@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.14.4] - 2024-02-29
+
 ### Changed
 
 - Don't log transfers if no tracks were actually transferred
