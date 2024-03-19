@@ -239,9 +239,9 @@ impl Client<WithToken> {
 
             // An empty response means success
             match res {
-                Ok(_) => {}
                 Err(_err @ ClientError::EmptyResponse) => {}
                 Err(err) => return Err(err),
+                _ => {}
             };
         }
 
