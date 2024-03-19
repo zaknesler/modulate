@@ -3,10 +3,10 @@ pub type SyncResult<T> = Result<T, SyncError>;
 #[derive(thiserror::Error, Debug)]
 pub enum SyncError {
     #[error("invalid transfer: {0}")]
-    InvalidTransferError(String),
+    InvalidTransfer(String),
 
     #[error("could not find user: {0}")]
-    UserNotFoundError(String),
+    UserNotFound(String),
 
     #[error(transparent)]
     DbError(#[from] crate::db::error::DbError),

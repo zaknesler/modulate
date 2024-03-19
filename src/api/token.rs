@@ -32,14 +32,14 @@ impl TryFrom<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>> for T
     ) -> Result<Self, Self::Error> {
         let scopes = res.scopes().ok_or_else(|| ClientError::SpotifyDidNotReturnScopes)?.clone();
         let expires_in = chrono::Duration::from_std(
-            res.expires_in()
-                .ok_or_else(|| ClientError::SpotifyDidNotReturnExpiresIn)?
-                .clone(),
+            res.expires_in().ok_or_else(|| ClientError::SpotifyDidNotReturnExpiresIn)?,
         )?;
 
+        let expiration_offset =
+            chrono::Duration::try_seconds(EXPIRATION_OFFSET_SECONDS).expect("offset out of bounds");
+
         // Set the expiration to 1 minute before the "expires_in" duration returned from Spotify
-        let expires_at =
-            chrono::Utc::now() + expires_in - chrono::Duration::seconds(EXPIRATION_OFFSET_SECONDS);
+        let expires_at = chrono::Utc::now() + expires_in - expiration_offset;
 
         Ok(Token {
             access_token: res.access_token().secret().to_string(),

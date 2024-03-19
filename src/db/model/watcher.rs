@@ -31,8 +31,8 @@ impl TryFrom<&Row<'_>> for Watcher {
             playlist_to: PlaylistType::try_from_value(&row.get::<_, String>(3)?)?,
             should_remove: row.get(4)?,
             sync_interval: row.get::<_, String>(5)?.parse()?,
-            last_sync_at: row.get::<_, Option<String>>(6)?.map(|val| val.parse().ok()).flatten(),
-            next_sync_at: row.get::<_, Option<String>>(7)?.map(|val| val.parse().ok()).flatten(),
+            last_sync_at: row.get::<_, Option<String>>(6)?.and_then(|val| val.parse().ok()),
+            next_sync_at: row.get::<_, Option<String>>(7)?.and_then(|val| val.parse().ok()),
             created_at: row.get::<_, String>(8)?.parse()?,
         })
     }
@@ -73,9 +73,9 @@ impl FromStr for SyncInterval {
 impl From<SyncInterval> for chrono::Duration {
     fn from(value: SyncInterval) -> Self {
         match value {
-            SyncInterval::Hour => chrono::Duration::hours(1),
-            SyncInterval::Day => chrono::Duration::days(1),
-            SyncInterval::Week => chrono::Duration::weeks(1),
+            SyncInterval::Hour => chrono::Duration::try_hours(1).expect("won't overflow"),
+            SyncInterval::Day => chrono::Duration::try_days(1).expect("won't overflow"),
+            SyncInterval::Week => chrono::Duration::try_weeks(1).expect("won't overflow"),
         }
     }
 }

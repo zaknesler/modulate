@@ -50,8 +50,10 @@ async fn run(config: Config) -> BaseResult<()> {
     pin_mut!(web, sync);
 
     // Wait for either process to finish (i.e. return an error) and exit
-    Ok(select! {
+    select! {
         result = web => result?,
         result = sync => result?,
-    })
+    };
+
+    Ok(())
 }

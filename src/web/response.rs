@@ -32,16 +32,12 @@ impl IntoResponse for WebError {
 fn maybe_get_response(error: &WebError) -> Option<(StatusCode, Value)> {
     Some(match error {
         WebError::NotFoundError => (StatusCode::NOT_FOUND, Value::String(error.to_string())),
-        WebError::DbError(outer) => match outer {
-            crate::db::error::DbError::SQLiteError(inner) => match inner {
-                rusqlite::Error::QueryReturnedNoRows => (
-                    StatusCode::NOT_FOUND,
-                    Value::String(WebError::NotFoundError.to_string()),
-                ),
-                _ => return None,
-            },
-            _ => return None,
-        },
+        WebError::DbError(crate::db::error::DbError::SQLiteError(
+            rusqlite::Error::QueryReturnedNoRows,
+        )) => (
+            StatusCode::NOT_FOUND,
+            Value::String(WebError::NotFoundError.to_string()),
+        ),
         WebError::ClientError(outer) => match outer {
             crate::api::error::ClientError::ApiError { status, message } => (
                 axum::http::StatusCode::from_u16(*status)

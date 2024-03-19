@@ -1,5 +1,6 @@
 pub type BaseResult<T> = Result<T, BaseError>;
 
+#[allow(clippy::enum_variant_names)]
 #[derive(thiserror::Error, Debug)]
 pub enum BaseError {
     #[error(transparent)]

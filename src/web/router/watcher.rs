@@ -80,7 +80,7 @@ async fn create_watcher(
 
     if let PlaylistType::Id(id) = &from {
         let user_id = UserId::parse_from_input(&session.user.user_uri)?;
-        match api::util::check_playlist_editable(&session.client, &id, &user_id).await {
+        match api::util::check_playlist_editable(&session.client, id, &user_id).await {
             Ok(false) if data.should_remove => return Err(WebError::InvalidFormData(
                 "You do not have permission to edit the source playlist. You must disable track removal.".into(),
             )),

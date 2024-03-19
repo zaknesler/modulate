@@ -26,7 +26,7 @@ impl PlaylistTransfer {
         }
 
         if watcher.playlist_from == watcher.playlist_to {
-            return Err(SyncError::InvalidTransferError(
+            return Err(SyncError::InvalidTransfer(
                 "cannot transfer to the same playlist".to_owned(),
             ));
         }
@@ -67,7 +67,7 @@ impl PlaylistTransfer {
     async fn remove_tracks_from_playlist(
         &self,
         playlist_from: &PlaylistType,
-        ids_to_remove: &Vec<TrackId>,
+        ids_to_remove: &[TrackId],
     ) -> SyncResult<()> {
         match playlist_from {
             PlaylistType::Saved => {
@@ -93,23 +93,19 @@ impl PlaylistTransfer {
                 let playlist_track_ids = self.get_playlist_track_ids(to_id).await?;
 
                 // Get only the saved tracks that are not already in the target playlist and add them
-                let ids_to_insert = self.get_ids_to_insert(&ids_to_transfer, &playlist_track_ids);
+                let ids_to_insert = self.get_ids_to_insert(ids_to_transfer, &playlist_track_ids);
                 if !ids_to_insert.is_empty() {
                     self.client.playlist_add_ids(to_id, &ids_to_insert).await?;
                 }
 
-                return Ok(ids_to_insert
-                    .len()
-                    .try_into()
-                    .expect("size cant possibly be bigger than u32"));
+                Ok(ids_to_insert.len().try_into().expect("size cant possibly be bigger than u32"))
             }
-            PlaylistType::Saved => {
-                // We don't want to support transferring to saved tracks (for now; I just don't see the point)
-                return Err(SyncError::InvalidTransferError(
-                    "cannot transfer to saved tracks".to_owned(),
-                ));
-            }
-        };
+
+            // We don't want to support transferring to saved tracks (for now; I just don't see the point)
+            PlaylistType::Saved => Err(SyncError::InvalidTransfer(
+                "cannot transfer to saved tracks".to_owned(),
+            )),
+        }
     }
 
     /// Fetch the unique IDs in the specified playlist
@@ -125,7 +121,7 @@ impl PlaylistTransfer {
 
     /// Find the IDs that are not in the target playlist, and return them reversed so they may be inserted in the correct order
     fn get_ids_to_insert(&self, from: &HashSet<TrackId>, to: &HashSet<TrackId>) -> Vec<TrackId> {
-        let mut ids_to_insert = from.difference(&to).map(|track| track.clone()).collect::<Vec<_>>();
+        let mut ids_to_insert = from.difference(to).cloned().collect::<Vec<_>>();
 
         // Since we read them in order from newest to oldest, we want to insert them oldest first so we retain this order
         ids_to_insert.reverse();

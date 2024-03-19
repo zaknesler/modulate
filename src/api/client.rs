@@ -133,7 +133,7 @@ impl Client<WithoutToken> {
     /// Generate a new URL to authorize a user, along with a CSRF token to be verified from Spotify's response
     pub fn new_authorize_url(&self) -> (Url, CsrfToken) {
         self.oauth
-            .authorize_url(|| CsrfToken::new_random())
+            .authorize_url(CsrfToken::new_random)
             .add_extra_param("show_dialog", "true")
             .add_scopes(SPOTIFY_OAUTH2_SCOPES.iter().map(|scope| Scope::new(scope.to_string())))
             .url()
@@ -197,7 +197,6 @@ impl Client<WithToken> {
             None,
         )
         .await
-        .map_err(|err| err.into())
     }
 
     /// Get all tracks saved by the current user, returning only the ID/URI data
@@ -223,10 +222,7 @@ impl Client<WithToken> {
     }
 
     /// Remove tracks from the current user's saved tracks by ID
-    pub async fn current_user_saved_tracks_remove_ids(
-        &self,
-        ids: &Vec<TrackId>,
-    ) -> ClientResult<()> {
+    pub async fn current_user_saved_tracks_remove_ids(&self, ids: &[TrackId]) -> ClientResult<()> {
         tracing::debug!("DELETE /me/tracks");
 
         // Endpoint can only be sent a maximum of 50 IDs
@@ -296,11 +292,14 @@ impl Client<WithToken> {
             .await;
 
         // An empty response means success
-        Ok(match res {
-            Ok(_) => (),
+
+        match res {
             Err(_err @ ClientError::EmptyResponse) => (),
             Err(err) => return Err(err),
-        })
+            _ => (),
+        };
+
+        Ok(())
     }
 
     /// Get all tracks in a playlist, returning only the ID/URI data
@@ -334,7 +333,7 @@ impl Client<WithToken> {
     pub async fn playlist_add_ids(
         &self,
         PlaylistId(id): &PlaylistId,
-        ids: &Vec<TrackId>,
+        ids: &[TrackId],
     ) -> ClientResult<Vec<SnapshotId>> {
         tracing::debug!("POST /playlists/{}/tracks", id);
 
@@ -365,7 +364,7 @@ impl Client<WithToken> {
     pub async fn playlist_remove_ids(
         &self,
         PlaylistId(id): &PlaylistId,
-        ids: &Vec<TrackId>,
+        ids: &[TrackId],
     ) -> ClientResult<Vec<SnapshotId>> {
         tracing::debug!("DELETE /playlists/{}/tracks", id);
 

@@ -6,7 +6,7 @@ use tower_cookies::{
     Cookie,
 };
 
-pub fn unset_cookie<'a>(key: &'a str) -> Cookie<'a> {
+pub fn unset_cookie(key: &str) -> Cookie<'_> {
     CookieBuilder::new(key, "")
         .path("/")
         .expires(OffsetDateTime::now_utc().checked_sub(1.days()))

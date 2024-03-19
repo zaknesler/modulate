@@ -21,9 +21,10 @@ pub async fn init(ctx: AppContext) -> SyncResult<()> {
             .unwrap()
             .with_nanosecond(0)
             .unwrap()
-            .checked_add_signed(chrono::Duration::minutes(
-                ctx.config.sync.check_interval_mins.into(),
-            ))
+            .checked_add_signed(
+                chrono::Duration::try_minutes(ctx.config.sync.check_interval_mins.into())
+                    .expect("interval out of bounds"),
+            )
             .unwrap();
 
         let time_until_next_update = tokio::time::Duration::from_millis(
@@ -69,7 +70,7 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
     for watcher in to_sync {
         let user = user_repo
             .find_user_by_uri(&watcher.user_uri)?
-            .ok_or_else(|| SyncError::UserNotFoundError(watcher.user_uri.clone()))?;
+            .ok_or_else(|| SyncError::UserNotFound(watcher.user_uri.clone()))?;
 
         let (client, _) = client::Client::from_user_ensure_refreshed(ctx.clone(), user).await?;
 
@@ -102,9 +103,9 @@ pub async fn sync_watcher(
     watcher: &Watcher,
     now: DateTime<Utc>,
 ) -> SyncResult<u32> {
-    let res = sync_watcher_inner(ctx.clone(), client, &watcher_repo, watcher, &now).await;
+    let res = sync_watcher_inner(ctx.clone(), client, watcher_repo, watcher, &now).await;
 
-    let num_tracks = res.as_ref().unwrap_or(&0).clone();
+    let num_tracks = *res.as_ref().unwrap_or(&0);
 
     // Only log if we've actually transferred tracks
     if num_tracks == 0 {
@@ -131,7 +132,7 @@ async fn sync_watcher_inner(
     now: &DateTime<Utc>,
 ) -> SyncResult<u32> {
     let num_tracks_transferred =
-        transfer::PlaylistTransfer::new(ctx, client).try_transfer(&watcher).await?;
+        transfer::PlaylistTransfer::new(ctx, client).try_transfer(watcher).await?;
 
     watcher_repo.update_watcher_last_sync_at(watcher.id, *now)?;
 

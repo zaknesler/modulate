@@ -45,12 +45,11 @@ impl TransferRepo {
     /// Fetch all transfers for a watcher by ID.
     #[allow(dead_code)]
     pub fn get_transfers_for_watcher(&self, id: u32) -> DbResult<Vec<Transfer>> {
-        Ok(self
-            .ctx
+        self.ctx
             .db
             .get()?
             .prepare(format!("SELECT {COLUMNS} FROM transfers WHERE transfers.id = ?1").as_ref())?
             .query_and_then(params![id], |row| Transfer::try_from(row))?
-            .collect::<DbResult<Vec<_>>>()?)
+            .collect::<DbResult<Vec<_>>>()
     }
 }

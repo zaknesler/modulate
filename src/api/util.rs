@@ -31,7 +31,7 @@ pub async fn check_playlist_editable(
     user_id: &UserId,
 ) -> ClientResult<bool> {
     // Get playlist details
-    let playlist = client.playlist_partial(&id).await?;
+    let playlist = client.playlist_partial(id).await?;
 
     // If the user owns the playlist, don't try making request
     if playlist.owner.id == *user_id {
@@ -39,7 +39,7 @@ pub async fn check_playlist_editable(
     }
 
     // Attempt to update name to itself to check permissions
-    let res = client.playlist_update_name(&id, &playlist.name).await;
+    let res = client.playlist_update_name(id, &playlist.name).await;
 
     Ok(match res {
         Ok(_) => true,
