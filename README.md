@@ -34,9 +34,7 @@ If you'd like to run it for yourself:
 1. `cargo run`
 1. Go to [`localhost:4000`](http://localhost:4000), sign in, and configure
 
-It will handle any number of connected users, as long as you add their email to your developer application via the dashboard.
-
-Or, you could wait half a year for them to approve your application for public usage, only to deny you for rounding the corners of the playlist images.
+You are free to connect as many users as you want, as long as you add their email to your developer application via the dashboard.
 
 #### Thanks
 
