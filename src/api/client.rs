@@ -15,12 +15,9 @@ use crate::{
     db::repo::user::UserRepo,
 };
 use anyhow::anyhow;
-use oauth2::{
-    basic::BasicClient, reqwest::async_http_client, AuthUrl, AuthorizationCode, ClientId,
-    ClientSecret, CsrfToken, RedirectUrl, RefreshToken, Scope, TokenUrl,
-};
-use reqwest::{header, StatusCode, Url};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use oauth2::{Client as OAuth2Client, basic::*, *};
+use reqwest::{StatusCode, Url, header};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::json;
 use std::{
     fmt::Debug,
@@ -48,26 +45,44 @@ pub struct WithoutToken;
 #[derive(Debug, Clone)]
 pub struct WithToken(Arc<Mutex<Token>>);
 
+type SpotifyClient<
+    HasAuthUrl = EndpointSet,
+    HasDeviceAuthUrl = EndpointNotSet,
+    HasIntrospectionUrl = EndpointNotSet,
+    HasRevocationUrl = EndpointNotSet,
+    HasTokenUrl = EndpointSet,
+> = OAuth2Client<
+    BasicErrorResponse,
+    BasicTokenResponse,
+    BasicTokenIntrospectionResponse,
+    StandardRevocableToken,
+    BasicRevocationErrorResponse,
+    HasAuthUrl,
+    HasDeviceAuthUrl,
+    HasIntrospectionUrl,
+    HasRevocationUrl,
+    HasTokenUrl,
+>;
+
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Client<Token> {
     ctx: AppContext,
-    oauth: BasicClient,
+    oauth: SpotifyClient,
     token: Token,
 }
 
 // Methods to be used when we don't yet have an access token
 impl Client<WithoutToken> {
     /// Initialize Spotify OAuth2 client with credentials
-    fn init_oauth(config: &Config) -> ClientResult<BasicClient> {
+    fn init_oauth(config: &Config) -> ClientResult<SpotifyClient> {
         let redirect_url = RedirectUrl::new(format!("{}/callback", config.web.public_url))?;
-        let oauth = BasicClient::new(
-            ClientId::new(config.spotify.client_id.clone()),
-            Some(ClientSecret::new(config.spotify.client_secret.clone())),
-            AuthUrl::new(SPOTIFY_OAUTH2_AUTH_URL.to_string())?,
-            Some(TokenUrl::new(SPOTIFY_OAUTH2_TOKEN_URL.to_string())?),
-        )
-        .set_redirect_uri(redirect_url);
+
+        let oauth = BasicClient::new(ClientId::new(config.spotify.client_id.clone()))
+            .set_auth_uri(AuthUrl::new(SPOTIFY_OAUTH2_AUTH_URL.to_string())?)
+            .set_client_secret(ClientSecret::new(config.spotify.client_secret.clone()))
+            .set_token_uri(TokenUrl::new(SPOTIFY_OAUTH2_TOKEN_URL.to_string())?)
+            .set_redirect_uri(redirect_url);
 
         Ok(oauth)
     }
@@ -110,10 +125,14 @@ impl Client<WithoutToken> {
         let refresh_token =
             user.token.refresh_token.ok_or_else(|| ClientError::MissingRefreshToken)?;
 
+        let http_client = reqwest::ClientBuilder::new()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()?;
+
         let mut new_token: Token = client
             .oauth
             .exchange_refresh_token(&RefreshToken::new(refresh_token.clone()))
-            .request_async(async_http_client)
+            .request_async(&http_client)
             .await
             .map_err(|err| anyhow!(err))?
             .try_into()?;
@@ -141,9 +160,13 @@ impl Client<WithoutToken> {
 
     /// Using the code returned from Spotify during the OAuth2 process, fetch the token data
     pub async fn get_token_from_code(&self, code: String) -> ClientResult<Token> {
+        let http_client = reqwest::ClientBuilder::new()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()?;
+
         self.oauth
             .exchange_code(AuthorizationCode::new(code))
-            .request_async(async_http_client)
+            .request_async(&http_client)
             .await
             .map_err(|err| anyhow!(err))?
             .try_into()

@@ -12,18 +12,18 @@ use crate::{
     },
 };
 use axum::{
+    Router,
     extract::{Query, State},
     response::{IntoResponse, Redirect},
     routing::get,
-    Router,
 };
 use serde::Deserialize;
 use tower_cookies::{
-    cookie::{
-        time::{ext::NumericalDuration, OffsetDateTime},
-        CookieBuilder,
-    },
     Cookies,
+    cookie::{
+        CookieBuilder,
+        time::{OffsetDateTime, ext::NumericalDuration},
+    },
 };
 
 pub fn router(ctx: AppContext) -> Router {

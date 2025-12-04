@@ -48,6 +48,9 @@ pub enum WebError {
     IOError(#[from] std::io::Error),
 
     #[error(transparent)]
+    TemplateError(#[from] askama::Error),
+
+    #[error(transparent)]
     ClientError(#[from] crate::api::error::ClientError),
 
     #[error(transparent)]

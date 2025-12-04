@@ -1,12 +1,19 @@
 use super::{error::WebResult, middleware::guest, view::ConnectTemplate};
 use crate::{api::client, context::AppContext};
-use axum::{extract::State, middleware, response::IntoResponse, routing::get, Router};
+use askama::Template as _;
+use axum::{
+    Router,
+    extract::State,
+    middleware,
+    response::{Html, IntoResponse},
+    routing::get,
+};
 use tower_cookies::{
-    cookie::{
-        time::{Duration, OffsetDateTime},
-        CookieBuilder,
-    },
     Cookies,
+    cookie::{
+        CookieBuilder,
+        time::{Duration, OffsetDateTime},
+    },
 };
 
 mod connect;
@@ -39,7 +46,9 @@ async fn root(State(ctx): State<AppContext>, cookies: Cookies) -> WebResult<impl
             .build(),
     );
 
-    Ok(ConnectTemplate {
+    let template = ConnectTemplate {
         url: url.to_string(),
-    })
+    };
+
+    Ok(Html(template.render()?))
 }

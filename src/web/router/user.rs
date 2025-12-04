@@ -6,12 +6,13 @@ use crate::{
     web::util::cookie::unset_cookie,
     web::{error::WebResult, middleware::auth, session, view::DashboardTemplate},
 };
+use askama::Template as _;
 use axum::{
+    Extension, Json, Router,
     extract::State,
     middleware,
-    response::IntoResponse,
+    response::{Html, IntoResponse},
     routing::{delete, get},
-    Extension, Json, Router,
 };
 use serde_json::json;
 use std::collections::HashSet;
@@ -58,7 +59,7 @@ async fn get_current_user_dashboard(
     )
     .await?;
 
-    Ok(DashboardTemplate {
+    let template = DashboardTemplate {
         config: ctx.config,
         name: user.display_name,
         watchers,
@@ -73,7 +74,9 @@ async fn get_current_user_dashboard(
             .chain(missing_playlists.iter().cloned())
             .map(|playlist| playlist.into())
             .collect::<Vec<_>>(),
-    })
+    };
+
+    Ok(Html(template.render()?))
 }
 
 async fn delete_current_user(
