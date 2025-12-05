@@ -150,22 +150,33 @@ impl Client<WithoutToken> {
     }
 
     /// Generate a new URL to authorize a user, along with a CSRF token to be verified from Spotify's response
-    pub fn new_authorize_url(&self) -> (Url, CsrfToken) {
-        self.oauth
+    pub fn new_authorize_url(&self) -> (Url, CsrfToken, PkceCodeVerifier) {
+        let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
+
+        let (url, csrf) = self
+            .oauth
             .authorize_url(CsrfToken::new_random)
             .add_extra_param("show_dialog", "true")
             .add_scopes(SPOTIFY_OAUTH2_SCOPES.iter().map(|scope| Scope::new(scope.to_string())))
-            .url()
+            .set_pkce_challenge(pkce_challenge)
+            .url();
+
+        (url, csrf, pkce_verifier)
     }
 
     /// Using the code returned from Spotify during the OAuth2 process, fetch the token data
-    pub async fn get_token_from_code(&self, code: String) -> ClientResult<Token> {
+    pub async fn get_token_from_code(
+        &self,
+        code: String,
+        pkce_verifier: PkceCodeVerifier,
+    ) -> ClientResult<Token> {
         let http_client = reqwest::ClientBuilder::new()
             .redirect(reqwest::redirect::Policy::none())
             .build()?;
 
         self.oauth
             .exchange_code(AuthorizationCode::new(code))
+            .set_pkce_verifier(pkce_verifier)
             .request_async(&http_client)
             .await
             .map_err(|err| anyhow!(err))?

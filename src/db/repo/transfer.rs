@@ -1,7 +1,7 @@
 use crate::{
     db::{
         error::DbResult,
-        model::transfer::{Transfer, COLUMNS},
+        model::transfer::{COLUMNS, Transfer},
     },
     sync::error::SyncError,
 };

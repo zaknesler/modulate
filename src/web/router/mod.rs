@@ -22,6 +22,7 @@ mod watcher;
 
 pub const JWT_COOKIE: &str = "modulate_jwt";
 pub const CSRF_COOKIE: &str = "modulate_csrf";
+pub const PKCE_VERIFIER_COOKIE: &str = "modulate_pkce_verifier";
 
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
@@ -34,13 +35,21 @@ pub fn router(ctx: AppContext) -> Router {
 }
 
 async fn root(State(ctx): State<AppContext>, cookies: Cookies) -> WebResult<impl IntoResponse> {
-    let (url, csrf) = client::Client::new(ctx)?.new_authorize_url();
+    let (url, csrf, pkce_verifier) = client::Client::new(ctx)?.new_authorize_url();
 
-    // Set CSRF cookie to verify once user is redirected back
+    // Set CSRF and PKCE cookies to verify once user is redirected back
     cookies.add(
-        CookieBuilder::new(CSRF_COOKIE, csrf.secret().clone())
+        CookieBuilder::new(CSRF_COOKIE, csrf.secret().to_owned())
             .path("/")
-            .expires(OffsetDateTime::now_utc().checked_add(Duration::hours(1)))
+            .expires(OffsetDateTime::now_utc().checked_add(Duration::minutes(15)))
+            .http_only(true)
+            .same_site(tower_cookies::cookie::SameSite::Lax)
+            .build(),
+    );
+    cookies.add(
+        CookieBuilder::new(PKCE_VERIFIER_COOKIE, pkce_verifier.secret().to_owned())
+            .path("/")
+            .expires(OffsetDateTime::now_utc().checked_add(Duration::minutes(15)))
             .http_only(true)
             .same_site(tower_cookies::cookie::SameSite::Lax)
             .build(),

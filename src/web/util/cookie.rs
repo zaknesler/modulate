@@ -1,9 +1,9 @@
 use tower_cookies::{
-    cookie::{
-        time::{ext::NumericalDuration, OffsetDateTime},
-        CookieBuilder,
-    },
     Cookie,
+    cookie::{
+        CookieBuilder,
+        time::{OffsetDateTime, ext::NumericalDuration},
+    },
 };
 
 pub fn unset_cookie(key: &str) -> Cookie<'_> {

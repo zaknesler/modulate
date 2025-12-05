@@ -2,7 +2,7 @@ use crate::db::{
     error::{DbError, DbResult},
     model::{
         playlist::PlaylistType,
-        watcher::{SyncInterval, Watcher, COLUMNS},
+        watcher::{COLUMNS, SyncInterval, Watcher},
     },
 };
 use chrono::Utc;

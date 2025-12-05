@@ -32,7 +32,7 @@ If you'd like to run it for yourself:
 1. Add Spotify creds to `.env`
 1. `touch .data/modulate.db`
 1. `cargo run`
-1. Go to [`localhost:4000`](http://localhost:4000), sign in, and configure
+1. Go to [`127.0.0.1:4000`](http://127.0.0.1:4000), sign in, and configure
 
 It will handle any number of connected users, as long as you add their email to your developer application via the dashboard.
 

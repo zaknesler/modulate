@@ -12,7 +12,7 @@ opt-level = 3
 [dependencies]
 anyhow = "1.0"
 askama = "0.14"
-axum = { version = "0.8", features = ["form"] }
+axum = { version = "0.8", features = ["form", "macros"] }
 chrono = { version = "0.4", features = ["serde"] }
 dotenvy = "0.15"
 figment = { version = "0.10", features = ["env"] }
@@ -32,8 +32,8 @@ serde_with = { version = "3.4", features = ["chrono"] }
 sha2 = "0.10"
 thiserror = "2.0"
 tokio = { version = "1.34", features = ["rt-multi-thread", "macros"] }
-tower-cookies = "0.10"
-tower-http = { version = "0.5", features = ["trace", "cors"] }
+tower-cookies = "0.11"
+tower-http = { version = "0.6", features = ["trace", "cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["serde"] }
 validator = { version = "0.20", features = ["derive"] }

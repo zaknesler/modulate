@@ -1,5 +1,5 @@
 use crate::error::BaseResult;
-use figment::{providers::Env, Figment};
+use figment::{Figment, providers::Env};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Clone)]

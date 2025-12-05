@@ -1,10 +1,10 @@
 use super::error::WebError;
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 impl IntoResponse for WebError {
     fn into_response(self) -> Response {

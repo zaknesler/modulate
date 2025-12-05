@@ -20,6 +20,9 @@ pub enum WebError {
     #[error("invalid csrf")]
     CsrfInvalidError,
 
+    #[error("invalid pkce verifier")]
+    PkceVerifierInvalidError,
+
     #[error(transparent)]
     ChronoParseError(#[from] chrono::ParseError),
 

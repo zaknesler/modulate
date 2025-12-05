@@ -1,8 +1,8 @@
 use crate::{
     api::{
+        SPOTIFY_LIKED_TRACKS_URL,
         id::PlaylistId,
         model::{Image, PlaylistPartial},
-        SPOTIFY_LIKED_TRACKS_URL,
     },
     config::Config,
     db::model::{playlist::PlaylistType, watcher::Watcher},

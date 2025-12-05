@@ -5,6 +5,7 @@ use crate::{
     db::repo::user::UserRepo,
     web::{
         error::{WebError, WebResult},
+        router::PKCE_VERIFIER_COOKIE,
         util::{
             cookie::unset_cookie,
             jwt::{self, JWT_EXPIRATION_DAYS},
@@ -17,6 +18,7 @@ use axum::{
     response::{IntoResponse, Redirect},
     routing::get,
 };
+use oauth2::PkceCodeVerifier;
 use serde::Deserialize;
 use tower_cookies::{
     Cookies,
@@ -46,11 +48,21 @@ async fn handle_callback(
         return Err(WebError::CsrfInvalidError);
     }
 
-    // Remove the CSRF cookie now that we've validated the response
+    let pkce_verifier_str = cookies
+        .get(PKCE_VERIFIER_COOKIE)
+        .ok_or_else(|| WebError::PkceVerifierInvalidError)?
+        .value()
+        .to_owned();
+    let pkce_verifier = PkceCodeVerifier::new(pkce_verifier_str);
+
+    // Remove the CSRF and PKCE verifier cookies
     cookies.add(unset_cookie(CSRF_COOKIE));
+    cookies.add(unset_cookie(PKCE_VERIFIER_COOKIE));
 
     // Use the code we got from Spotify to create a valid token
-    let token = Client::new(ctx.clone())?.get_token_from_code(params.code).await?;
+    let token = Client::new(ctx.clone())?
+        .get_token_from_code(params.code, pkce_verifier)
+        .await?;
 
     // Initialize a new client to be able to send authenticated API requests
     let client = Client::new_with_token(ctx.clone(), token.clone())?;
