@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), 
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- Migrated to PKCE OAuth2 flow
+- Changed auth cookies to exist only on the /callback handler
+- Updated dependencies
 
 ## [0.14.4] - 2024-02-29
 
