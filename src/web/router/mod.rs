@@ -40,7 +40,7 @@ async fn root(State(ctx): State<AppContext>, cookies: Cookies) -> WebResult<impl
     // Set CSRF and PKCE cookies to verify once user is redirected back
     cookies.add(
         CookieBuilder::new(CSRF_COOKIE, csrf.secret().to_owned())
-            .path("/")
+            .path("/callback")
             .expires(OffsetDateTime::now_utc().checked_add(Duration::minutes(15)))
             .http_only(true)
             .same_site(tower_cookies::cookie::SameSite::Lax)
@@ -48,7 +48,7 @@ async fn root(State(ctx): State<AppContext>, cookies: Cookies) -> WebResult<impl
     );
     cookies.add(
         CookieBuilder::new(PKCE_VERIFIER_COOKIE, pkce_verifier.secret().to_owned())
-            .path("/")
+            .path("/callback")
             .expires(OffsetDateTime::now_utc().checked_add(Duration::minutes(15)))
             .http_only(true)
             .same_site(tower_cookies::cookie::SameSite::Lax)
