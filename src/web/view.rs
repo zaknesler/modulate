@@ -4,7 +4,7 @@ use crate::{
         id::PlaylistId,
         model::{Image, PlaylistPartial},
     },
-    config::Config,
+    config::ModulateConfig,
     db::model::{playlist::PlaylistType, watcher::Watcher},
 };
 use askama::Template;
@@ -18,7 +18,7 @@ pub struct ConnectTemplate {
 #[derive(Debug, Template)]
 #[template(path = "dashboard.html")]
 pub struct DashboardTemplate {
-    pub config: Config,
+    pub config: ModulateConfig,
     pub name: String,
     pub watchers: Vec<Watcher>,
     pub all_playlists: Vec<DisplayPlaylist>,

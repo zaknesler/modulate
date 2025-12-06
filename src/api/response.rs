@@ -34,6 +34,7 @@ pub struct SnapshotResponse {
     pub snapshot_id: SnapshotId,
 }
 
+#[allow(unused)]
 #[derive(Debug, Deserialize)]
 pub struct PaginatedResponse<T>
 where

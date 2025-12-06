@@ -1,5 +1,6 @@
 pub type ClientResult<T> = Result<T, ClientError>;
 
+#[allow(clippy::enum_variant_names)]
 #[derive(thiserror::Error, Debug)]
 pub enum ClientError {
     #[error("invalid ID: {0}")]

@@ -7,9 +7,9 @@ pub mod error;
 pub mod model;
 pub mod repo;
 
-pub fn init(db_path: &str) -> DbResult<Pool<SqliteConnectionManager>> {
+pub fn init(db_path: &path::PathBuf) -> DbResult<Pool<SqliteConnectionManager>> {
     // Create database file if it doesn't already exist
-    if !path::Path::new(db_path).try_exists()? {
+    if !db_path.try_exists()? {
         File::create(db_path)?;
     }
 

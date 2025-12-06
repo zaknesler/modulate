@@ -10,7 +10,7 @@ use crate::{
         model::TrackPartial,
         response::{SnapshotResponse, SpotifyResponse},
     },
-    config::Config,
+    config::ModulateConfig,
     context::AppContext,
     db::repo::user::UserRepo,
 };
@@ -75,7 +75,7 @@ pub struct Client<Token> {
 // Methods to be used when we don't yet have an access token
 impl Client<WithoutToken> {
     /// Initialize Spotify OAuth2 client with credentials
-    fn init_oauth(config: &Config) -> ClientResult<SpotifyClient> {
+    fn init_oauth(config: &ModulateConfig) -> ClientResult<SpotifyClient> {
         let redirect_url = RedirectUrl::new(format!("{}/callback", config.web.public_url))?;
 
         let oauth = BasicClient::new(ClientId::new(config.spotify.client_id.clone()))
