@@ -15,7 +15,7 @@
 
   /* Font */
   --lh-base: 1.5;
-  --lh-sm: 1.4;
+  --lh-sm: 1.3;
   --fs-sm: 0.875rem;
   --fs-base: 1rem;
   --fs-xl: 1.25rem;
@@ -43,8 +43,19 @@
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
   font-size: 16px;
   color: var(--color-body);
   line-height: var(--lh-base);
@@ -73,7 +84,7 @@ h6 {
 }
 
 h2 {
-  var(--fs-xl);
+  font-size: var(--fs-xl);
 }
 
 h3 {
@@ -107,7 +118,11 @@ header a {
   font-size: var(--fs-sm);
   color: var(--color-secondary);
   text-decoration: none;
-  font-family: Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
+  font-family:
+    Consolas, "Andale Mono WT", "Andale Mono", "Lucida Console",
+    "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono",
+    "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier,
+    monospace;
   letter-spacing: -0.5px;
 }
 
@@ -132,6 +147,7 @@ small {
 label {
   display: flex;
   justify-content: space-between;
+  text-wrap: balance;
 }
 
 label,
@@ -183,7 +199,9 @@ input {
   padding: 0.75rem;
   border-radius: 0.5rem;
   border: 1px solid var(--color-border);
-  transition: border 150ms ease-in-out, box-shadow 150ms ease-in-out;
+  transition:
+    border 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
 }
 
 select:focus,
@@ -319,7 +337,9 @@ a:hover {
   text-decoration: none;
   border: none;
   border-radius: 0.5rem;
-  transition: background-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+  transition:
+    background-color 150ms ease-in-out,
+    box-shadow 150ms ease-in-out;
   outline: none;
   cursor: pointer;
   text-align: center;
@@ -384,11 +404,13 @@ a:hover {
 }
 
 @media (prefers-color-scheme: dark) {
-  a, .link {
+  a,
+  .link {
     color: var(--color-spotify-green);
   }
 
-  a:hover, .link:hover {
+  a:hover,
+  .link:hover {
     color: var(--color-spotify-green-darker);
   }
 }
