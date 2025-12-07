@@ -1,14 +1,14 @@
 <p>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/zaknesler/modulate/assets/7189795/1c5f53fc-d014-4e7b-8c61-7122dedb7445">
-    <img src="https://github.com/zaknesler/modulate/assets/7189795/1e6e73b4-2be5-40cb-9a59-d1983c4d5448" alt="modulate" width="150">
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.svg">
+    <img src=".github/assets/logo-light.svg" alt="modulate" width="150">
   </picture>
 </p>
 
 ![latest release](https://img.shields.io/github/v/release/zaknesler/modulate)
-![build status](https://img.shields.io/github/actions/workflow/status/zaknesler/modulate/test.yml)
+![build status](https://img.shields.io/github/actions/workflow/status/zaknesler/modulate/build.yml)
 
-I like keeping my favorite Spotify tracks in playlists labeled by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
+I like keeping my favorite Spotify tracks in playlists labeled by year (e.g. a playlist called "2025") but it's annoying to add tracks to playlists manually.
 
 This tool allows you to transfer the tracks from one playlist to another on an interval. Most importantly, this also includes moving tracks from your liked/saved playlist, so you can press ❤️ and go on with your obviously busy life.
 
@@ -16,32 +16,18 @@ Once you connect your Spotify account and configure a watcher, it'll stay runnin
 
 <details>
   <summary><strong>View screenshot</strong></summary>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/dark.png">
-    <img alt="screenshot of app after configuring watchers" width="400" src=".github/assets/light.png">
-  </picture>
+  <img alt="screenshot of app after configuring watchers" width="700" src=".github/assets/screenshot.png">
 </details>
 
 #### Usage
 
-If you'd like to run it for yourself:
+To run this utility locally:
 
-1. Create a [Spotify developer application](https://developer.spotify.com/dashboard)
-1. Clone this repo
-1. `cp .env.example .env`
-1. Add Spotify creds to `.env`
-1. `touch .data/modulate.db`
-1. `cargo run`
-1. Go to [`localhost:4000`](http://localhost:4000), sign in, and configure
+1. Create and configure a [Spotify developer application](https://developer.spotify.com/dashboard)
+1. Download the latest [release binary](https://github.com/zaknesler/modulate/releases/latest)
+1. Run `./modulate publish` to publish the configuration file and open it
+1. Add Spotify credentials and enter a unique `jwt_secret`
+1. Run `./modulate start` to start the server
+1. Go to [`127.0.0.1:4000`](http://127.0.0.1:4000), sign in via Spotify, and configure your watchers
 
-You are free to connect as many users as you want, as long as you add their email to your developer application via the dashboard.
-
-#### Thanks
-
-A few honorable mentions:
-
-- [axum](https://github.com/tokio-rs/axum) — to provide a web interface
-- [oauth2](https://github.com/ramosbugs/oauth2-rs) — for authenticating with Spotify API
-- [askama](https://github.com/djc/askama) — for HTML templating
-- [rusqlite](https://github.com/rusqlite/rusqlite) — for easily storing tokens and watchers
-- [r2d2](https://github.com/sfackler/r2d2) — for managing the db connection
+You are able to connect as many Spotify accounts as you want as long as you add their email to your developer application via the dashboard.

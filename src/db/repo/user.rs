@@ -2,7 +2,7 @@ use crate::{
     api::token::Token,
     db::{
         error::{DbError, DbResult},
-        model::user::{User, COLUMNS},
+        model::user::{COLUMNS, User},
     },
 };
 use rusqlite::params;

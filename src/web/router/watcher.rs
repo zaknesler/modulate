@@ -10,11 +10,11 @@ use crate::{
     },
 };
 use axum::{
+    Extension, Json, Router,
     extract::{Path, State},
     middleware,
     response::IntoResponse,
     routing::{delete, post},
-    Extension, Json, Router,
 };
 use chrono::Utc;
 use reqwest::StatusCode;
@@ -25,8 +25,8 @@ use validator::Validate;
 pub fn router(ctx: AppContext) -> Router {
     Router::new()
         .route("/watchers", post(create_watcher))
-        .route("/watchers/:id", delete(delete_watcher))
-        .route("/watchers/:id/sync", post(sync_watcher))
+        .route("/watchers/{id}", delete(delete_watcher))
+        .route("/watchers/{id}/sync", post(sync_watcher))
         .route_layer(middleware::from_fn_with_state(
             ctx.clone(),
             auth::middleware,

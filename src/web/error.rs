@@ -20,6 +20,9 @@ pub enum WebError {
     #[error("invalid csrf")]
     CsrfInvalidError,
 
+    #[error("invalid pkce verifier")]
+    PkceVerifierInvalidError,
+
     #[error(transparent)]
     ChronoParseError(#[from] chrono::ParseError),
 
@@ -46,6 +49,9 @@ pub enum WebError {
 
     #[error(transparent)]
     IOError(#[from] std::io::Error),
+
+    #[error(transparent)]
+    TemplateError(#[from] askama::Error),
 
     #[error(transparent)]
     ClientError(#[from] crate::api::error::ClientError),

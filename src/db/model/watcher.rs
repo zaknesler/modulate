@@ -7,6 +7,7 @@ use std::{fmt::Display, str::FromStr};
 
 pub const COLUMNS: &str = "id, user_uri, playlist_from, playlist_to, should_remove, sync_interval, last_sync_at, next_sync_at, created_at";
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct Watcher {
     pub id: u32,

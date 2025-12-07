@@ -1,5 +1,6 @@
 pub type DbResult<T> = Result<T, DbError>;
 
+#[allow(clippy::enum_variant_names)]
 #[derive(thiserror::Error, Debug)]
 pub enum DbError {
     #[error("invalid ID: {0}")]

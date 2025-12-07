@@ -5,6 +5,7 @@ use rusqlite::Row;
 #[allow(dead_code)]
 pub const COLUMNS: &str = "id, watcher_id, num_tracks_transferred,error, synced_at, created_at";
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct Transfer {
     pub id: u32,

@@ -56,7 +56,8 @@ function onInputUpdate() {
   const to = document.querySelector("#select-playlist-to").value;
   const sync_interval = document.querySelector("#input-sync-interval").value;
 
-  document.querySelector("#submit").disabled = !from || !to || !sync_interval || from === to;
+  document.querySelector("#submit").disabled =
+    !from || !to || !sync_interval || from === to;
 }
 
 async function deleteUser() {
@@ -93,7 +94,7 @@ async function syncWatcher(id) {
   refresh();
 }
 
-document.querySelector("form#create").addEventListener(
+document.querySelector("form#create")?.addEventListener(
   "submit",
   async function (e) {
     clearErrors();
@@ -102,7 +103,9 @@ document.querySelector("form#create").addEventListener(
     const from_select = document.querySelector("#select-playlist-from").value;
     const from_input = document.querySelector("#input-playlist-from").value;
     const playlist_to = document.querySelector("#select-playlist-to").value;
-    const should_remove = document.querySelector("#checkbox-should-remove").checked;
+    const should_remove = document.querySelector(
+      "#checkbox-should-remove",
+    ).checked;
     const sync_interval = document.querySelector("#input-sync-interval").value;
 
     const res = await fetch("/watchers", {
@@ -121,5 +124,5 @@ document.querySelector("form#create").addEventListener(
 
     refresh();
   },
-  true
+  true,
 );

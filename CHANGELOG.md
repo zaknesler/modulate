@@ -2,12 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Nothing yet.
+Nothing yet!
+
+## [0.15.0] - 2025-12-07
+
+### Added
+
+- Added CLI to make release binaries more straightforward
+  - `publish` command will publish (or force publish) configuration file
+  - `start` command will start server
+
+### Changed
+
+- Moved configuration to user home directory
+- Moved configuration from `.env` to `.toml` format
+- Migrated to PKCE OAuth2 flow
+- Changed auth cookies to exist only on the `/callback` handler
+- Updated dependencies
 
 ## [0.14.4] - 2024-02-29
 
@@ -291,7 +306,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.14.4...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/zaknesler/modulate/compare/v0.14.4...v0.15.0
 [0.14.4]: https://github.com/zaknesler/modulate/compare/v0.14.3...v0.14.4
 [0.14.3]: https://github.com/zaknesler/modulate/compare/v0.14.2...v0.14.3
 [0.14.2]: https://github.com/zaknesler/modulate/compare/v0.14.1...v0.14.2

@@ -1,0 +1,90 @@
+name: Build
+on: [workflow_dispatch, workflow_call, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+
+jobs:
+  build:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - name: x86_64-linux-gnu
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            command: cargo
+          - name: aarch64-linux-gnu
+            runner: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            command: cross
+          - name: armv7-linux-gnueabihf
+            runner: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            command: cross
+          - name: x86_64-windows
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            command: cargo
+          - name: aarch64-windows
+            runner: windows-latest
+            target: aarch64-pc-windows-msvc
+            command: cargo
+          - name: x86_64-macos
+            runner: macos-latest
+            target: x86_64-apple-darwin
+            command: cargo
+          - name: aarch64-macos
+            runner: macos-latest
+            target: aarch64-apple-darwin
+            command: cargo
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: "${{ matrix.target }}"
+
+      - name: Configure Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-binstall
+        shell: bash
+        run: curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+
+      - run: cargo binstall --no-confirm --force cross
+        if: matrix.command == 'cross'
+
+      - run: cargo test --verbose
+        if: matrix.command == 'cargo'
+      - run: cross test --verbose --target ${{ matrix.target }}
+        if: matrix.command == 'cross'
+
+      - run: ${{ matrix.command }} build --verbose --locked --release --target ${{ matrix.target }}
+
+      - name: Prepare binary
+        shell: bash
+        run: |
+          BIN_SUFFIX=""
+          if [[ "${{ matrix.runner }}" == "windows-latest" ]]; then
+            BIN_SUFFIX=".exe"
+          fi
+
+          # The built binary output location
+          BIN_OUTPUT="target/${{ matrix.target }}/release/modulate${BIN_SUFFIX}"
+
+          # Define a better name for the final binary
+          BIN_FILENAME="modulate-${{ matrix.name }}${BIN_SUFFIX}"
+
+          # Make output directory
+          mkdir "${GITHUB_WORKSPACE}/_artifacts"
+
+          # Move the built binary where you want it
+          mv "${BIN_OUTPUT}" "${GITHUB_WORKSPACE}/_artifacts/${BIN_FILENAME}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: modulate-${{ matrix.name }}
+          path: ${{ github.workspace }}/_artifacts/*

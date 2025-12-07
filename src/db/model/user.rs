@@ -4,6 +4,7 @@ use rusqlite::Row;
 
 pub const COLUMNS: &str = "id, user_uri, token, created_at";
 
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct User {
     pub id: u32,

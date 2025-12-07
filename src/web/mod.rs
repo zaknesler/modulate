@@ -1,6 +1,6 @@
 use self::error::WebResult;
 use crate::context::AppContext;
-use axum::http::{header, HeaderValue, Method};
+use axum::http::{HeaderValue, Method, header};
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
@@ -32,7 +32,7 @@ pub async fn serve(ctx: AppContext) -> WebResult<()> {
         .layer(cors)
         .layer(CookieManagerLayer::new())
         .layer(sentry::integrations::tower::NewSentryLayer::new_from_top())
-        .layer(sentry::integrations::tower::SentryHttpLayer::with_transaction());
+        .layer(sentry::integrations::tower::SentryHttpLayer::new().enable_transaction());
 
     axum::serve(
         TcpListener::bind(format!("{}:{}", ctx.config.web.host, ctx.config.web.port)).await?,

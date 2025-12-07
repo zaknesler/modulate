@@ -1,8 +1,11 @@
-use crate::config::Config;
+#![allow(clippy::result_large_err)]
+
+use clap::Parser as _;
 use error::BaseResult;
 use futures::{future::FutureExt, pin_mut, select};
 
 mod api;
+mod args;
 mod config;
 mod context;
 mod db;
@@ -11,8 +14,11 @@ mod sync;
 mod web;
 
 fn main() -> BaseResult<()> {
-    dotenvy::dotenv()?;
-    let config = Config::try_parse()?;
+    // Ensure config dir exists
+    config::init_config_dir()?;
+
+    let args = args::Args::parse();
+    let config = config::parse(args.config)?;
 
     // Initialize Sentry if we have a DSN
     let _sentry = sentry::init((
@@ -26,26 +32,36 @@ fn main() -> BaseResult<()> {
     // Initialize tracing
     tracing_subscriber::fmt().with_max_level(config.log.level.clone()).init();
 
-    // Start thread to run web and sync tasks
-    if let Err(err) = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()?
-        .block_on(async { run(config).await })
-    {
-        tracing::error!("{}", err);
-        sentry::capture_error(&err);
-    };
+    match args.command {
+        crate::args::Command::Publish { force } => {
+            config::init_config_file(force)?;
+        }
+
+        args::Command::Start => {
+            // Start thread to run web and sync tasks
+            if let Err(err) = tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()?
+                .block_on(async { start(config).await })
+            {
+                tracing::error!("{}", err);
+                sentry::capture_error(&err);
+            };
+        }
+    }
 
     Ok(())
 }
 
-async fn run(config: Config) -> BaseResult<()> {
-    let db = db::init(config.database.url.as_ref())?;
+async fn start(config: config::ModulateConfig) -> BaseResult<()> {
+    let db_path = config::get_config_dir()?.join(&config.database.file);
+
+    let db = db::init(&db_path)?;
     let ctx = context::AppContext { db, config };
 
     // Run web server and sync tasks concurrently
-    let web = crate::web::serve(ctx.clone()).fuse();
-    let sync = crate::sync::init(ctx).fuse();
+    let web = web::serve(ctx.clone()).fuse();
+    let sync = sync::init(ctx).fuse();
 
     pin_mut!(web, sync);
 

@@ -1,5 +1,7 @@
-name: Build & test
-on: [push, pull_request]
+name: CI
+on:
+  push:
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -10,12 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: crate-ci/typos@master
-      - run: cp .env.example .env
-      - run: mkdir .data && touch .data/modulate.db
+
       - uses: dtolnay/rust-toolchain@stable
+
       - uses: Swatinem/rust-cache@v2
+
       - name: Run tests
         run: cargo test --verbose
+
       - name: Run build
         run: cargo build --verbose

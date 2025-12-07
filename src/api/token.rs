@@ -1,5 +1,5 @@
 use super::error::ClientError;
-use oauth2::{basic::BasicTokenType, EmptyExtraTokenFields, StandardTokenResponse, TokenResponse};
+use oauth2::{EmptyExtraTokenFields, StandardTokenResponse, TokenResponse, basic::BasicTokenType};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 

@@ -4,13 +4,10 @@ pub type BaseResult<T> = Result<T, BaseError>;
 #[derive(thiserror::Error, Debug)]
 pub enum BaseError {
     #[error(transparent)]
-    ConfigError(#[from] figment::Error),
-
-    #[error(transparent)]
-    DotEnvError(#[from] dotenvy::Error),
-
-    #[error(transparent)]
     IOError(#[from] std::io::Error),
+
+    #[error(transparent)]
+    ConfigError(#[from] crate::config::error::ConfigError),
 
     #[error(transparent)]
     ClientError(#[from] crate::api::error::ClientError),
