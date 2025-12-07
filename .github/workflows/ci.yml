@@ -1,5 +1,7 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
@@ -10,10 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: crate-ci/typos@master
+
       - uses: dtolnay/rust-toolchain@stable
+
       - uses: Swatinem/rust-cache@v2
+
       - name: Run tests
         run: cargo test --verbose
+
       - name: Run build
         run: cargo build --verbose

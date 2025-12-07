@@ -16,9 +16,11 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: ${{ github.workspace }}/_artifacts
+
       - name: Add version to binaries
         run: |
           mkdir -p ${{ github.workspace }}/_binaries
