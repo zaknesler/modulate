@@ -27,6 +27,10 @@ jobs:
             runner: windows-latest
             target: x86_64-pc-windows-msvc
             command: cargo
+          - name: aarch64-windows
+            runner: windows-latest
+            target: aarch64-pc-windows-msvc
+            command: cargo
           - name: x86_64-macos
             runner: macos-latest
             target: x86_64-apple-darwin
@@ -53,9 +57,9 @@ jobs:
       - run: cargo binstall --no-confirm --force cross
         if: matrix.command == 'cross'
 
-      - run: cargo test --verbose --workspace
+      - run: cargo test --verbose
         if: matrix.command == 'cargo'
-      - run: cross test --verbose --workspace --target ${{ matrix.target }}
+      - run: cross test --verbose --target ${{ matrix.target }}
         if: matrix.command == 'cross'
 
       - run: ${{ matrix.command }} build --verbose --locked --release --target ${{ matrix.target }}

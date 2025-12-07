@@ -6,7 +6,7 @@
 </p>
 
 ![latest release](https://img.shields.io/github/v/release/zaknesler/modulate)
-![build status](https://img.shields.io/github/actions/workflow/status/zaknesler/modulate/test.yml)
+![build status](https://img.shields.io/github/actions/workflow/status/zaknesler/modulate/build.yml)
 
 I like keeping my favorite Spotify tracks in playlists labeled by year (e.g. a playlist called "2023") but it's annoying to add tracks to playlists manually.
 
