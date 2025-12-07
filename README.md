@@ -16,10 +16,7 @@ Once you connect your Spotify account and configure a watcher, it'll stay runnin
 
 <details>
   <summary><strong>View screenshot</strong></summary>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/dark.png">
-    <img alt="screenshot of app after configuring watchers" width="400" src=".github/assets/light.png">
-  </picture>
+  <img alt="screenshot of app after configuring watchers" width="700" src=".github/assets/screenshot.png">
 </details>
 
 #### Usage
