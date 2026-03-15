@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), 
 
 Nothing yet.
 
+## [0.16.1] - 2026-03-15
+
+### Changed
+
+- Update Github actions versions
+
 ## [0.16.0] - 2026-03-15
 
 ### Changed
@@ -315,7 +321,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.16.1...HEAD
+[0.16.0]: https://github.com/zaknesler/modulate/compare/v0.16.0...v0.16.1
 [0.16.0]: https://github.com/zaknesler/modulate/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/zaknesler/modulate/compare/v0.14.4...v0.15.0
 [0.14.4]: https://github.com/zaknesler/modulate/compare/v0.14.3...v0.14.4
