@@ -1760,7 +1760,6 @@ dependencies = [
 name = "modulate"
 version = "0.16.2"
 dependencies = [
- "anyhow",
  "askama",
  "axum",
  "chrono",

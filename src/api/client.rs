@@ -14,7 +14,7 @@ use crate::{
     context::AppContext,
     db::repo::user::UserRepo,
 };
-use anyhow::anyhow;
+
 use oauth2::{
     AuthUrl, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, CsrfToken,
     EndpointNotSet, EndpointSet, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, RefreshToken,
@@ -137,8 +137,7 @@ impl Client<WithoutToken> {
             .oauth
             .exchange_refresh_token(&RefreshToken::new(refresh_token.clone()))
             .request_async(&http_client)
-            .await
-            .map_err(|err| anyhow!(err))?
+            .await?
             .try_into()?;
 
         // Since the auth flow does not return a refresh token, we must use the old one
@@ -182,8 +181,7 @@ impl Client<WithoutToken> {
             .exchange_code(AuthorizationCode::new(code))
             .set_pkce_verifier(pkce_verifier)
             .request_async(&http_client)
-            .await
-            .map_err(|err| anyhow!(err))?
+            .await?
             .try_into()
     }
 }

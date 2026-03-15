@@ -39,9 +39,10 @@ pub async fn middleware(
         }
     };
 
-    let session = try_create_auth_session(ctx, user)
-        .await
-        .map_err(|_| WebError::UnauthorizedError)?;
+    let session = try_create_auth_session(ctx, user).await.map_err(|err| {
+        tracing::warn!("Failed to create auth session: {}", err);
+        WebError::UnauthorizedError
+    })?;
 
     req.extensions_mut().insert(session);
 
