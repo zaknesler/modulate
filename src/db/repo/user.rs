@@ -5,7 +5,7 @@ use crate::{
         model::user::{COLUMNS, User},
     },
 };
-use rusqlite::params;
+use r2d2_sqlite::rusqlite::params;
 
 pub struct UserRepo {
     ctx: crate::context::AppContext,
@@ -35,7 +35,7 @@ impl UserRepo {
             .collect::<DbResult<Vec<_>>>()?
             .first()
             .cloned()
-            .ok_or_else(|| DbError::SQLiteError(rusqlite::Error::QueryReturnedNoRows))
+            .ok_or_else(|| DbError::SQLiteError(r2d2_sqlite::rusqlite::Error::QueryReturnedNoRows))
     }
 
     /// Try to find a user's auth token.

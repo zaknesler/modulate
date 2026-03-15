@@ -72,6 +72,13 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
             .find_user_by_uri(&watcher.user_uri)?
             .ok_or_else(|| SyncError::UserNotFound(watcher.user_uri.clone()))?;
 
+        sentry::configure_scope(|scope| {
+            scope.set_user(Some(sentry::User {
+                id: Some(user.user_uri.clone()),
+                ..Default::default()
+            }));
+        });
+
         let (client, _) = client::Client::from_user_ensure_refreshed(ctx.clone(), user).await?;
 
         match sync_watcher(ctx.clone(), client, &watcher_repo, &watcher, now).await {

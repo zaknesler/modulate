@@ -96,9 +96,9 @@
         {% let (from_data, to_data) = Self::get_mapped_display_data(self, watcher) %}
         <div class="watcher">
           <h4>
-            {% call playlist_item(from_data) %}
+            {% call playlist_item(from_data) %}{% endcall %}
             <small>&rarr;</small>
-            {% call playlist_item(to_data) %}
+            {% call playlist_item(to_data) %}{% endcall %}
           </h4>
 
           <p class="sm">
@@ -155,7 +155,7 @@
 {% endmacro %}
 
 {% block content %}
-  {% call header_section() %}
+  {% call header_section() %}{% endcall %}
 
   <section class="errors hidden" id="errors">
     <p><strong>Error:</strong> <span id="errors-text"></span></p>
@@ -163,14 +163,14 @@
 
   <div class="separator"></div>
 
-  {% call create_section() %}
+  {% call create_section() %}{% endcall %}
 
   {% if !watchers.is_empty() %}
     <div class="separator"></div>
-    {% call watchers_section() %}
+    {% call watchers_section() %}{% endcall %}
   {% endif %}
 
   <div class="separator"></div>
 
-  {% call data_section() %}
+  {% call data_section() %}{% endcall %}
 {% endblock content %}

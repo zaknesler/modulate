@@ -1,7 +1,7 @@
 use super::playlist::PlaylistType;
 use crate::db::error::DbError;
 use chrono::{DateTime, Utc};
-use rusqlite::Row;
+use r2d2_sqlite::rusqlite::Row;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 

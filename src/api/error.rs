@@ -34,6 +34,9 @@ pub enum ClientError {
     OAuthParseError(#[from] oauth2::url::ParseError),
 
     #[error(transparent)]
+    OAuthRequestError(#[from] oauth2::reqwest::Error),
+
+    #[error(transparent)]
     RegexError(#[from] regex::Error),
 
     #[error(transparent)]

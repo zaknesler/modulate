@@ -1,6 +1,6 @@
 use crate::{api::token::Token, db::error::DbError};
 use chrono::{DateTime, Utc};
-use rusqlite::Row;
+use r2d2_sqlite::rusqlite::Row;
 
 pub const COLUMNS: &str = "id, user_uri, token, created_at";
 

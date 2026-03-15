@@ -6,7 +6,7 @@ use crate::db::{
     },
 };
 use chrono::Utc;
-use rusqlite::params;
+use r2d2_sqlite::rusqlite::params;
 
 pub struct WatcherRepo {
     ctx: crate::context::AppContext,
@@ -68,8 +68,9 @@ impl WatcherRepo {
         Ok(match rows {
             Ok(rows) => rows.first().cloned(),
             Err(
-                ref
-                _outer @ DbError::SQLiteError(ref _inner @ rusqlite::Error::QueryReturnedNoRows),
+                ref _outer @ DbError::SQLiteError(
+                    ref _inner @ r2d2_sqlite::rusqlite::Error::QueryReturnedNoRows,
+                ),
             ) => None,
             Err(err) => return Err(err),
         })

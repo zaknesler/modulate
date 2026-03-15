@@ -3,6 +3,7 @@
 use clap::Parser as _;
 use error::BaseResult;
 use futures::{future::FutureExt, pin_mut, select};
+use tracing_subscriber::prelude::*;
 
 mod api;
 mod args;
@@ -30,7 +31,12 @@ fn main() -> BaseResult<()> {
     ));
 
     // Initialize tracing
-    tracing_subscriber::fmt().with_max_level(config.log.level.clone()).init();
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer().with_filter(
+            tracing_subscriber::filter::LevelFilter::from(config.log.level.clone()),
+        ))
+        .with(sentry::integrations::tracing::layer())
+        .init();
 
     match args.command {
         crate::args::Command::Publish { force } => {

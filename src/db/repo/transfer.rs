@@ -6,7 +6,7 @@ use crate::{
     sync::error::SyncError,
 };
 use chrono::{DateTime, Utc};
-use rusqlite::params;
+use r2d2_sqlite::rusqlite::params;
 
 pub struct TransferRepo {
     ctx: crate::context::AppContext,

@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0"
-askama = "0.14"
+askama = "0.15"
 axum = { version = "0.8", features = ["form", "macros"] }
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.4", features = ["derive"] }
@@ -17,12 +17,11 @@ hmac = "0.12"
 jwt = "0.16"
 oauth2 = "5.0"
 r2d2 = "0.8"
-r2d2_sqlite = "0.31"
+r2d2_sqlite = { version = "0.32", features = ["bundled"] }
 regex = "1.10"
-reqwest = { version = "0.12", features = ["json"] }
-rusqlite = { version = "0.37", features = ["bundled"] }
+reqwest = { version = "0.13", features = ["json", "query"] }
 rust-embed = { version = "8.9", features = ["interpolate-folder-path"] }
-sentry = { version = "0.46", features = ["tracing", "tower-axum-matched-path"] }
+sentry = { version = "0.47", features = ["tracing", "tower-axum-matched-path"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_with = { version = "3.4", features = ["chrono"] }

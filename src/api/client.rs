@@ -15,7 +15,11 @@ use crate::{
     db::repo::user::UserRepo,
 };
 use anyhow::anyhow;
-use oauth2::{Client as OAuth2Client, basic::*, *};
+use oauth2::{
+    AuthUrl, AuthorizationCode, Client as OAuth2Client, ClientId, ClientSecret, CsrfToken,
+    EndpointNotSet, EndpointSet, PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, RefreshToken,
+    Scope, StandardRevocableToken, TokenUrl, basic::*,
+};
 use reqwest::{StatusCode, Url, header};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::json;
@@ -125,8 +129,8 @@ impl Client<WithoutToken> {
         let refresh_token =
             user.token.refresh_token.ok_or_else(|| ClientError::MissingRefreshToken)?;
 
-        let http_client = reqwest::ClientBuilder::new()
-            .redirect(reqwest::redirect::Policy::none())
+        let http_client = oauth2::reqwest::ClientBuilder::new()
+            .redirect(oauth2::reqwest::redirect::Policy::none())
             .build()?;
 
         let mut new_token: Token = client
@@ -170,8 +174,8 @@ impl Client<WithoutToken> {
         code: String,
         pkce_verifier: PkceCodeVerifier,
     ) -> ClientResult<Token> {
-        let http_client = reqwest::ClientBuilder::new()
-            .redirect(reqwest::redirect::Policy::none())
+        let http_client = oauth2::reqwest::ClientBuilder::new()
+            .redirect(oauth2::reqwest::redirect::Policy::none())
             .build()?;
 
         self.oauth

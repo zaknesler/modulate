@@ -102,8 +102,8 @@ async fn create_watcher(
     )
     .map_err(|err| match err {
         crate::db::error::DbError::SQLiteError(
-            ref _inner @ rusqlite::Error::SqliteFailure(ref err_code, _),
-        ) if err_code.code == rusqlite::ErrorCode::ConstraintViolation => {
+            ref _inner @ r2d2_sqlite::rusqlite::Error::SqliteFailure(ref err_code, _),
+        ) if err_code.code == r2d2_sqlite::rusqlite::ErrorCode::ConstraintViolation => {
             WebError::InvalidFormData("Watcher already exists for these playlists.".into())
         }
         _ => err.into(),

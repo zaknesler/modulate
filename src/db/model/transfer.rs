@@ -1,6 +1,6 @@
 use crate::db::error::DbError;
 use chrono::{DateTime, Utc};
-use rusqlite::Row;
+use r2d2_sqlite::rusqlite::Row;
 
 #[allow(dead_code)]
 pub const COLUMNS: &str = "id, watcher_id, num_tracks_transferred,error, synced_at, created_at";

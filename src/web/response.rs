@@ -33,23 +33,19 @@ fn maybe_get_response(error: &WebError) -> Option<(StatusCode, Value)> {
     Some(match error {
         WebError::NotFoundError => (StatusCode::NOT_FOUND, Value::String(error.to_string())),
         WebError::DbError(crate::db::error::DbError::SQLiteError(
-            rusqlite::Error::QueryReturnedNoRows,
+            r2d2_sqlite::rusqlite::Error::QueryReturnedNoRows,
         )) => (
             StatusCode::NOT_FOUND,
             Value::String(WebError::NotFoundError.to_string()),
         ),
-        WebError::ClientError(outer) => match outer {
-            crate::api::error::ClientError::ApiError { status, message } => (
-                axum::http::StatusCode::from_u16(*status)
-                    .unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
-                Value::String(message.clone()),
-            ),
-            crate::api::error::ClientError::TooManyRequests => (
-                StatusCode::TOO_MANY_REQUESTS,
-                Value::String(error.to_string()),
-            ),
-            _ => return None,
-        },
+        WebError::ClientError(crate::api::error::ClientError::ApiError { status, message }) => (
+            axum::http::StatusCode::from_u16(*status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+            Value::String(message.clone()),
+        ),
+        WebError::ClientError(crate::api::error::ClientError::TooManyRequests) => (
+            StatusCode::TOO_MANY_REQUESTS,
+            Value::String(error.to_string()),
+        ),
         WebError::UnauthorizedError | WebError::JwtExpiredError | WebError::JwtInvalidError => {
             (StatusCode::UNAUTHORIZED, Value::String(error.to_string()))
         }
