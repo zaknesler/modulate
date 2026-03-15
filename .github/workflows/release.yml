@@ -33,4 +33,4 @@ jobs:
         with:
           artifacts: _binaries/modulate*
           body: "[wip]"
-          draft: false
+          draft: true
