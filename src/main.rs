@@ -26,6 +26,8 @@ fn main() -> BaseResult<()> {
         config.sentry.dsn.clone(),
         sentry::ClientOptions {
             release: sentry::release_name!(),
+            send_default_pii: true,
+            traces_sample_rate: 1.0,
             ..Default::default()
         },
     ));
