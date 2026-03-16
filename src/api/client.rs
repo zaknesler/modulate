@@ -140,8 +140,10 @@ impl Client<WithoutToken> {
             .await?
             .try_into()?;
 
-        // Since the auth flow does not return a refresh token, we must use the old one
-        new_token.refresh_token = Some(refresh_token);
+        // Only use the old refresh token if Spotify didn't return a new one
+        if new_token.refresh_token.is_none() {
+            new_token.refresh_token = Some(refresh_token);
+        }
 
         // Update user with new token and save it to the client
         let user = UserRepo::new(ctx).upsert_user_token(&user.user_uri, &new_token)?;
