@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), 
 
 Nothing yet.
 
+## [0.17.0] - 2026-03-15
+
+### Changed
+
+- Removed `anyhow` dependency in favor of more explicit error handling
+- Improved OAuth token refresh flow to handle cases where Spotify returns a new refresh token
+- Continue processing other users when token refresh fails
+- Added better error logging for auth session creation
+
+### Removed
+
+- Removed unnecessary `synced_at` field from `User` model
+
+### Fixed
+
+- OAuth error types are now properly handled with dedicated error variant
+
 ## [0.16.2] - 2026-03-15
 
 ### Changed
@@ -327,7 +344,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.16.2...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/zaknesler/modulate/compare/v0.16.2...v0.17.0
 [0.16.2]: https://github.com/zaknesler/modulate/compare/v0.16.1...v0.16.2
 [0.16.1]: https://github.com/zaknesler/modulate/compare/v0.16.0...v0.16.1
 [0.16.0]: https://github.com/zaknesler/modulate/compare/v0.15.0...v0.16.0
