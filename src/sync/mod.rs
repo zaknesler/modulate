@@ -79,7 +79,15 @@ async fn execute(ctx: AppContext) -> SyncResult<()> {
             }));
         });
 
-        let (client, _) = client::Client::from_user_ensure_refreshed(ctx.clone(), user).await?;
+        let (client, _) = match client::Client::from_user_ensure_refreshed(ctx.clone(), user).await
+        {
+            Ok(val) => val,
+            Err(err) => {
+                tracing::error!("Failed to refresh token for {}: {}", watcher.user_uri, err);
+                sentry::capture_error(&err);
+                continue;
+            }
+        };
 
         match sync_watcher(ctx.clone(), client, &watcher_repo, &watcher, now).await {
             Ok(_) => {

@@ -1,10 +1,9 @@
 [package]
 name = "modulate"
-version = "0.16.2"
+version = "0.17.0"
 edition = "2024"
 
 [dependencies]
-anyhow = "1.0"
 askama = "0.15"
 axum = { version = "0.8", features = ["form", "macros"] }
 chrono = { version = "0.4", features = ["serde"] }

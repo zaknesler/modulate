@@ -1,3 +1,5 @@
+use oauth2::{RequestTokenError, basic::BasicErrorResponse};
+
 pub type ClientResult<T> = Result<T, ClientError>;
 
 #[allow(clippy::enum_variant_names)]
@@ -37,6 +39,12 @@ pub enum ClientError {
     OAuthRequestError(#[from] oauth2::reqwest::Error),
 
     #[error(transparent)]
+    OAuthTokenError(
+        #[from]
+        RequestTokenError<oauth2::HttpClientError<oauth2::reqwest::Error>, BasicErrorResponse>,
+    ),
+
+    #[error(transparent)]
     RegexError(#[from] regex::Error),
 
     #[error(transparent)]
@@ -47,9 +55,6 @@ pub enum ClientError {
 
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
-
-    #[error(transparent)]
-    AnyhowError(#[from] anyhow::Error),
 
     #[error(transparent)]
     DbError(#[from] crate::db::error::DbError),
