@@ -11,7 +11,7 @@ env:
 
 jobs:
   publish:
-    name: Build and Push
+    name: Build and push
     runs-on: ubuntu-latest
     permissions:
       contents: read

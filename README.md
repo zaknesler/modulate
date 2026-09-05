@@ -19,9 +19,11 @@ Once you connect your Spotify account and configure a watcher, it'll stay runnin
   <img alt="screenshot of app after configuring watchers" width="700" src=".github/assets/screenshot.png">
 </details>
 
-#### Usage
+### Usage
 
-To run this utility locally:
+A docker image is published at `ghcr.io/zaknesler/modulate:latest`, use the example [compose.yml](./compose.yml) file to get started.
+
+Alternatively, to run the standalone binary:
 
 1. Create and configure a [Spotify developer application](https://developer.spotify.com/dashboard)
 1. Download the latest [release binary](https://github.com/zaknesler/modulate/releases/latest)

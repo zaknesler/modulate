@@ -8,6 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), 
 
 Nothing yet.
 
+## [0.17.1] - 2026-09-05
+
+### Added
+
+- Added Docker image build
+  - Published at `ghcr.io/zaknesler/modulate:latest`
+
 ## [0.17.0] - 2026-03-15
 
 ### Changed
@@ -119,7 +126,7 @@ Nothing yet.
 
 ### Changed
 
-- Refactored transfer logic to make it more *modular*
+- Refactored transfer logic to make it more _modular_
 - Callback URL/CORS origin are now unified into one `WEB_PUBLIC_URL` env variable
 - Web error responses are handled a bit more nicely
 - Input font size is now `1rem` (16px) on mobile to prevent auto-zooming on focus
@@ -228,7 +235,7 @@ Nothing yet.
 - Repo methods will now return `Option` instead of erroring if a record could not be found (not including ones that return arrays)
 - Can no longer create a watcher if either:
   1. A watcher with `should_remove` enabled already exists for that playlist
-  2. They are trying to create a watcher with `should_remove` enabled and *any* other watcher already exists for that playlist
+  2. They are trying to create a watcher with `should_remove` enabled and _any_ other watcher already exists for that playlist
 
 ### Fixed
 
@@ -344,7 +351,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.17.1...HEAD
+[0.17.1]: https://github.com/zaknesler/modulate/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/zaknesler/modulate/compare/v0.16.2...v0.17.0
 [0.16.2]: https://github.com/zaknesler/modulate/compare/v0.16.1...v0.16.2
 [0.16.1]: https://github.com/zaknesler/modulate/compare/v0.16.0...v0.16.1

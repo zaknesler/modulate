@@ -7,3 +7,9 @@ services:
       - "3000:3000"
     volumes:
       - ./data:/data
+    environment:
+      - MODULATE_WEB_PUBLIC_URL=http://localhost:3000
+      - MODULATE_WEB_JWT_SECRET=
+      - MODULATE_SPOTIFY_CLIENT_ID=
+      - MODULATE_SPOTIFY_CLIENT_SECRET=
+      # - MODULATE_SENTRY_DSN=this_is_optional
