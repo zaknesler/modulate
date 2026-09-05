@@ -11,13 +11,13 @@ file="modulate.db"
 
 [web]
 host="0.0.0.0"
-port=4000
-public_url="http://127.0.0.1:4000"
+port=3000
+public_url="http://127.0.0.1:3000"
 jwt_secret="something_random"
 
 [spotify]
 # Spotify API credentials (https://developers.spotify.com/dashboard)
-# Be sure to set the redirect URI in your developer app to "{WEB_PUBLIC_URL}/callback" (e.g. "http://127.0.0.1:4000/callback")
+# Be sure to set the redirect URI in your developer app to "{WEB_PUBLIC_URL}/callback" (e.g. "http://127.0.0.1:3000/callback")
 client_id=""
 client_secret=""
 
