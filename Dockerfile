@@ -1,15 +1,24 @@
 # syntax=docker/dockerfile:1
 
-FROM rust:1-alpine AS builder
+FROM rust:1-alpine AS chef
 
 RUN apk add --no-cache musl-dev build-base perl
+RUN cargo install cargo-chef --locked
 
 WORKDIR /build
-COPY . .
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/build/target \
-    cargo build --release \
+FROM chef AS planner
+
+COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
+
+FROM chef AS builder
+
+COPY --from=planner /build/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+
+COPY . .
+RUN cargo build --release \
     && cp target/release/modulate /build/modulate
 
 FROM gcr.io/distroless/static-debian12
