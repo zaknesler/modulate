@@ -28,6 +28,6 @@ To run this utility locally:
 1. Run `./modulate publish` to publish the configuration file and open it
 1. Add Spotify credentials and enter a unique `jwt_secret`
 1. Run `./modulate start` to start the server
-1. Go to [`127.0.0.1:4000`](http://127.0.0.1:4000), sign in via Spotify, and configure your watchers
+1. Go to [`127.0.0.1:3000`](http://127.0.0.1:3000), sign in via Spotify, and configure your watchers
 
 You are able to connect as many Spotify accounts as you want as long as you add their email to your developer application via the dashboard.

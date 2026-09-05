@@ -1,0 +1,9 @@
+services:
+  modulate:
+    image: ghcr.io/zaknesler/modulate:latest
+    container_name: modulate
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
