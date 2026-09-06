@@ -21,15 +21,26 @@ Once you connect your Spotify account and configure a watcher, it'll stay runnin
 
 ### Usage
 
-A docker image is published at `ghcr.io/zaknesler/modulate:latest`, use the example [compose.yml](./compose.yml) file to get started.
+Create a [Spotify developer application](https://developer.spotify.com/dashboard) and add `http://localhost:3000/callback` as a redirect URI. Be sure to add your Spotify email address. You can connect as many Spotify accounts as you want to a developer application, as long as you add each email you would like to use.
 
-Alternatively, to run the standalone binary:
+#### Docker
 
-1. Create and configure a [Spotify developer application](https://developer.spotify.com/dashboard)
+Images are published to `ghcr.io/zaknesler/modulate`. Use the example [compose.yml](./compose.yml) to get started, or to quickly try it out:
+
+```sh
+docker run --rm -p 3000:3000 -v modulate:/data \
+  -e MODULATE_WEB_PUBLIC_URL=http://localhost:3000 \
+  -e MODULATE_WEB_JWT_SECRET=some_secret_key \
+  -e MODULATE_SPOTIFY_CLIENT_ID=your_client_id \
+  -e MODULATE_SPOTIFY_CLIENT_SECRET=your_client_secret \
+  ghcr.io/zaknesler/modulate:latest
+```
+
+#### Standalone binary
+
 1. Download the latest [release binary](https://github.com/zaknesler/modulate/releases/latest)
 1. Run `./modulate publish` to publish the configuration file and open it
 1. Add Spotify credentials and enter a unique `jwt_secret`
 1. Run `./modulate start` to start the server
-1. Go to [`127.0.0.1:3000`](http://127.0.0.1:3000), sign in via Spotify, and configure your watchers
 
-You are able to connect as many Spotify accounts as you want as long as you add their email to your developer application via the dashboard.
+Now you can go to [`127.0.0.1:3000`](http://127.0.0.1:3000), sign in via Spotify, and configure your watchers.

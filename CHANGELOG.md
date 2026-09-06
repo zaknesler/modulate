@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0), 
 
 Nothing yet.
 
+## [0.17.2] - 2026-09-05
+
+### Changed
+
+- Improved docker build
+
 ## [0.17.1] - 2026-09-05
 
 ### Added
@@ -351,7 +357,8 @@ Nothing yet.
   - Create a "watcher" for a single playlist
   - Background task runs on an interval, transferring tracks for each user that has configured a "watcher"
 
-[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.17.1...HEAD
+[Unreleased]: https://github.com/zaknesler/modulate/compare/v0.17.2...HEAD
+[0.17.2]: https://github.com/zaknesler/modulate/compare/v0.17.1...v0.17.2
 [0.17.1]: https://github.com/zaknesler/modulate/compare/v0.17.0...v0.17.1
 [0.17.0]: https://github.com/zaknesler/modulate/compare/v0.16.2...v0.17.0
 [0.16.2]: https://github.com/zaknesler/modulate/compare/v0.16.1...v0.16.2
