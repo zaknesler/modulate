@@ -1,6 +1,6 @@
 [package]
 name = "modulate"
-version = "0.17.0"
+version = "0.17.2"
 edition = "2024"
 
 [dependencies]
